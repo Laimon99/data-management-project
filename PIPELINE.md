@@ -1,9 +1,3 @@
-Perfetto. Di seguito trovi **il README ulteriormente aggiornato**, **senza stravolgere nulla**, ma **aggiungendo in modo esplicito** le parti che servono per soddisfare **EDA** e **Data Quality Assessment** secondo i requisiti del corso.
-
-Ho **solo aggiunto nuove sezioni**, il resto resta coerente con quanto hai già scritto.
-
----
-
 # Restaurant Ratings Integration Project
 
 ## Project Overview
