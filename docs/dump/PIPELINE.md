@@ -1,5 +1,7 @@
 # Restaurant Ratings Integration Project
 
+IMPORTANT!!!! THIS IS JUST ROUGH IDEA AND NOT MRD OR REAL IMPLEMENTATION PLAN. ESPECIALLY REGARDING THE ARCHITECTURE AND FLOW. THOSE ARE SUBJECTS TO CHANGE!!!!
+
 ## Project Overview
 
 This project aims to **compare restaurant ratings across multiple online platforms** by building a unified dataset that integrates data scraped from:
