@@ -16,6 +16,87 @@
 
 ---
 
+## 🚀 Setup & Stage 1 (seed acquisition)
+
+Stage 1 is a two-mode Google Places API (New) client that builds the
+`restaurants_seed` collection — the geographic backbone of the project.
+
+### Install
+
+```bash
+uv sync --extra dev          # install runtime + dev dependencies
+uv run pre-commit install    # (optional) install git hooks
+uv run pytest                # run the test suite (no API key needed)
+```
+
+### Configure the API key
+
+```bash
+cp .env.example .env
+# edit .env and paste your key after DATAMAN_GOOGLE_PLACES_API_KEY=
+```
+
+The key must have **Places API (New)** enabled in Google Cloud
+(*APIs & Services → Library → "Places API (New)" → Enable*) — the legacy
+Places API will not work. `.env` is gitignored; the key is never written to
+any log, file, or output document.
+
+### Quick test — load ~10 venues from Milan centre
+
+To make a single Nearby Search call around Piazza del Duomo, constrain the
+search area so only one tile is generated, then cap the result count:
+
+```bash
+echo "DATAMAN_OUTER_RADIUS_M=500" >> .env   # one Duomo-centred tile
+uv run pipeline-stage1 list --max-results 10
+```
+
+A JSON `ListReport` is printed to stdout (`tiles_processed`, `unique_places`,
+`pages_fetched`, `errors`) and the venues land in `data/restaurants_seed.jsonl`.
+Inspect them:
+
+```bash
+head data/restaurants_seed.jsonl | uv run python -c \
+  "import sys, json; [print(json.loads(l)['name'], '—', json.loads(l)['formatted_address']) for l in sys.stdin]"
+```
+
+The run is idempotent: completed tiles are recorded in
+`data/checkpoints/list_tiles.json` and skipped on re-run. Delete that file to
+force a re-fetch.
+
+### Enrich with full Place Details (Mode 2)
+
+```bash
+uv run pipeline-stage1 detail --all                 # enrich every seed venue
+uv run pipeline-stage1 detail --place-id <PLACE_ID> # or a single venue
+```
+
+Mode 2 merges the full raw Place Details payload into each seed document,
+preserving the seed fields. Already-enriched venues are tracked in
+`data/checkpoints/detail_done.txt` and skipped on re-run.
+
+> CLI forms are interchangeable: `pipeline-stage1 list` ≡
+> `pipeline-stage1 --mode list`, and likewise for `detail`.
+
+### Behaviour on errors
+
+- Invalid key / bad request → `PermanentPlacesError` (4xx), not retried.
+- Rate limit (429) or transient 5xx → retried up to 5× with exponential backoff.
+- A venue that fails after retries is logged with its `place_id` and reason;
+  the run continues rather than aborting.
+
+### Full Milan run (acceptance target ≥ 500 venues)
+
+Remove the `DATAMAN_OUTER_RADIUS_M` override (defaults to 8 km, ~150 tiles) and
+drop `--max-results`:
+
+```bash
+uv run pipeline-stage1 list      # tiles the whole city
+uv run pipeline-stage1 detail --all
+```
+
+---
+
 ## 1️⃣ Domain & research questions
 
 ### Domain
