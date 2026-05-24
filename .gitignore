@@ -40,6 +40,10 @@ data/
 output/
 results/
 
+# Keep test fixtures tracked
+!tests/**/*.json
+!tests/**/*.jsonl
+
 # Logs
 *.log
 logs/
@@ -66,3 +70,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# agents
+_plans/
