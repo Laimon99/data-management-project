@@ -1,20 +1,37 @@
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Literal
 
 from .checkpoint import TileCheckpoint
 from .config import Settings
 from .places_client import PermanentPlacesError, PlacesClient, TransientPlacesError
 from .schema import from_nearby_place
 from .storage import SeedStore
-from .tiling import generate_tiles
+from .tiling import generate_multi_centre_tiles
 
 _LOG = logging.getLogger(__name__)
+
+# "full"          -> whole-city circle + all neighbourhood anchors (default)
+# "city"          -> whole-city circle only (single Duomo centre, outer_radius_m)
+# "neighbourhoods"-> the configured neighbourhood anchors only
+Scope = Literal["full", "city", "neighbourhoods"]
+
+
+def resolve_centres(settings: Settings, scope: Scope) -> list[tuple[float, float, float]]:
+    """Translate a coverage scope into the list of (lat, lon, outer_radius_m) centres."""
+    city = (settings.milan_center_lat, settings.milan_center_lon, float(settings.outer_radius_m))
+    anchors = [(n.lat, n.lon, float(n.outer_radius_m)) for n in settings.neighbourhoods]
+    if scope == "city":
+        return [city]
+    if scope == "neighbourhoods":
+        return anchors
+    return [city, *anchors]
 
 
 @dataclass
 class ListReport:
+    total_tiles: int = 0
     tiles_processed: int = 0
     tiles_skipped: int = 0
     places_seen: int = 0
@@ -29,16 +46,17 @@ def run_mode_list(
     client: PlacesClient,
     ckpt: TileCheckpoint,
     *,
+    scope: Scope = "full",
     max_results: int | None = None,
 ) -> ListReport:
-    tiles = generate_tiles(
-        center_lat=settings.milan_center_lat,
-        center_lon=settings.milan_center_lon,
-        outer_radius_m=settings.outer_radius_m,
+    centres = resolve_centres(settings, scope)
+    tiles = generate_multi_centre_tiles(
+        centres,
         tile_radius_m=settings.search_radius_m,
         overlap=settings.tile_overlap,
     )
-    report = ListReport()
+    _LOG.info("tiling scope=%s: %d deduplicated tiles to process", scope, len(tiles))
+    report = ListReport(total_tiles=len(tiles))
     seen_ids: set[str] = set()
 
     for tile in tiles:

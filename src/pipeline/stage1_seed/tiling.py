@@ -46,3 +46,34 @@ def generate_tiles(
             lon = center_lon + (dx_m / m_per_deg_lon)
             tiles.append(Tile(lat=lat, lon=lon, radius_m=int(tile_radius_m)))
     return tiles
+
+
+def generate_multi_centre_tiles(
+    centres: list[tuple[float, float, float]],
+    tile_radius_m: float,
+    overlap: float = 0.2,
+) -> list[Tile]:
+    """Union of per-centre tile grids, deduplicated on a shared step-grid.
+
+    Each centre is `(lat, lon, outer_radius_m)`. Tile centres are snapped to one
+    global metre-based grid (cell size = the generator's `step_m`); one tile is
+    kept per occupied cell, so the same area is never queried twice and the
+    result is independent of anchor order.
+    """
+    step_m = 2 * tile_radius_m * (1 - overlap)
+    ref_lat = centres[0][0] if centres else 0.0
+    m_per_deg_lon = _M_PER_DEG_LAT * math.cos(math.radians(ref_lat))
+
+    kept: list[Tile] = []
+    seen_cells: set[tuple[int, int]] = set()
+    for lat, lon, outer in centres:
+        for t in generate_tiles(lat, lon, outer, tile_radius_m, overlap):
+            cell = (
+                round((t.lat * _M_PER_DEG_LAT) / step_m),
+                round((t.lon * m_per_deg_lon) / step_m),
+            )
+            if cell in seen_cells:
+                continue
+            seen_cells.add(cell)
+            kept.append(t)
+    return kept

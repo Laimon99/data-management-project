@@ -29,14 +29,48 @@ def _load_settings() -> Settings:
         raise typer.Exit(code=1) from None
 
 
-def _do_list(max_results: Optional[int]) -> None:
+def _select_neighbourhood(settings: Settings, name: str) -> Settings:
+    matches = [n for n in settings.neighbourhoods if n.name == name]
+    if not matches:
+        valid = ", ".join(n.name for n in settings.neighbourhoods) or "(none configured)"
+        typer.echo(f"Unknown neighbourhood {name!r}. Valid names: {valid}", err=True)
+        raise typer.Exit(code=2)
+    return settings.model_copy(update={"neighbourhoods": matches})
+
+
+def _do_list(
+    max_results: Optional[int],
+    neighbourhood: Optional[str] = None,
+    whole_city: bool = False,
+    all_neighbourhoods: bool = False,
+) -> None:
+    selectors = [whole_city, all_neighbourhoods, neighbourhood is not None]
+    if sum(bool(s) for s in selectors) > 1:
+        typer.echo(
+            "Use at most one of --whole-city, --all-neighbourhoods, --neighbourhood.",
+            err=True,
+        )
+        raise typer.Exit(code=2)
+
     settings = _load_settings()
+    if whole_city:
+        scope = "city"
+    elif neighbourhood is not None:
+        settings = _select_neighbourhood(settings, neighbourhood)
+        scope = "neighbourhoods"
+    elif all_neighbourhoods:
+        scope = "neighbourhoods"
+    else:
+        scope = "full"
+
     configure_logging(api_key=settings.google_places_api_key.get_secret_value())
     store = make_store(settings)
     ckpt = TileCheckpoint(settings.checkpoint_dir / "list_tiles.json")
     try:
         with PlacesClient(settings) as client:
-            report = run_mode_list(settings, store, client, ckpt, max_results=max_results)
+            report = run_mode_list(
+                settings, store, client, ckpt, scope=scope, max_results=max_results
+            )
     finally:
         store.close()
     typer.echo(json.dumps(asdict(report), default=str, indent=2))
@@ -83,9 +117,28 @@ def cmd_list(
     max_results: Optional[int] = typer.Option(
         None, "--max-results", help="Stop after this many unique venues."
     ),
+    neighbourhood: Optional[str] = typer.Option(
+        None,
+        "--neighbourhood",
+        help="Tile only this one named neighbourhood anchor.",
+    ),
+    whole_city: bool = typer.Option(
+        False,
+        "--whole-city",
+        help="Tile only the whole-city circle (single centre, outer_radius_m).",
+    ),
+    all_neighbourhoods: bool = typer.Option(
+        False,
+        "--all-neighbourhoods",
+        help="Tile only the neighbourhood anchors, without the whole-city circle.",
+    ),
 ) -> None:
-    """Mode 1: tile Milan and collect food venues into the seed store."""
-    _do_list(max_results)
+    """Mode 1: tile Milan and collect food venues into the seed store.
+
+    Default (no flags) covers the whole-city circle AND all neighbourhood
+    anchors, merged and deduplicated.
+    """
+    _do_list(max_results, neighbourhood, whole_city, all_neighbourhoods)
 
 
 @app.command("detail")
@@ -107,6 +160,9 @@ def _root(
         help="Legacy alias: '--mode list' or '--mode detail'.",
     ),
     max_results: Optional[int] = typer.Option(None, "--max-results", show_default=False),
+    neighbourhood: Optional[str] = typer.Option(None, "--neighbourhood", show_default=False),
+    whole_city: bool = typer.Option(False, "--whole-city", show_default=False),
+    all_neighbourhoods: bool = typer.Option(False, "--all-neighbourhoods", show_default=False),
     place_id: Optional[str] = typer.Option(None, "--place-id", show_default=False),
     place_ids_file: Optional[Path] = typer.Option(None, "--place-ids-file", show_default=False),
     enrich_all: bool = typer.Option(False, "--all", show_default=False),
@@ -117,7 +173,7 @@ def _root(
         typer.echo("Use either '--mode list/detail' or the subcommand form, not both.", err=True)
         raise typer.Exit(code=2)
     if mode == "list":
-        _do_list(max_results)
+        _do_list(max_results, neighbourhood, whole_city, all_neighbourhoods)
     elif mode == "detail":
         _do_detail(place_id, place_ids_file, enrich_all)
     else:

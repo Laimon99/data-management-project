@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from pipeline.stage1_seed.tiling import generate_tiles
+from pipeline.stage1_seed.tiling import generate_multi_centre_tiles, generate_tiles
 
 _M_PER_DEG_LAT = 111_320.0
 
@@ -51,3 +51,45 @@ def test_invalid_overlap_raises():
 def test_invalid_radius_raises():
     with pytest.raises(ValueError):
         generate_tiles(45.46, 9.19, 0, 500, overlap=0.2)
+
+
+def test_multi_centre_far_apart_is_union():
+    a = (45.46, 9.19, 1000)
+    b = (45.60, 9.40, 1000)  # ~20 km away, no overlap
+    tiles_a = generate_tiles(*a, tile_radius_m=500, overlap=0.3)
+    tiles_b = generate_tiles(*b, tile_radius_m=500, overlap=0.3)
+    multi = generate_multi_centre_tiles([a, b], tile_radius_m=500, overlap=0.3)
+    assert len(multi) == len(tiles_a) + len(tiles_b)
+
+
+def test_multi_centre_identical_anchors_dedupes_fully():
+    a = (45.46, 9.19, 1000)
+    single = generate_tiles(*a, tile_radius_m=500, overlap=0.3)
+    multi = generate_multi_centre_tiles([a, a], tile_radius_m=500, overlap=0.3)
+    assert len(multi) == len(single)
+
+
+def test_multi_centre_partial_overlap_fewer_than_sum():
+    a = (45.46, 9.19, 1000)
+    b = (45.465, 9.196, 1000)  # ~700 m away, grids overlap
+    tiles_a = generate_tiles(*a, tile_radius_m=500, overlap=0.3)
+    tiles_b = generate_tiles(*b, tile_radius_m=500, overlap=0.3)
+    multi = generate_multi_centre_tiles([a, b], tile_radius_m=500, overlap=0.3)
+    assert len(multi) < len(tiles_a) + len(tiles_b)
+
+
+def test_multi_centre_order_independent():
+    a = (45.46, 9.19, 1000)
+    b = (45.465, 9.196, 1000)
+    ab = generate_multi_centre_tiles([a, b], tile_radius_m=500, overlap=0.3)
+    ba = generate_multi_centre_tiles([b, a], tile_radius_m=500, overlap=0.3)
+    assert len(ab) == len(ba)
+
+
+def test_multi_centre_preserves_tile_radius():
+    multi = generate_multi_centre_tiles([(45.46, 9.19, 1000)], tile_radius_m=500, overlap=0.3)
+    assert all(t.radius_m == 500 for t in multi)
+
+
+def test_multi_centre_empty_centres():
+    assert generate_multi_centre_tiles([], tile_radius_m=500, overlap=0.3) == []

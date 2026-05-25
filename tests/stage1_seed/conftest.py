@@ -14,6 +14,7 @@ def settings(monkeypatch, tmp_path) -> Settings:
     monkeypatch.setenv("DATAMAN_OUTER_RADIUS_M", "1000")
     monkeypatch.setenv("DATAMAN_SEARCH_RADIUS_M", "750")
     monkeypatch.setenv("DATAMAN_TILE_OVERLAP", "0.3")
+    monkeypatch.setenv("DATAMAN_NEIGHBOURHOODS", "[]")
     monkeypatch.setenv("DATAMAN_REQUEST_DELAY_S", "0")
     monkeypatch.setenv("DATAMAN_MAX_PAGES_PER_TILE", "3")
     return Settings(_env_file=None)  # type: ignore[call-arg]

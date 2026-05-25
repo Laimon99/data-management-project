@@ -47,9 +47,14 @@ To make a single Nearby Search call around Piazza del Duomo, constrain the
 search area so only one tile is generated, then cap the result count:
 
 ```bash
-echo "DATAMAN_OUTER_RADIUS_M=500" >> .env   # one Duomo-centred tile
-uv run pipeline-stage1 list --max-results 10
+echo "DATAMAN_OUTER_RADIUS_M=500" >> .env       # one Duomo-centred tile
+uv run pipeline-stage1 list --whole-city --max-results 10
 ```
+
+`--whole-city` restricts the run to the single whole-city circle (Duomo +
+`DATAMAN_OUTER_RADIUS_M`), which is what makes the radius override above produce
+a single tile. Without it, the default run also tiles the dense neighbourhood
+anchors (see below) and ignores `DATAMAN_OUTER_RADIUS_M` for those.
 
 A JSON `ListReport` is printed to stdout (`tiles_processed`, `unique_places`,
 `pages_fetched`, `errors`) and the venues land in `data/restaurants_seed.jsonl`.
@@ -85,15 +90,31 @@ preserving the seed fields. Already-enriched venues are tracked in
 - A venue that fails after retries is logged with its `place_id` and reason;
   the run continues rather than aborting.
 
-### Full Milan run (acceptance target ≥ 500 venues)
+### Full run (acceptance target ≥ 500 venues)
 
-Remove the `DATAMAN_OUTER_RADIUS_M` override (defaults to 8 km, ~150 tiles) and
-drop `--max-results`:
+By default `list` gives **maximum coverage**: the whole-city circle (single
+Duomo centre out to `DATAMAN_OUTER_RADIUS_M`, defaults to 9 km) **plus** a
+curated set of high-density neighbourhood anchors (Navigli, Brera, Isola, Porta
+Venezia/Romana, Corso Sempione, Loreto, ...). Tiles from every centre are merged
+and deduplicated, so each area is queried at most once. Drop `--max-results` for
+the full run:
 
 ```bash
-uv run pipeline-stage1 list      # tiles the whole city
+uv run pipeline-stage1 list          # whole-city circle + all neighbourhood anchors
 uv run pipeline-stage1 detail --all
 ```
+
+Flags narrow the coverage (use at most one):
+
+```bash
+uv run pipeline-stage1 list --whole-city               # whole-city circle only
+uv run pipeline-stage1 list --all-neighbourhoods       # all anchors only, no city circle
+uv run pipeline-stage1 list --neighbourhood navigli_1  # a single named anchor
+```
+
+Override the anchors via `DATAMAN_NEIGHBOURHOODS` (JSON list of
+`{name, lat, lon, outer_radius_m}`); set it to `[]` so the default run covers
+only the whole-city circle.
 
 ---
 
