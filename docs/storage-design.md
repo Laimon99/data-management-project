@@ -5,8 +5,9 @@ project. Covers the data characteristics, the query workload implied by our rese
 questions, candidate engines (document and columnar), and the architecture options on
 the table.
 
-This is a **design exploration**, not a locked decision. Open choices are listed at the
-end.
+This is a **design exploration**, not a locked decision or current Stage 1
+implementation plan. Stage 1 has already produced raw JSONL acquisition output;
+DBMS/storage implementation for later stages is intentionally deferred.
 
 ---
 
@@ -16,7 +17,7 @@ end.
 
 | Layer | Shape | Volume | Notes |
 |---|---|---|---|
-| **Seed (Google Places)** | Deeply nested JSON document (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Naturally document-shaped; flattening to columns is lossy. See `dataset-schema.md`. |
+| **Seed (Google Places)** | Raw JSONL with deeply nested JSON documents (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Already collected as acquisition output; can be imported later if a DBMS is chosen. See `dataset-schema.md`. |
 | **Per-platform records** (Tripadvisor, TheFork, Google) | Scraped name/address + rating + review count + review text | ~1–3k matched venues per platform | Text reviews are document-shaped and variable. |
 | **Integrated ratings table** | Flat: one row per resolved restaurant, ratings from each platform + coordinates | ~1–3k rows | The analytical surface; must answer the mandatory queries. |
 
@@ -138,11 +139,11 @@ default columnar pick (embedded, spatial extension covers geo, zero infra) and
 
 | Pipeline stage | Store | Why |
 |---|---|---|
-| 1. Seed acquisition | MongoDB `restaurants_seed` | Nested Places doc stored as-is |
-| 2. Per-platform collection | MongoDB `*_raw` collections | Variable, text-heavy docs |
-| 3. Entity resolution | MongoDB (`2dsphere` blocking) → match table | Geo + name/addr similarity blocking |
-| 4. Unified dataset | Columnar `restaurants_ratings` | Flat analytical surface; mandatory queries |
-| 5. Quality assessment & EDA | Columnar (+ optional OpenSearch Dashboards) | Aggregations, before/after metrics |
+| 1. Seed acquisition | Raw JSONL already collected | Acquisition output only; no DBMS responsibility in Stage 1 |
+| 2. Per-platform collection | Candidate MongoDB `*_raw` collections | Variable, text-heavy docs; decision deferred |
+| 3. Entity resolution | Candidate MongoDB (`2dsphere` blocking) → match table | Geo + name/addr similarity blocking; decision deferred |
+| 4. Unified dataset | Candidate columnar `restaurants_ratings` | Flat analytical surface; mandatory queries |
+| 5. Quality assessment & EDA | Candidate columnar (+ optional OpenSearch Dashboards) | Aggregations, before/after metrics |
 
 All three architecture options satisfy the exam requirement of "one or more DBMS + ≥2
 queries."

@@ -32,8 +32,7 @@ uv run pytest                # run the test suite (no API key needed)
 ### Configure the API key
 
 ```bash
-cp .env.example .env
-# edit .env and paste your key after DATAMAN_GOOGLE_PLACES_API_KEY=
+printf "DATAMAN_GOOGLE_PLACES_API_KEY=your_key_here\n" > .env
 ```
 
 The key must have **Places API (New)** enabled in Google Cloud
@@ -43,18 +42,19 @@ any log, file, or output document.
 
 ### Quick test — load ~10 venues from Milan centre
 
-To make a single Nearby Search call around Piazza del Duomo, constrain the
-search area so only one tile is generated, then cap the result count:
+For a small smoke test around Piazza del Duomo, constrain the search area to the
+whole-city fallback circle and cap the result count:
 
 ```bash
-echo "DATAMAN_OUTER_RADIUS_M=500" >> .env       # one Duomo-centred tile
+echo "DATAMAN_OUTER_RADIUS_M=500" >> .env
 uv run pipeline-stage1 list --whole-city --max-results 10
 ```
 
 `--whole-city` restricts the run to the single whole-city circle (Duomo +
-`DATAMAN_OUTER_RADIUS_M`), which is what makes the radius override above produce
-a single tile. Without it, the default run also tiles the dense neighbourhood
-anchors (see below) and ignores `DATAMAN_OUTER_RADIUS_M` for those.
+`DATAMAN_OUTER_RADIUS_M`). The circle is still tiled internally, so this may make
+more than one API call; `--max-results` stops the run once enough unique venues
+have been seen. Without `--whole-city`, the default run also tiles the dense
+neighbourhood anchors (see below) and ignores `DATAMAN_OUTER_RADIUS_M` for those.
 
 A JSON `ListReport` is printed to stdout (`tiles_processed`, `unique_places`,
 `pages_fetched`, `errors`) and the venues land in `data/restaurants_seed.jsonl`.
@@ -66,8 +66,8 @@ head data/restaurants_seed.jsonl | uv run python -c \
 ```
 
 The run is idempotent: completed tiles are recorded in
-`data/checkpoints/list_tiles.json` and skipped on re-run. Delete that file to
-force a re-fetch.
+`data/checkpoints/list_tiles.json` and skipped on re-run. Clear or replace that
+checkpoint file to force a re-fetch.
 
 ### Enrich with full Place Details (Mode 2)
 
@@ -145,9 +145,9 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
 ❗❗❗**UP FOR DEBATE** ❗❗❗
 
-### Source A — Google Maps (scraping) - may be hard to scrape, but first source that comes to mind
+### Source A — Google Maps / Google Places API (implemented Stage 1)
 
-* **Type**: Web scraping
+* **Type**: Official API via Places API (New)
 * **Data**:
 
   * Restaurant name
@@ -155,75 +155,111 @@ The project focuses on restaurants located in **Milan and surrounding municipali
   * Coordinates (lat/lon)
   * Rating
   * Number of reviews
-  * Category (Italian, pizza, sushi…)
+  * Google place types and primary type
+  * Optional full Place Details payload
 * **Why**:
 
   * High coverage in Milan
   * Rich metadata
+  * Coordinates become the project geographic backbone
 * **Tools**:
 
-  * Selenium / Playwright
-  * Requests + BeautifulSoup (for lightweight pages)
+  * Python + `httpx`
+  * Tiled Nearby Search + Place Details
+  * Raw JSONL seed output in `data/restaurants_seed.jsonl`
 
-### Source B — Yelp Fusion API - ❗❗❗❗❗❗ PAID ❗❗❗❗❗❗
+### Source B — Tripadvisor (planned)
 
-* **Type**: Official API
+* **Type**: Web scraping or another reproducible acquisition path
 * **Data**:
 
-  * Business name
+  * Scraped restaurant name
   * Address
   * Rating
   * Review count
-  * Price range
-  * Categories
+  * Optional review text / recency fields
 * **Why**:
 
-  * Clean structured API
-  * Different user base → meaningful comparison
+  * Different user base from Google
+  * Useful for cross-platform rating consistency analysis
 
-### (Optional) Source C — TripAdvisor (scraping)
+### Source C — TheFork (planned)
 
-Used only if time allows, as an **additional enrichment** source.
+* **Type**: Web scraping or another reproducible acquisition path
+* **Data**:
+
+  * Scraped restaurant name
+  * Address
+  * Rating
+  * Review count
+  * Optional booking/price metadata
+* **Why**:
+
+  * Restaurant-specific platform
+  * Useful comparison against review-heavy general platforms
 
 ---
 
 ## 3️⃣ Data storage & modeling (FAQ 6)
 
-### Database choice
+### Current Stage 1 persistence
 
+Stage 1 currently writes raw seed documents to JSONL:
 
-### Core schema (simplified)
+**`data/restaurants_seed.jsonl`**
+
+* one JSON object per Google place
+* deduplicated by `place_id`
+* includes raw `details` after enrichment
+* treated as acquisition output, not the final DBMS design
+
+Database/storage implementation for later stages is intentionally deferred. The
+candidate DBMS architecture is documented in `docs/storage-design.md`, but it is
+not part of the current Stage 1 scope.
+
+### Future storage shape
 
 **restaurants_raw_google**
 
-* google_id
+* place_id
 * name
 * address
 * lat, lon
 * rating
 * review_count
-* category
+* types / primary_type
+* raw details document
 
-**restaurants_raw_yelp**
+**restaurants_raw_tripadvisor**
 
-* yelp_id
+* tripadvisor_id
 * name
 * address
-* lat, lon
 * rating
 * review_count
-* price_range
+* raw scraped payload
+
+**restaurants_raw_thefork**
+
+* thefork_id
+* name
+* address
+* rating
+* review_count
+* raw scraped payload
 
 **restaurants_integrated**
 
 * unified_restaurant_id
-* google_id
-* yelp_id
+* google_place_id
+* tripadvisor_id
+* thefork_id
 * canonical_name
 * canonical_address
 * lat, lon
 * google_rating
-* yelp_rating
+* tripadvisor_rating
+* thefork_rating
 * rating_difference
 * data_quality_score
 
@@ -331,5 +367,5 @@ We can show **before vs after**:
 ### Example insights (expected)
 
 * Restaurants with <20 reviews show higher variance
-* Yelp ratings tend to be more conservative
+* One platform may be systematically more conservative than another
 * Peripheral areas have lower data completeness

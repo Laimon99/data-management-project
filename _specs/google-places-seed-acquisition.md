@@ -15,7 +15,7 @@ Implement a two-mode Google Places API (New) client for pipeline Stage 1 (Seed A
   - Handle pagination (nextPageToken) until all results are exhausted or a configurable max-results limit is reached.
   - Deduplicate results by `place_id` before writing.
   - Output each venue with at minimum: `place_id`, `name`, `formatted_address`, `city` (extracted or defaulted to "Milan"), `latitude`, `longitude`.
-  - Persist results to a document store collection `restaurants_seed` (one document per venue).
+  - Persist results to the raw seed JSONL file `data/restaurants_seed.jsonl` (one document per venue).
 - **Mode 2 – Venue Detail**
   - Accept a single `place_id` or a list/file of place_ids.
   - Request all available Place Details (New) fields via field mask, including (non-exhaustive): `rating`, `userRatingCount`, `priceLevel`, `priceRange`, `types`, `primaryType`, `websiteUri`, `regularOpeningHours`, `businessStatus`, `servesBeer`, `servesLunch`, `servesDinner`, `delivery`, `dineIn`, `takeout`, `reservable`, `reviews`.
@@ -23,7 +23,7 @@ Implement a two-mode Google Places API (New) client for pipeline Stage 1 (Seed A
   - Log which fields are absent or null per record.
 - Rate limiting: respect the Places API quota; implement configurable request delay and retry with exponential backoff on 429/503 responses.
 - API key must be read from environment variables only — never hardcoded.
-- All output must be structured as documents suitable for the chosen document store (MongoDB or equivalent).
+- All output must be structured as JSON documents suitable for later import into the chosen DBMS, if/when storage is revisited.
 
 ## Possible Edge Cases
 - Milan boundary ambiguity: a fixed-radius circle around city centre may miss outer neighbourhoods or include non-Milan venues; - it's okey to include non-Milan places.
@@ -35,11 +35,11 @@ Implement a two-mode Google Places API (New) client for pipeline Stage 1 (Seed A
 - Network timeouts or transient 5xx errors during bulk Mode 2 fetches.
 
 ## Acceptance Criteria
-- Mode 1 produces a deduplicated `restaurants_seed` collection containing at least 500 Milan food venues with all required fields populated.
+- Mode 1 produces a deduplicated raw seed dataset containing at least 500 Milan food venues with all required fields populated.
 - Mode 2, given the place_ids from Mode 1, enriches each seed document with Google ratings and raw detail fields without data loss.
 - No venue record is silently dropped; failures are logged with the offending `place_id` and reason.
 - The API key is never written to any file, log, or document.
-- Re-running Mode 1 against an existing collection upserts records rather than creating duplicates.
+- Re-running Mode 1 against an existing raw seed dataset upserts records rather than creating duplicates.
 - Re-running Mode 2 for an already-fetched place_id overwrites only the detail fields, preserving seed fields.
 - The module can be invoked from CLI with a `--mode list` or `--mode detail` flag.
 - All results pass a schema validation step (required fields present and correctly typed).

@@ -4,7 +4,7 @@ This file provides guidance to AI agents when working with code in this reposito
 
 Data Management project. The goal is to compare restaurant ratings across **Google Maps**, **Tripadvisor**, and **TheFork** for the Milan area — analyzing consistency, quality, and discrepancies.
 
-This repository is in its **planning/scaffolding phase**. There is no runnable code yet. Refer to `docs/` for the current design intent.
+This repository has a runnable **Stage 1 seed-acquisition pipeline**. Later stages are still in the planning/scaffolding phase. Refer to `docs/` for the current design intent.
 
 ---
 
@@ -41,7 +41,9 @@ Five sequential stages — each should live in its own module/directory:
 
 ## Storage
 
-A document-based database is preferred (restaurants/bars and their text reviews map naturally to documents). Relational storage is acceptable for the integrated ratings table and mandatory queries.
+Current Stage 1 persistence is raw JSONL output under `data/` (`restaurants_seed.jsonl` plus checkpoints). Treat DBMS/storage code for downstream stages as out of scope until the storage design is revisited.
+
+A document-based database remains a candidate for later raw platform data, and relational/columnar storage remains acceptable for the integrated ratings table and mandatory queries.
 
 ---
 
