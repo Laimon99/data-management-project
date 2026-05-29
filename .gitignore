@@ -43,6 +43,9 @@ results/
 !data/
 !data/**
 
+# GitHub blocks normal Git files larger than 100 MiB
+data/raw/google_places/restaurants_seed.jsonl
+
 # Keep test fixtures tracked
 !tests/**/*.json
 !tests/**/*.jsonl

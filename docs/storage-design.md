@@ -20,7 +20,7 @@ implementation for integrated downstream stages is intentionally deferred.
 
 | Layer | Shape | Volume | Notes |
 |---|---|---|---|
-| **Seed (Google Places)** | Raw JSONL with deeply nested JSON documents (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Raw output lives under `data/raw/google_places/` and can be imported later if a DBMS is chosen. See `dataset-schema.md`. |
+| **Seed (Google Places)** | Raw JSONL with deeply nested JSON documents (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Raw output lives under `data/raw/google_places/` and can be imported later if a DBMS is chosen. See `google_places_api_extractor/dataset-schema.md`. |
 | **Per-platform records** (Tripadvisor, TheFork, Google) | Scraped name/address + rating + review count + review text | ~1–3k matched venues per platform | Tripadvisor currently lands as raw scraper JSON under `data/raw/tripadvisor/`; text reviews are document-shaped and variable. |
 | **Integrated ratings table** | Flat: one row per resolved restaurant, ratings from each platform + coordinates | ~1–3k rows | The analytical surface; must answer the mandatory queries. |
 

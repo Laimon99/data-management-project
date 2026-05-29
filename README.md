@@ -124,8 +124,9 @@ only the whole-city circle.
 The Tripadvisor Playwright scraper is packaged as
 `src/tripadvisor_scraper_extract`. Runtime files are written under
 `data/raw/tripadvisor/`; the bundled restaurant URL list is copied there on first
-run if no URL file exists yet. See `docs/tripadvisor-scraper-extract.md` for
-runtime paths and browser setup details.
+run if no URL file exists yet. See
+`docs/tripadvisor_scraper_extractor/tripadvisor-scraper-extract.md` for runtime
+paths and browser setup details.
 
 ```bash
 uv run tripadvisor-scraper-extract --order bottom
