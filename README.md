@@ -43,7 +43,9 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
 * Python 3.11+
 * [`uv`](https://github.com/astral-sh/uv) package manager
-* [Brave browser](https://brave.com/) (for Tripadvisor scraper)
+* Any Chromium-based browser — Brave, Chrome, Edge, Vivaldi, Opera, or Chromium
+  (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
+  Chromium if none is found)
 
 ### Install
 
@@ -225,9 +227,12 @@ uv run tripadvisor-scraper-extract --order bottom
 ```
 
 Use `--order bottom` when another teammate is scraping from the top of the URL
-list. The default is `--order top`. The scraper auto-detects Brave on macOS,
-Windows, and Linux; pass `--brave-path <path>` if Brave is installed somewhere
-non-standard.
+list. The default is `--order top`. The scraper auto-detects an installed
+Chromium-based browser on macOS, Windows, and Linux, trying Brave, Chrome, Edge,
+Vivaldi, Opera, and Chromium in that order; if none is found it falls back to
+Playwright's bundled Chromium. Pass `--browser-path <path>` if your browser is
+installed somewhere non-standard. (The old `--brave-path` flag still works as a
+deprecated alias.)
 
 ---
 
@@ -267,7 +272,11 @@ Downloaded/acquired data is treated as raw acquisition output and kept under
 * `tripadvisor_list_restaurant.txt`: URL list
 * `tripadvisor_scraper_results.json`: raw scraper output
 * `tripadvisor_checkpoint.json`: scraper resume state
-* `brave_automation_profile/`: persistent browser profile
+* `browser_automation_profile/`: persistent browser profile (cookies/session,
+  kept so you don't have to re-solve CAPTCHAs on every run). It is git-ignored.
+  Once you've finished scraping and no longer need the saved session, it is safe
+  to delete this folder; the scraper just recreates a fresh profile on the next
+  run. Only delete it while the scraper is **not** running.
 
 Database/storage implementation for later stages is intentionally deferred. The
 candidate DBMS architecture is documented in `docs/storage-design.md`, but it is

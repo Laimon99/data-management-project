@@ -16,6 +16,7 @@ import os
 import platform
 import random
 import shutil
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -37,51 +38,166 @@ URL_FILE = Path(
 ).expanduser()
 JSON_FILE = DATA_DIR / "tripadvisor_scraper_results.json"
 CHECKPOINT_FILE = DATA_DIR / "tripadvisor_checkpoint.json"
-USER_DATA_DIR = DATA_DIR / "brave_automation_profile"
+OLD_USER_DATA_DIR = DATA_DIR / "brave_automation_profile"
+USER_DATA_DIR = DATA_DIR / "browser_automation_profile"
 
 
-def resolve_brave_path(brave_path_override=None):
-    """Return the installed Brave executable path for the current OS, if available."""
-    if brave_path_override:
-        override_path = Path(brave_path_override).expanduser()
+def _windows_path(base_env, *parts):
+    """Build a Windows candidate path, returning None when the base env var is empty."""
+    base = os.environ.get(base_env, "")
+    if not base:
+        return None
+    return Path(base).joinpath(*parts)
+
+
+# Chromium-based browsers in detection priority order. Each entry maps the current
+# OS to a list of hardcoded candidate executable paths, plus PATH executable names
+# probed via shutil.which as a last resort.
+CHROMIUM_BROWSERS = [
+    {
+        "name": "Brave",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"),
+                Path.home() / "Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
+            ],
+            "Windows": [
+                _windows_path("PROGRAMFILES", "BraveSoftware/Brave-Browser/Application/brave.exe"),
+                _windows_path(
+                    "PROGRAMFILES(X86)", "BraveSoftware/Brave-Browser/Application/brave.exe"
+                ),
+                Path.home() / "AppData/Local/BraveSoftware/Brave-Browser/Application/brave.exe",
+            ],
+            "Linux": [
+                Path("/usr/bin/brave-browser"),
+                Path("/usr/bin/brave"),
+                Path("/opt/brave.com/brave/brave-browser"),
+            ],
+        },
+        "which": ("brave-browser", "brave", "brave.exe"),
+    },
+    {
+        "name": "Google Chrome",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+                Path.home() / "Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+            ],
+            "Windows": [
+                _windows_path("PROGRAMFILES", "Google/Chrome/Application/chrome.exe"),
+                _windows_path("PROGRAMFILES(X86)", "Google/Chrome/Application/chrome.exe"),
+                Path.home() / "AppData/Local/Google/Chrome/Application/chrome.exe",
+            ],
+            "Linux": [
+                Path("/usr/bin/google-chrome"),
+                Path("/usr/bin/google-chrome-stable"),
+                Path("/opt/google/chrome/chrome"),
+            ],
+        },
+        "which": ("google-chrome", "google-chrome-stable", "chrome", "chrome.exe"),
+    },
+    {
+        "name": "Microsoft Edge",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge"),
+            ],
+            "Windows": [
+                _windows_path("PROGRAMFILES", "Microsoft/Edge/Application/msedge.exe"),
+                _windows_path("PROGRAMFILES(X86)", "Microsoft/Edge/Application/msedge.exe"),
+            ],
+            "Linux": [
+                Path("/usr/bin/microsoft-edge"),
+                Path("/opt/microsoft/msedge/msedge"),
+            ],
+        },
+        "which": ("microsoft-edge", "msedge", "msedge.exe"),
+    },
+    {
+        "name": "Vivaldi",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Vivaldi.app/Contents/MacOS/Vivaldi"),
+            ],
+            "Windows": [
+                _windows_path("PROGRAMFILES", "Vivaldi/Application/vivaldi.exe"),
+                _windows_path("PROGRAMFILES(X86)", "Vivaldi/Application/vivaldi.exe"),
+                Path.home() / "AppData/Local/Vivaldi/Application/vivaldi.exe",
+            ],
+            "Linux": [
+                Path("/usr/bin/vivaldi"),
+                Path("/opt/vivaldi/vivaldi"),
+            ],
+        },
+        "which": ("vivaldi", "vivaldi-stable", "vivaldi.exe"),
+    },
+    {
+        "name": "Opera",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Opera.app/Contents/MacOS/Opera"),
+            ],
+            "Windows": [
+                Path.home() / "AppData/Local/Programs/Opera/opera.exe",
+            ],
+            "Linux": [
+                Path("/usr/bin/opera"),
+            ],
+        },
+        "which": ("opera", "opera.exe"),
+    },
+    {
+        "name": "Chromium",
+        "paths": {
+            "Darwin": [
+                Path("/Applications/Chromium.app/Contents/MacOS/Chromium"),
+            ],
+            "Windows": [
+                _windows_path("PROGRAMFILES", "Chromium/Application/chrome.exe"),
+                _windows_path("PROGRAMFILES(X86)", "Chromium/Application/chrome.exe"),
+            ],
+            "Linux": [
+                Path("/usr/bin/chromium"),
+                Path("/usr/bin/chromium-browser"),
+                Path("/snap/bin/chromium"),
+            ],
+        },
+        "which": ("chromium", "chromium-browser", "chromium.exe"),
+    },
+]
+
+
+def resolve_chromium_browser(browser_path_override=None):
+    """Return an installed Chromium-based browser executable path for the current OS.
+
+    Detection follows the priority order in CHROMIUM_BROWSERS: hardcoded per-OS
+    paths first, then a shutil.which fallback. Returns None if nothing is found.
+    """
+    if browser_path_override:
+        override_path = Path(browser_path_override).expanduser()
         if override_path.exists():
             return override_path
-        raise FileNotFoundError(f"Percorso Brave non trovato: {override_path}")
+        raise FileNotFoundError(f"Percorso browser non trovato: {override_path}")
 
-    candidates_by_system = {
-        "Darwin": [
-            Path("/Applications/Brave Browser.app/Contents/MacOS/Brave Browser"),
-            Path.home() / "Applications/Brave Browser.app/Contents/MacOS/Brave Browser",
-        ],
-        "Windows": [
-            Path(os.environ.get("PROGRAMFILES", ""))
-            / "BraveSoftware/Brave-Browser/Application/brave.exe",
-            Path(os.environ.get("PROGRAMFILES(X86)", ""))
-            / "BraveSoftware/Brave-Browser/Application/brave.exe",
-            Path.home() / "AppData/Local/BraveSoftware/Brave-Browser/Application/brave.exe",
-        ],
-        "Linux": [
-            Path("/usr/bin/brave-browser"),
-            Path("/usr/bin/brave"),
-            Path("/opt/brave.com/brave/brave-browser"),
-        ],
-    }
+    system = platform.system()
 
-    for candidate in candidates_by_system.get(platform.system(), []):
-        if candidate.exists():
-            return candidate
+    for browser in CHROMIUM_BROWSERS:
+        for candidate in browser["paths"].get(system, []):
+            if candidate is not None and candidate.exists():
+                return candidate
 
-    for executable in ("brave-browser", "brave", "brave.exe"):
-        discovered = shutil.which(executable)
-        if discovered:
-            return Path(discovered)
+    for browser in CHROMIUM_BROWSERS:
+        for executable in browser["which"]:
+            discovered = shutil.which(executable)
+            if discovered:
+                return Path(discovered)
 
     return None
 
 
 def configure_runtime_paths(data_dir=None, url_file=None):
     """Configure runtime paths outside the importable source package."""
-    global CHECKPOINT_FILE, DATA_DIR, JSON_FILE, URL_FILE, USER_DATA_DIR
+    global CHECKPOINT_FILE, DATA_DIR, JSON_FILE, OLD_USER_DATA_DIR, URL_FILE, USER_DATA_DIR
 
     if data_dir:
         DATA_DIR = Path(data_dir).expanduser()
@@ -90,12 +206,26 @@ def configure_runtime_paths(data_dir=None, url_file=None):
     URL_FILE = Path(url_file).expanduser().resolve() if url_file else (DATA_DIR / URL_FILE.name)
     JSON_FILE = DATA_DIR / "tripadvisor_scraper_results.json"
     CHECKPOINT_FILE = DATA_DIR / "tripadvisor_checkpoint.json"
-    USER_DATA_DIR = DATA_DIR / "brave_automation_profile"
+    OLD_USER_DATA_DIR = DATA_DIR / "brave_automation_profile"
+    USER_DATA_DIR = DATA_DIR / "browser_automation_profile"
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     URL_FILE.parent.mkdir(parents=True, exist_ok=True)
     if not URL_FILE.exists() and BUNDLED_URL_FILE.exists():
         shutil.copyfile(BUNDLED_URL_FILE, URL_FILE)
+
+    migrate_profile_dir()
+
+
+def migrate_profile_dir():
+    """Rename the legacy brave_automation_profile/ to browser_automation_profile/.
+
+    Preserves cookies/session state for users who ran the scraper before the
+    rename. Only migrates when the old dir exists and the new one does not.
+    """
+    if OLD_USER_DATA_DIR.exists() and not USER_DATA_DIR.exists():
+        shutil.move(str(OLD_USER_DATA_DIR), str(USER_DATA_DIR))
+        print(f"[*] Profilo browser migrato: {OLD_USER_DATA_DIR.name} -> {USER_DATA_DIR.name}")
 
 
 def order_urls(urls, scrape_order):
@@ -118,9 +248,20 @@ def parse_args():
         help="Ordine del secondo loop: 'top' dall'inizio lista, 'bottom' dalla fine lista.",
     )
     parser.add_argument(
+        "--browser-path",
+        default=os.environ.get("BROWSER_PATH", os.environ.get("BRAVE_PATH")),
+        help=(
+            "Percorso manuale del binario di un browser Chromium "
+            "(Brave, Chrome, Edge, Vivaldi, Opera, Chromium), "
+            "se il rilevamento automatico non funziona."
+        ),
+    )
+    # Deprecated alias for --browser-path, kept so existing invocations keep working.
+    parser.add_argument(
         "--brave-path",
-        default=os.environ.get("BRAVE_PATH"),
-        help="Percorso manuale del binario Brave, se il rilevamento automatico non funziona.",
+        dest="brave_path",
+        default=None,
+        help="(deprecato) Alias di --browser-path; usa --browser-path.",
     )
     parser.add_argument(
         "--data-dir",
@@ -312,7 +453,7 @@ async def extract_restaurant_urls(page):
     await page.goto(BASE_URL, wait_until="domcontentloaded")
 
     print("\n[!] Pagina inizializzata sul browser.")
-    print("[!] Accetta manualmente i cookie o chiudi i pop-up grafici nella finestra di Brave.")
+    print("[!] Accetta manualmente i cookie o chiudi i pop-up grafici nella finestra del browser.")
     await async_input(">>> Premi [INVIO] quando la pagina è pulita per iniziare...")
 
     pages_input = await async_input(
@@ -638,7 +779,7 @@ async def extract_restaurant_features(page, url):
 # ============================================================================
 
 
-async def main(scrape_order="top", brave_path_override=None, data_dir=None, url_file=None):
+async def main(scrape_order="top", browser_path_override=None, data_dir=None, url_file=None):
     configure_runtime_paths(data_dir=data_dir, url_file=url_file)
 
     async with async_playwright() as p:
@@ -650,11 +791,14 @@ async def main(scrape_order="top", brave_path_override=None, data_dir=None, url_
         print(f"[*] File URL: {URL_FILE}")
         print(f"[*] Directory Profilo Isolata: {USER_DATA_DIR}")
 
-        brave_path = resolve_brave_path(brave_path_override)
-        if brave_path:
-            print(f"[*] Brave rilevato: {brave_path}\n")
+        browser_path = resolve_chromium_browser(browser_path_override)
+        if browser_path:
+            print(f"[*] Browser rilevato: {browser_path}\n")
         else:
-            print("[!] Brave non trovato. Uso il browser Chromium gestito da Playwright.\n")
+            print(
+                "[!] Nessun browser Chromium trovato. "
+                "Uso il browser Chromium gestito da Playwright.\n"
+            )
 
         launch_options = {
             "user_data_dir": str(USER_DATA_DIR),
@@ -665,8 +809,8 @@ async def main(scrape_order="top", brave_path_override=None, data_dir=None, url_
                 "--disable-infobars",
             ],
         }
-        if brave_path:
-            launch_options["executable_path"] = str(brave_path)
+        if browser_path:
+            launch_options["executable_path"] = str(browser_path)
 
         context = await p.chromium.launch_persistent_context(**launch_options)
 
@@ -766,13 +910,25 @@ async def main(scrape_order="top", brave_path_override=None, data_dir=None, url_
         print("[✓] Browser chiuso. Scraping completato.\n")
 
 
+def resolve_browser_path_override(args):
+    """Combine --browser-path / legacy --brave-path, warning on the deprecated alias."""
+    if args.brave_path:
+        print(
+            "[!] --brave-path è deprecato; usa --browser-path. "
+            "L'alias continua a funzionare per ora.",
+            file=sys.stderr,
+        )
+        return args.browser_path or args.brave_path
+    return args.browser_path
+
+
 def run_cli():
     try:
         args = parse_args()
         asyncio.run(
             main(
                 scrape_order=args.order,
-                brave_path_override=args.brave_path,
+                browser_path_override=resolve_browser_path_override(args),
                 data_dir=args.data_dir,
                 url_file=args.url_file,
             )
