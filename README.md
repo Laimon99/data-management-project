@@ -47,7 +47,7 @@ whole-city fallback circle and cap the result count:
 
 ```bash
 echo "DATAMAN_OUTER_RADIUS_M=500" >> .env
-uv run pipeline-stage1 list --whole-city --max-results 10
+uv run google-places-api-extract list --whole-city --max-results 10
 ```
 
 `--whole-city` restricts the run to the single whole-city circle (Duomo +
@@ -72,16 +72,16 @@ checkpoint file to force a re-fetch.
 ### Enrich with full Place Details (Mode 2)
 
 ```bash
-uv run pipeline-stage1 detail --all                 # enrich every seed venue
-uv run pipeline-stage1 detail --place-id <PLACE_ID> # or a single venue
+uv run google-places-api-extract detail --all                 # enrich every seed venue
+uv run google-places-api-extract detail --place-id <PLACE_ID> # or a single venue
 ```
 
 Mode 2 merges the full raw Place Details payload into each seed document,
 preserving the seed fields. Already-enriched venues are tracked in
 `data/checkpoints/detail_done.txt` and skipped on re-run.
 
-> CLI forms are interchangeable: `pipeline-stage1 list` ≡
-> `pipeline-stage1 --mode list`, and likewise for `detail`.
+> CLI forms are interchangeable: `google-places-api-extract list` ≡
+> `google-places-api-extract --mode list`, and likewise for `detail`.
 
 ### Behaviour on errors
 
@@ -100,21 +100,38 @@ and deduplicated, so each area is queried at most once. Drop `--max-results` for
 the full run:
 
 ```bash
-uv run pipeline-stage1 list          # whole-city circle + all neighbourhood anchors
-uv run pipeline-stage1 detail --all
+uv run google-places-api-extract list          # whole-city circle + all neighbourhood anchors
+uv run google-places-api-extract detail --all
 ```
 
 Flags narrow the coverage (use at most one):
 
 ```bash
-uv run pipeline-stage1 list --whole-city               # whole-city circle only
-uv run pipeline-stage1 list --all-neighbourhoods       # all anchors only, no city circle
-uv run pipeline-stage1 list --neighbourhood navigli_1  # a single named anchor
+uv run google-places-api-extract list --whole-city               # whole-city circle only
+uv run google-places-api-extract list --all-neighbourhoods       # all anchors only, no city circle
+uv run google-places-api-extract list --neighbourhood navigli_1  # a single named anchor
 ```
 
 Override the anchors via `DATAMAN_NEIGHBOURHOODS` (JSON list of
 `{name, lat, lon, outer_radius_m}`); set it to `[]` so the default run covers
 only the whole-city circle.
+
+### Tripadvisor scraper extract
+
+The Tripadvisor Playwright scraper is packaged as
+`src/tripadvisor_scraper_extract`. Runtime files are written under
+`data/tripadvisor/`; the bundled restaurant URL list is copied there on first
+run if no URL file exists yet. See `docs/tripadvisor-scraper-extract.md` for
+runtime paths and browser setup details.
+
+```bash
+uv run tripadvisor-scraper-extract --order bottom
+```
+
+Use `--order bottom` when another teammate is scraping from the top of the URL
+list. The default is `--order top`. The scraper auto-detects Brave on macOS,
+Windows, and Linux; pass `--brave-path <path>` if Brave is installed somewhere
+non-standard.
 
 ---
 
@@ -168,7 +185,7 @@ The project focuses on restaurants located in **Milan and surrounding municipali
   * Tiled Nearby Search + Place Details
   * Raw JSONL seed output in `data/restaurants_seed.jsonl`
 
-### Source B — Tripadvisor (planned)
+### Source B — Tripadvisor (scraper extract added)
 
 * **Type**: Web scraping or another reproducible acquisition path
 * **Data**:

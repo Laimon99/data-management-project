@@ -4,7 +4,10 @@ This file provides guidance to AI agents when working with code in this reposito
 
 Data Management project. The goal is to compare restaurant ratings across **Google Maps**, **Tripadvisor**, and **TheFork** for the Milan area — analyzing consistency, quality, and discrepancies.
 
-This repository has a runnable **Stage 1 seed-acquisition pipeline**. Later stages are still in the planning/scaffolding phase. Refer to `docs/` for the current design intent.
+This repository has a runnable **Google Places seed-acquisition pipeline** and a
+runnable **Tripadvisor scraper extract**. TheFork collection, entity resolution,
+unified dataset creation, and quality assessment are still in the
+planning/scaffolding phase. Refer to `docs/` for the current design intent.
 
 ---
 
@@ -17,6 +20,8 @@ uv sync                              # install deps from lock file
 uv run pre-commit install            # install git hooks (once after clone)
 uv run pre-commit run --all-files    # lint/format manually
 uv run pytest                        # run tests
+uv run google-places-api-extract     # Google Places seed CLI
+uv run tripadvisor-scraper-extract   # Tripadvisor Playwright scraper CLI
 ```
 
 `pyproject.toml` should use ruff with `line-length = 100`, `target-version = "py311"`, `select = ["E", "F", "I"]`. Pre-commit should run `ruff --fix` + `ruff-format`.
@@ -27,9 +32,9 @@ uv run pytest                        # run tests
 
 Five sequential stages — each should live in its own module/directory:
 
-1. **Seed acquisition** — collect a base list of Milan restaurants (name, address, city, lat, lon) from Google Maps (via Places API or scraping). This is the geographic backbone; coordinates are not re-geocoded later. LLMs may be used to filter out misclassified or noisy venues (e.g. places incorrectly tagged as restaurants).
+1. **Seed acquisition** — implemented in `src/google_places_api_extract`. Collect a base list of Milan restaurants (name, address, city, lat, lon) from Google Maps / Places API. This is the geographic backbone; coordinates are not re-geocoded later. LLMs may be used to filter out misclassified or noisy venues (e.g. places incorrectly tagged as restaurants).
 
-2. **Per-platform data collection** — for each restaurant in the seed, collect ratings and review counts from Tripadvisor and TheFork independently. Each platform gets its own table.
+2. **Per-platform data collection** — Tripadvisor extraction is implemented in `src/tripadvisor_scraper_extract`. For TheFork and later refinements, collect ratings and review counts independently. Each platform gets its own raw output/table.
 
 3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches.
 
@@ -41,7 +46,12 @@ Five sequential stages — each should live in its own module/directory:
 
 ## Storage
 
-Current Stage 1 persistence is raw JSONL output under `data/` (`restaurants_seed.jsonl` plus checkpoints). Treat DBMS/storage code for downstream stages as out of scope until the storage design is revisited.
+Current acquisition persistence is file-based under `data/`: Google Places writes
+`restaurants_seed.jsonl` plus checkpoints, and Tripadvisor writes runtime files
+under `data/tripadvisor/` (`tripadvisor_list_restaurant.txt`,
+`tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser
+profile data). Treat DBMS/storage code for downstream stages as out of scope
+until the storage design is revisited.
 
 A document-based database remains a candidate for later raw platform data, and relational/columnar storage remains acceptable for the integrated ratings table and mandatory queries.
 
@@ -58,5 +68,5 @@ A document-based database remains a candidate for later raw platform data, and r
 - All `rm` commands are blocked by a pre-tool hook (`.claude/hooks/block_dangerous_commands.sh`).
 - Never read `.env`, `secrets/`, `*credential*`, `*.pem`, `*.key` — denied in `.claude/settings.json`.
 - Plans go in `./_plans` (configured in settings).
-- Code must be cleanly separated by pipeline stage — no monolithic scripts.
+- Code must be cleanly separated by pipeline stage/source — no new monolithic scripts.
 - Auto-memory is disabled (`autoMemoryEnabled: false`).
