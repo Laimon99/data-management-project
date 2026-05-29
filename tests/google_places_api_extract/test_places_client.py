@@ -3,8 +3,8 @@ import logging
 import httpx
 import pytest
 import respx
-from pipeline.stage1_seed.logging_setup import APIKeyRedactingFilter
-from pipeline.stage1_seed.places_client import (
+from google_places_api_extract.logging_setup import APIKeyRedactingFilter
+from google_places_api_extract.places_client import (
     NEARBY_URL,
     PermanentPlacesError,
     PlacesClient,

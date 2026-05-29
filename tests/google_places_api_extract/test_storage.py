@@ -1,5 +1,5 @@
-from pipeline.stage1_seed.schema import SeedDoc, merge_details
-from pipeline.stage1_seed.storage import JsonlSeedStore
+from google_places_api_extract.schema import SeedDoc, merge_details
+from google_places_api_extract.storage import JsonlSeedStore
 
 
 def _doc(pid: str = "x", **kwargs) -> SeedDoc:

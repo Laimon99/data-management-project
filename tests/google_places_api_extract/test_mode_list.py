@@ -1,12 +1,12 @@
 import httpx
 import pytest
 import respx
-from pipeline.stage1_seed.checkpoint import TileCheckpoint
-from pipeline.stage1_seed.cli import app
-from pipeline.stage1_seed.config import Settings
-from pipeline.stage1_seed.mode_list import run_mode_list
-from pipeline.stage1_seed.places_client import NEARBY_URL, PlacesClient
-from pipeline.stage1_seed.storage import JsonlSeedStore
+from google_places_api_extract.checkpoint import TileCheckpoint
+from google_places_api_extract.cli import app
+from google_places_api_extract.config import Settings
+from google_places_api_extract.mode_list import run_mode_list
+from google_places_api_extract.places_client import NEARBY_URL, PlacesClient
+from google_places_api_extract.storage import JsonlSeedStore
 from pydantic import ValidationError
 from typer.testing import CliRunner
 

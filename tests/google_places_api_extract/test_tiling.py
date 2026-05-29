@@ -1,7 +1,7 @@
 import math
 
 import pytest
-from pipeline.stage1_seed.tiling import generate_multi_centre_tiles, generate_tiles
+from google_places_api_extract.tiling import generate_multi_centre_tiles, generate_tiles
 
 _M_PER_DEG_LAT = 111_320.0
 

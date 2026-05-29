@@ -1,8 +1,8 @@
 from typing import Any
 
 import pytest
-from pipeline.stage1_seed.config import Settings
-from pipeline.stage1_seed.places_client import PlacesClient
+from google_places_api_extract.config import Settings
+from google_places_api_extract.places_client import PlacesClient
 from tenacity import wait_none
 
 

@@ -1,9 +1,9 @@
 import respx
-from pipeline.stage1_seed.checkpoint import DetailCheckpoint
-from pipeline.stage1_seed.mode_detail import run_mode_detail
-from pipeline.stage1_seed.places_client import PlacesClient
-from pipeline.stage1_seed.schema import SeedDoc
-from pipeline.stage1_seed.storage import JsonlSeedStore
+from google_places_api_extract.checkpoint import DetailCheckpoint
+from google_places_api_extract.mode_detail import run_mode_detail
+from google_places_api_extract.places_client import PlacesClient
+from google_places_api_extract.schema import SeedDoc
+from google_places_api_extract.storage import JsonlSeedStore
 
 
 def _seed(pid: str) -> SeedDoc:
