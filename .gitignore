@@ -36,9 +36,12 @@ ENV/
 *.xlsx
 *.sqlite
 *.db
-data/
 output/
 results/
+
+# Keep project raw data tracked
+!data/
+!data/**
 
 # Keep test fixtures tracked
 !tests/**/*.json
