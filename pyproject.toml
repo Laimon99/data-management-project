@@ -11,6 +11,7 @@ dependencies = [
     "pydantic>=2.7",
     "pydantic-settings>=2.3",
     "pymongo>=4.8",
+    "playwright>=1.60.0",
 ]
 
 [project.optional-dependencies]
@@ -26,13 +27,18 @@ dev = [
 [project.scripts]
 google-places-api-extract = "google_places_api_extract.cli:app"
 pipeline-stage1 = "google_places_api_extract.cli:app"
+tripadvisor-scraper-extract = "tripadvisor_scraper_extract.scraper:run_cli"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/google_places_api_extract"]
+packages = ["src/google_places_api_extract", "src/tripadvisor_scraper_extract"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/tripadvisor_scraper_extract/scraper_logic_v11.md" = "tripadvisor_scraper_extract/scraper_logic_v11.md"
+"src/tripadvisor_scraper_extract/tripadvisor_list_restaurant.txt" = "tripadvisor_scraper_extract/tripadvisor_list_restaurant.txt"
 
 [tool.ruff]
 line-length = 100
