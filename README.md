@@ -70,30 +70,26 @@ Places API will not work.
 
 ### Source A — Google Maps / Google Places API
 
-* **Type**: Official API via Places API
-* **Example of features**:
+* **Type**: Official API via Places API (New)
+* **Data**: see [`docs/google_places_api_extractor/dataset-schema.md`](docs/google_places_api_extractor/dataset-schema.md)
+* **Why**: high coverage in Milan, rich metadata, coordinates become the project geographic backbone
+* **Tools**: Python + `httpx`, Tiled Nearby Search + Place Details, raw JSONL output in `data/raw/google_places/`
 
-  * Restaurant name
-  * Address
-  * Coordinates (lat/lon)
-  * Rating
-  * Number of reviews
-  * Google place types and primary type
-  * Optional full Place Details payload
-* **Why**:
+#### How the current seed dataset was collected
 
-  * High coverage in Milan
-  * Rich metadata
-  * Coordinates become the project geographic backbone
-* **Tools**:
+The dataset was built in three passes with a progressively smaller tile radius to fill gaps left by earlier runs. Results from all passes are deduplicated by `place_id` in the seed file.
 
-  * Python + `httpx`
-  * Tiled Nearby Search + Place Details
-  * Raw JSONL seed output in `data/raw/google_places/restaurants_seed.jsonl`
+| Pass | Tile radius | Area | Rationale |
+|---|---|---|---|
+| 1 | 750 m | Whole-city circle around Duomo | Broad initial sweep across the city |
+| 2 | 300 m | Whole-city circle around Duomo | Finer tiling to recover venues missed by the coarser pass |
+| 3 | 100 m | Dense neighbourhood anchors only | Fine-grained sweep in high-density zones where saturation was still uncertain |
 
 #### Running the Google Places pipeline
 
-**How it works**
+##### How it works
+
+The Places API limits each search to one circle. The pipeline covers a large area by **tiling**: a square grid of overlapping circles (each = one API call) is laid over a larger outer circle. Tile centres are spaced at `2 × search_radius_m × (1 − tile_overlap)` so adjacent tiles always overlap and leave no gaps. By default, two sets of circles are combined — the whole-city circle around [Piazza del Duomo](https://maps.app.goo.gl/JbCdRGcGgxWuQ5gf9) and per-neighbourhood anchors — deduplicated on a shared cell grid so no tile is queried twice.
 
 ```mermaid
 flowchart TD
@@ -114,22 +110,7 @@ flowchart TD
     K --> M[Mark tile done\nin checkpoint]
 ```
 
-The Places API caps each individual search to a circle of fixed radius. To cover
-a large area, the pipeline **tiles** it: a square grid of overlapping circles is
-laid over a larger outer circle, and each small circle becomes one API call.
-Circle centres are spaced at `2 × search_radius_m × (1 − tile_overlap)` apart,
-producing configurable overlap so no gap exists between adjacent tiles.
-
-A single `list` run covers two kinds of area by default:
-
-- **Whole-city circle** — one outer circle centred on Piazza del Duomo, tiled
-  out to `DATAMAN_OUTER_RADIUS_M`.
-- **Neighbourhood anchors** — smaller outer circles placed over Milan's
-  restaurant-dense zones. Each anchor generates its own tile grid; grids are
-  merged on a shared cell index so no tile is queried twice even when anchors
-  overlap each other or the city circle.
-
-**Commands**
+##### Commands
 
 ```bash
 uv run google-places-api-extract list          # collect seed venues
@@ -139,10 +120,9 @@ uv run google-places-api-extract detail --all  # enrich every seed venue with fu
 Both runs are idempotent — completed work is checkpointed and skipped on re-run.
 Output lands in `data/raw/google_places/`. A JSON `ListReport` (`tiles_processed`,
 `unique_places`, `pages_fetched`, `errors`) is printed to stdout after each `list` run.
+`detail` takes `--all` to enrich every venue or `--place-id <id>` for a single one.
 
-> `google-places-api-extract list` ≡ `google-places-api-extract --mode list`, and likewise for `detail`.
-
-**Flags**
+##### Flags
 
 `list` — controls geographic coverage (use at most one coverage flag):
 
@@ -154,13 +134,6 @@ Output lands in `data/raw/google_places/`. A JSON `ListReport` (`tiles_processed
 | `--neighbourhood <name>` | — | Single named anchor (e.g. `navigli_1`) |
 | `--max-results <n>` | unlimited | Stop once N unique venues have been collected |
 
-`detail`:
-
-| Flag | Default | Description |
-|---|---|---|
-| `--all` | — | Enrich every venue in the seed |
-| `--place-id <id>` | — | Enrich a single venue |
-
 Key parameters (set via `.env` or environment, all prefixed `DATAMAN_`):
 
 | Variable | Default | Description |
@@ -171,36 +144,30 @@ Key parameters (set via `.env` or environment, all prefixed `DATAMAN_`):
 | `MAX_PAGES_PER_TILE` | `3` | Max result pages fetched per tile |
 | `NEIGHBOURHOODS` | see below | JSON array to override built-in anchor list |
 
-**Neighbourhood anchors**
+##### Neighbourhood anchors
 
-The 14 built-in anchors cover Milan's highest restaurant-density zones. Each
-anchor is an outer circle that is independently tiled with 300 m circles;
-duplicate tiles across anchors or with the city circle are dropped automatically.
-
-Anchors were chosen to saturate areas where density is too high for the 9 km
-city circle alone to give full coverage within the API's per-search result cap.
+Anchors were chosen to saturate areas where restaurant density is too high for the 9 km city circle alone to give full coverage within the API's per-search result cap.
 
 | Quartiere | Anchor | Center | Outer radius |
 |---|---|---|---|
-| Duomo | `duomo` | [45.4642, 9.1900](https://www.google.com/maps/@45.4642,9.1900,17z) | 1 200 m |
-| Navigli | `navigli_1` | [45.4520, 9.1760](https://www.google.com/maps/@45.4520,9.1760,17z) | 600 m |
+| [Duomo](https://maps.app.goo.gl/JbCdRGcGgxWuQ5gf9) | `duomo` | [45.4642, 9.1900](https://www.google.com/maps/@45.4642,9.1900,17z) | 1 200 m |
+| [Navigli](https://maps.app.goo.gl/ah6qT4aN4GUtav9C6) | `navigli_1` | [45.4520, 9.1760](https://www.google.com/maps/@45.4520,9.1760,17z) | 600 m |
 | | `navigli_2` | [45.4485, 9.1720](https://www.google.com/maps/@45.4485,9.1720,17z) | 600 m |
 | | `navigli_3` | [45.4450, 9.1680](https://www.google.com/maps/@45.4450,9.1680,17z) | 600 m |
-| Brera | `brera` | [45.4720, 9.1880](https://www.google.com/maps/@45.4720,9.1880,17z) | 600 m |
-| Isola | `isola` | [45.4870, 9.1880](https://www.google.com/maps/@45.4870,9.1880,17z) | 600 m |
-| Porta Venezia | `porta_venezia_1` | [45.4740, 9.2050](https://www.google.com/maps/@45.4740,9.2050,17z) | 600 m |
+| [Brera](https://maps.app.goo.gl/HYmEG5Rx466eduzE8) | `brera` | [45.4720, 9.1880](https://www.google.com/maps/@45.4720,9.1880,17z) | 600 m |
+| [Isola](https://maps.app.goo.gl/rrGB9jKoruze6WK29) | `isola` | [45.4870, 9.1880](https://www.google.com/maps/@45.4870,9.1880,17z) | 600 m |
+| [Porta Venezia](https://maps.app.goo.gl/PmXW4kMXnwQYmdwc8) | `porta_venezia_1` | [45.4740, 9.2050](https://www.google.com/maps/@45.4740,9.2050,17z) | 600 m |
 | | `porta_venezia_2` | [45.4790, 9.2110](https://www.google.com/maps/@45.4790,9.2110,17z) | 600 m |
-| Porta Romana | `porta_romana_1` | [45.4540, 9.2010](https://www.google.com/maps/@45.4540,9.2010,17z) | 600 m |
+| [Porta Romana](https://maps.app.goo.gl/YHZb2MRvZu1C5rVe8) | `porta_romana_1` | [45.4540, 9.2010](https://www.google.com/maps/@45.4540,9.2010,17z) | 600 m |
 | | `porta_romana_2` | [45.4490, 9.2050](https://www.google.com/maps/@45.4490,9.2050,17z) | 600 m |
-| Sempione | `sempione_1` | [45.4790, 9.1740](https://www.google.com/maps/@45.4790,9.1740,17z) | 600 m |
+| [Sempione](https://maps.app.goo.gl/JvBLmaWkqBdv6dHg6) | `sempione_1` | [45.4790, 9.1740](https://www.google.com/maps/@45.4790,9.1740,17z) | 600 m |
 | | `sempione_2` | [45.4830, 9.1680](https://www.google.com/maps/@45.4830,9.1680,17z) | 600 m |
 | | `sempione_3` | [45.4870, 9.1620](https://www.google.com/maps/@45.4870,9.1620,17z) | 600 m |
-| Loreto | `loreto` | [45.4860, 9.2160](https://www.google.com/maps/@45.4860,9.2160,17z) | 600 m |
+| [Loreto](https://maps.app.goo.gl/kZLEfwe659zfKU4N6) | `loreto` | [45.4860, 9.2160](https://www.google.com/maps/@45.4860,9.2160,17z) | 600 m |
 
-To replace the list set `DATAMAN_NEIGHBOURHOODS` to a JSON array of
-`{name, lat, lon, outer_radius_m}` objects, or `[]` to disable anchors entirely.
+To replace the list set `DATAMAN_NEIGHBOURHOODS` to a JSON array of `{name, lat, lon, outer_radius_m}` objects, or `[]` to disable anchors entirely.
 
-**Examples**
+##### Examples
 
 Smoke test — ~10 venues around [Piazza del Duomo](https://maps.app.goo.gl/SKDd7SXBBNPgVM9Y7):
 
@@ -222,27 +189,7 @@ Single neighbourhood:
 uv run google-places-api-extract list --neighbourhood navigli_1
 ```
 
-Inspect the collected seed:
-
-```bash
-head data/raw/google_places/restaurants_seed.jsonl | uv run python -c \
-  "import sys, json; [print(json.loads(l)['name'], '—', json.loads(l)['formatted_address']) for l in sys.stdin]"
-```
-
-**How the current seed dataset was collected**
-
-The seed was built in three passes, each targeting the Duomo centre with a
-progressively smaller tile radius to fill gaps left by earlier runs:
-
-| Pass | Tile radius | Area | Rationale |
-|---|---|---|---|
-| 1 | 750 m | Whole-city circle around Duomo | Broad initial sweep across the city |
-| 2 | 300 m | Whole-city circle around Duomo | Finer tiling to recover venues missed by the coarser pass |
-| 3 | 100 m | Dense neighbourhood anchors only | Fine-grained sweep in high-density zones where saturation was still uncertain |
-
-Results from all three passes are deduplicated by `place_id` in the seed file.
-
-**Errors**
+##### Errors
 
 - 4xx → `PermanentPlacesError`, not retried.
 - 429 / 5xx → retried up to 5× with exponential backoff.
