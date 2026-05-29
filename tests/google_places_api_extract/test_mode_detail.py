@@ -1,4 +1,5 @@
 import respx
+
 from google_places_api_extract.checkpoint import DetailCheckpoint
 from google_places_api_extract.mode_detail import run_mode_detail
 from google_places_api_extract.places_client import PlacesClient

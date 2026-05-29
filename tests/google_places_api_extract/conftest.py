@@ -1,9 +1,10 @@
 from typing import Any
 
 import pytest
+from tenacity import wait_none
+
 from google_places_api_extract.config import Settings
 from google_places_api_extract.places_client import PlacesClient
-from tenacity import wait_none
 
 
 @pytest.fixture

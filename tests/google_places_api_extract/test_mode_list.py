@@ -1,14 +1,15 @@
 import httpx
 import pytest
 import respx
+from pydantic import ValidationError
+from typer.testing import CliRunner
+
 from google_places_api_extract.checkpoint import TileCheckpoint
 from google_places_api_extract.cli import app
 from google_places_api_extract.config import Settings
 from google_places_api_extract.mode_list import run_mode_list
 from google_places_api_extract.places_client import NEARBY_URL, PlacesClient
 from google_places_api_extract.storage import JsonlSeedStore
-from pydantic import ValidationError
-from typer.testing import CliRunner
 
 from .conftest import make_place
 
