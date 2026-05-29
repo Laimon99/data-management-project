@@ -3,6 +3,8 @@
 Each line is a JSON object representing one restaurant in the Milan area collected via the Google Places API (New).
 Total records: **10,808**.
 
+Raw file path: `data/raw/google_places/restaurants_seed.jsonl`.
+
 ---
 
 ## Top-level fields

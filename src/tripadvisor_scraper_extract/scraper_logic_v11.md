@@ -98,7 +98,7 @@ The single most impactful anti-detection measure in the entire system is not a t
 
 ```python
 context = await p.chromium.launch_persistent_context(
-    user_data_dir=USER_DATA_DIR,   # Path: data/tripadvisor/brave_automation_profile
+    user_data_dir=USER_DATA_DIR,   # Path: data/raw/tripadvisor/brave_automation_profile
     executable_path=BRAVE_PATH,    # Path to Brave's binary
     headless=False,
     args=[
@@ -189,7 +189,7 @@ The script implements a clean **two-phase sequential pipeline** that separates U
 │       (Paginated, N pages)              (href filter)            │
 │                          │                                       │
 │                          ▼                                       │
-│              data/tripadvisor/tripadvisor_list_restaurant.txt                     │
+│              data/raw/tripadvisor/tripadvisor_list_restaurant.txt                     │
 │                    (append mode)                                 │
 └──────────────────────────────────────┬───────────────────────────┘
                                        │
@@ -202,8 +202,8 @@ The script implements a clean **two-phase sequential pipeline** that separates U
 │   (filtered by checkpoint)     (with fallbacks)                  │
 │                          │                                       │
 │                          ▼                                       │
-│              data/tripadvisor/tripadvisor_scraper_results.json                    │
-│            + data/tripadvisor/tripadvisor_checkpoint.json                         │
+│              data/raw/tripadvisor/tripadvisor_scraper_results.json                    │
+│            + data/raw/tripadvisor/tripadvisor_checkpoint.json                         │
 └──────────────────────────────────────────────────────────────────┘
 ```
 
@@ -236,7 +236,7 @@ next_button = page.locator(
 
 Rather than clicking this button (which risks triggering navigation events before Playwright is ready), the script extracts the button's `href` attribute and performs a direct `page.goto()` to the reconstructed absolute URL. This is architecturally safer because it decouples the "find next page" step from the "navigate" step, allowing explicit timeout control over each.
 
-URLs are written to `data/tripadvisor/tripadvisor_list_restaurant.txt` in **write mode after each page** (rebuilding from the in-memory list), with deduplication enforced by the `if full_url not in extracted_urls` guard. The file therefore converges to a clean, unique set of restaurant URLs.
+URLs are written to `data/raw/tripadvisor/tripadvisor_list_restaurant.txt` in **write mode after each page** (rebuilding from the in-memory list), with deduplication enforced by the `if full_url not in extracted_urls` guard. The file therefore converges to a clean, unique set of restaurant URLs.
 
 ### 4.2 Phase 2: The Second Loop — Structured Feature Extraction
 
@@ -358,9 +358,9 @@ The checkpoint system is one of the most important reliability features in any l
 The system operates on three files:
 
 ```
-data/tripadvisor/tripadvisor_list_restaurant.txt      ← Source of truth for all URLs
-data/tripadvisor/tripadvisor_scraper_results.json     ← Accumulated structured data output
-data/tripadvisor/tripadvisor_checkpoint.json          ← Progress tracking state
+data/raw/tripadvisor/tripadvisor_list_restaurant.txt      ← Source of truth for all URLs
+data/raw/tripadvisor/tripadvisor_scraper_results.json     ← Accumulated structured data output
+data/raw/tripadvisor/tripadvisor_checkpoint.json          ← Progress tracking state
 ```
 
 The checkpoint JSON structure is:
@@ -417,7 +417,7 @@ The system's recovery flow in a practical IP-ban or crash scenario is:
 FAILURE EVENT
      │
      ▼
-data/tripadvisor/tripadvisor_checkpoint.json contains last known good state
+data/raw/tripadvisor/tripadvisor_checkpoint.json contains last known good state
      │
      ▼
 Script re-launched → load_checkpoint() reads file
@@ -429,13 +429,13 @@ urls_to_scrape = [all_urls] - [processed_urls]
 Script resumes from the first unprocessed URL
      │
      ▼
-data/tripadvisor/tripadvisor_scraper_results.json loaded with prior records
+data/raw/tripadvisor/tripadvisor_scraper_results.json loaded with prior records
      │
      ▼
 new results appended to existing dataset
 ```
 
-This architecture guarantees that the final `data/tripadvisor/tripadvisor_scraper_results.json` is always a complete, deduplicated, and chronologically coherent dataset regardless of how many sessions were required to produce it.
+This architecture guarantees that the final `data/raw/tripadvisor/tripadvisor_scraper_results.json` is always a complete, deduplicated, and chronologically coherent dataset regardless of how many sessions were required to produce it.
 
 ---
 

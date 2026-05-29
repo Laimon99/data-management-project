@@ -46,9 +46,10 @@ Five sequential stages — each should live in its own module/directory:
 
 ## Storage
 
-Current acquisition persistence is file-based under `data/`: Google Places writes
-`restaurants_seed.jsonl` plus checkpoints, and Tripadvisor writes runtime files
-under `data/tripadvisor/` (`tripadvisor_list_restaurant.txt`,
+Current acquisition persistence is raw file output under `data/raw/`:
+Google Places writes to `data/raw/google_places/` (`restaurants_seed.jsonl`
+plus checkpoints), and Tripadvisor writes runtime files under
+`data/raw/tripadvisor/` (`tripadvisor_list_restaurant.txt`,
 `tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser
 profile data). Treat DBMS/storage code for downstream stages as out of scope
 until the storage design is revisited.

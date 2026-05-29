@@ -29,8 +29,9 @@ BASE_URL = "https://www.tripadvisor.it/Restaurants-g187849-Milan_Lombardy.html"
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 BUNDLED_URL_FILE = PACKAGE_DIR / "tripadvisor_list_restaurant.txt"
+DEFAULT_DATA_DIR = Path("data/raw/tripadvisor")
 
-DATA_DIR = Path(os.environ.get("TRIPADVISOR_DATA_DIR", "data/tripadvisor")).expanduser()
+DATA_DIR = Path(os.environ.get("TRIPADVISOR_DATA_DIR", DEFAULT_DATA_DIR)).expanduser()
 URL_FILE = Path(
     os.environ.get("TRIPADVISOR_URL_FILE", DATA_DIR / "tripadvisor_list_restaurant.txt")
 ).expanduser()
@@ -129,7 +130,10 @@ def parse_args():
     parser.add_argument(
         "--url-file",
         default=os.environ.get("TRIPADVISOR_URL_FILE"),
-        help="File URL ristoranti da usare al posto di data/tripadvisor/tripadvisor_list_restaurant.txt.",
+        help=(
+            "File URL ristoranti da usare al posto di "
+            "data/raw/tripadvisor/tripadvisor_list_restaurant.txt."
+        ),
     )
     return parser.parse_args()
 

@@ -57,17 +57,18 @@ have been seen. Without `--whole-city`, the default run also tiles the dense
 neighbourhood anchors (see below) and ignores `DATAMAN_OUTER_RADIUS_M` for those.
 
 A JSON `ListReport` is printed to stdout (`tiles_processed`, `unique_places`,
-`pages_fetched`, `errors`) and the venues land in `data/restaurants_seed.jsonl`.
+`pages_fetched`, `errors`) and the venues land in
+`data/raw/google_places/restaurants_seed.jsonl`.
 Inspect them:
 
 ```bash
-head data/restaurants_seed.jsonl | uv run python -c \
+head data/raw/google_places/restaurants_seed.jsonl | uv run python -c \
   "import sys, json; [print(json.loads(l)['name'], '—', json.loads(l)['formatted_address']) for l in sys.stdin]"
 ```
 
 The run is idempotent: completed tiles are recorded in
-`data/checkpoints/list_tiles.json` and skipped on re-run. Clear or replace that
-checkpoint file to force a re-fetch.
+`data/raw/google_places/checkpoints/list_tiles.json` and skipped on re-run.
+Clear or replace that checkpoint file to force a re-fetch.
 
 ### Enrich with full Place Details (Mode 2)
 
@@ -78,7 +79,7 @@ uv run google-places-api-extract detail --place-id <PLACE_ID> # or a single venu
 
 Mode 2 merges the full raw Place Details payload into each seed document,
 preserving the seed fields. Already-enriched venues are tracked in
-`data/checkpoints/detail_done.txt` and skipped on re-run.
+`data/raw/google_places/checkpoints/detail_done.txt` and skipped on re-run.
 
 > CLI forms are interchangeable: `google-places-api-extract list` ≡
 > `google-places-api-extract --mode list`, and likewise for `detail`.
@@ -120,7 +121,7 @@ only the whole-city circle.
 
 The Tripadvisor Playwright scraper is packaged as
 `src/tripadvisor_scraper_extract`. Runtime files are written under
-`data/tripadvisor/`; the bundled restaurant URL list is copied there on first
+`data/raw/tripadvisor/`; the bundled restaurant URL list is copied there on first
 run if no URL file exists yet. See `docs/tripadvisor-scraper-extract.md` for
 runtime paths and browser setup details.
 
@@ -183,7 +184,7 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
   * Python + `httpx`
   * Tiled Nearby Search + Place Details
-  * Raw JSONL seed output in `data/restaurants_seed.jsonl`
+  * Raw JSONL seed output in `data/raw/google_places/restaurants_seed.jsonl`
 
 ### Source B — Tripadvisor (scraper extract added)
 
@@ -219,16 +220,23 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
 ## 3️⃣ Data storage & modeling (FAQ 6)
 
-### Current Stage 1 persistence
+### Current raw acquisition persistence
 
-Stage 1 currently writes raw seed documents to JSONL:
+Downloaded/acquired data is treated as raw acquisition output and kept under
+`data/raw/`.
 
-**`data/restaurants_seed.jsonl`**
+**Google Places: `data/raw/google_places/`**
 
-* one JSON object per Google place
-* deduplicated by `place_id`
-* includes raw `details` after enrichment
-* treated as acquisition output, not the final DBMS design
+* `restaurants_seed.jsonl`: one JSON object per Google place
+* `checkpoints/`: list/detail resume state
+* seed records are deduplicated by `place_id` and include raw `details` after enrichment
+
+**Tripadvisor: `data/raw/tripadvisor/`**
+
+* `tripadvisor_list_restaurant.txt`: URL list
+* `tripadvisor_scraper_results.json`: raw scraper output
+* `tripadvisor_checkpoint.json`: scraper resume state
+* `brave_automation_profile/`: persistent browser profile
 
 Database/storage implementation for later stages is intentionally deferred. The
 candidate DBMS architecture is documented in `docs/storage-design.md`, but it is

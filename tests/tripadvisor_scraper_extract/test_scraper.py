@@ -23,6 +23,10 @@ def test_order_urls_top_keeps_input_order():
     assert scraper.order_urls(["a", "b", "c"], "top") == ["a", "b", "c"]
 
 
+def test_default_data_dir_points_to_raw_tripadvisor():
+    assert scraper.DEFAULT_DATA_DIR == Path("data/raw/tripadvisor")
+
+
 def test_order_urls_bottom_reverses_input_order():
     assert scraper.order_urls(["a", "b", "c"], "bottom") == ["c", "b", "a"]
 

@@ -30,7 +30,7 @@ uv run playwright install chromium
 
 ## Runtime files
 
-Runtime data is kept out of `src` and written under `data/tripadvisor/` by
+Runtime data is kept out of `src` and written under `data/raw/tripadvisor/` by
 default:
 
 | File | Purpose |
@@ -43,6 +43,6 @@ default:
 Override the runtime directory or URL file when needed:
 
 ```bash
-uv run tripadvisor-scraper-extract --data-dir data/tripadvisor_run_2
+uv run tripadvisor-scraper-extract --data-dir data/raw/tripadvisor_run_2
 uv run tripadvisor-scraper-extract --url-file path/to/custom_urls.txt
 ```

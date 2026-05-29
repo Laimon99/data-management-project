@@ -69,8 +69,8 @@ class Settings(BaseSettings):
     request_timeout_s: float = 30.0
 
     seed_store_backend: Literal["jsonl", "mongo"] = "jsonl"
-    seed_jsonl_path: Path = Path("data/restaurants_seed.jsonl")
-    checkpoint_dir: Path = Path("data/checkpoints")
+    seed_jsonl_path: Path = Path("data/raw/google_places/restaurants_seed.jsonl")
+    checkpoint_dir: Path = Path("data/raw/google_places/checkpoints")
 
     mongo_uri: str | None = None
     mongo_db: str = "dataman"

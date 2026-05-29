@@ -8,8 +8,9 @@ the table.
 This is a **design exploration**, not a locked decision or current acquisition
 implementation plan. Google Places seed acquisition has already produced raw
 JSONL output, and the Tripadvisor scraper currently writes raw JSON/checkpoint
-files under `data/tripadvisor/`; DBMS/storage implementation for integrated
-downstream stages is intentionally deferred.
+files. Raw acquisition files are grouped by source under `data/raw/`
+(`data/raw/google_places/`, `data/raw/tripadvisor/`); DBMS/storage
+implementation for integrated downstream stages is intentionally deferred.
 
 ---
 
@@ -19,8 +20,8 @@ downstream stages is intentionally deferred.
 
 | Layer | Shape | Volume | Notes |
 |---|---|---|---|
-| **Seed (Google Places)** | Raw JSONL with deeply nested JSON documents (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Already collected as acquisition output; can be imported later if a DBMS is chosen. See `dataset-schema.md`. |
-| **Per-platform records** (Tripadvisor, TheFork, Google) | Scraped name/address + rating + review count + review text | ~1–3k matched venues per platform | Tripadvisor currently lands as raw scraper JSON under `data/tripadvisor/`; text reviews are document-shaped and variable. |
+| **Seed (Google Places)** | Raw JSONL with deeply nested JSON documents (`details` blob: address components, opening hours, service/amenity flags, up to 5 reviews, up to 10 photo metas) | ~10,808 records | Raw output lives under `data/raw/google_places/` and can be imported later if a DBMS is chosen. See `dataset-schema.md`. |
+| **Per-platform records** (Tripadvisor, TheFork, Google) | Scraped name/address + rating + review count + review text | ~1–3k matched venues per platform | Tripadvisor currently lands as raw scraper JSON under `data/raw/tripadvisor/`; text reviews are document-shaped and variable. |
 | **Integrated ratings table** | Flat: one row per resolved restaurant, ratings from each platform + coordinates | ~1–3k rows | The analytical surface; must answer the mandatory queries. |
 
 Coordinates (`latitude`/`longitude`) are authoritative on the seed and present
@@ -141,7 +142,7 @@ default columnar pick (embedded, spatial extension covers geo, zero infra) and
 
 | Pipeline stage | Store | Why |
 |---|---|---|
-| 1. Seed acquisition | Raw JSONL already collected | Acquisition output only; no DBMS responsibility in Stage 1 |
+| 1. Seed acquisition | Current raw JSONL/checkpoint files under `data/raw/google_places/` | Acquisition output only; no DBMS responsibility in Stage 1 |
 | 2. Per-platform collection | Current Tripadvisor raw JSON/checkpoint files; candidate MongoDB `*_raw` collections later | Variable, text-heavy docs; DBMS import decision deferred |
 | 3. Entity resolution | Candidate MongoDB (`2dsphere` blocking) → match table | Geo + name/addr similarity blocking; decision deferred |
 | 4. Unified dataset | Candidate columnar `restaurants_ratings` | Flat analytical surface; mandatory queries |
