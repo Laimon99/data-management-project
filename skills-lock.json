@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "fun-brainstorming": {
+      "source": "roin-orca/skills",
+      "sourceType": "github",
+      "skillPath": "skills/fun-brainstorming/SKILL.md",
+      "computedHash": "b1873510f9c511f65db575ffb5721b6caa8bac4cf4f81515618b339186f6ca56"
+    }
+  }
+}
