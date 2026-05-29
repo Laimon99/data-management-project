@@ -117,7 +117,9 @@ Override the anchors via `DATAMAN_NEIGHBOURHOODS` (JSON list of
 `{name, lat, lon, outer_radius_m}`); set it to `[]` so the default run covers
 only the whole-city circle.
 
-### Tripadvisor scraper extract
+---
+
+## Stage 2 — Tripadvisor scraper extract
 
 The Tripadvisor Playwright scraper is packaged as
 `src/tripadvisor_scraper_extract`. Runtime files are written under
