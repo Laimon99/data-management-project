@@ -1,10 +1,6 @@
-# data-management-project
+# Bicocca Data Management Project
 
----
-
-## Project title (WIP)
-
-**Consistency and Quality of Online Restaurant Reviews in the Milan Area**
+## **Consistency and Quality of Online Restaurant Reviews in the Milan Area**
 
 ![Image](https://www.mapaplan.com/travel-map/milan-city-top-tourist-attractions-printable-street-plan-guide/high-resolution/milan-top-tourist-attractions-map-23-best-restaurants-dining-central-district-area-outline-layout-best-locations-visit-high-resolution.jpg)
 
@@ -16,128 +12,6 @@
 
 ---
 
-## 🚀 Setup & Stage 1 (seed acquisition)
-
-Stage 1 is a two-mode Google Places API (New) client that builds the
-`restaurants_seed` collection — the geographic backbone of the project.
-
-### Install
-
-```bash
-uv sync --extra dev          # install runtime + dev dependencies
-uv run pre-commit install    # (optional) install git hooks
-uv run pytest                # run the test suite (no API key needed)
-```
-
-### Configure the API key
-
-```bash
-printf "DATAMAN_GOOGLE_PLACES_API_KEY=your_key_here\n" > .env
-```
-
-The key must have **Places API (New)** enabled in Google Cloud
-(*APIs & Services → Library → "Places API (New)" → Enable*) — the legacy
-Places API will not work. `.env` is gitignored; the key is never written to
-any log, file, or output document.
-
-### Quick test — load ~10 venues from Milan centre
-
-For a small smoke test around Piazza del Duomo, constrain the search area to the
-whole-city fallback circle and cap the result count:
-
-```bash
-echo "DATAMAN_OUTER_RADIUS_M=500" >> .env
-uv run google-places-api-extract list --whole-city --max-results 10
-```
-
-`--whole-city` restricts the run to the single whole-city circle (Duomo +
-`DATAMAN_OUTER_RADIUS_M`). The circle is still tiled internally, so this may make
-more than one API call; `--max-results` stops the run once enough unique venues
-have been seen. Without `--whole-city`, the default run also tiles the dense
-neighbourhood anchors (see below) and ignores `DATAMAN_OUTER_RADIUS_M` for those.
-
-A JSON `ListReport` is printed to stdout (`tiles_processed`, `unique_places`,
-`pages_fetched`, `errors`) and the venues land in
-`data/raw/google_places/restaurants_seed.jsonl`.
-Inspect them:
-
-```bash
-head data/raw/google_places/restaurants_seed.jsonl | uv run python -c \
-  "import sys, json; [print(json.loads(l)['name'], '—', json.loads(l)['formatted_address']) for l in sys.stdin]"
-```
-
-The run is idempotent: completed tiles are recorded in
-`data/raw/google_places/checkpoints/list_tiles.json` and skipped on re-run.
-Clear or replace that checkpoint file to force a re-fetch.
-
-### Enrich with full Place Details (Mode 2)
-
-```bash
-uv run google-places-api-extract detail --all                 # enrich every seed venue
-uv run google-places-api-extract detail --place-id <PLACE_ID> # or a single venue
-```
-
-Mode 2 merges the full raw Place Details payload into each seed document,
-preserving the seed fields. Already-enriched venues are tracked in
-`data/raw/google_places/checkpoints/detail_done.txt` and skipped on re-run.
-
-> CLI forms are interchangeable: `google-places-api-extract list` ≡
-> `google-places-api-extract --mode list`, and likewise for `detail`.
-
-### Behaviour on errors
-
-- Invalid key / bad request → `PermanentPlacesError` (4xx), not retried.
-- Rate limit (429) or transient 5xx → retried up to 5× with exponential backoff.
-- A venue that fails after retries is logged with its `place_id` and reason;
-  the run continues rather than aborting.
-
-### Full run (acceptance target ≥ 500 venues)
-
-By default `list` gives **maximum coverage**: the whole-city circle (single
-Duomo centre out to `DATAMAN_OUTER_RADIUS_M`, defaults to 9 km) **plus** a
-curated set of high-density neighbourhood anchors (Navigli, Brera, Isola, Porta
-Venezia/Romana, Corso Sempione, Loreto, ...). Tiles from every centre are merged
-and deduplicated, so each area is queried at most once. Drop `--max-results` for
-the full run:
-
-```bash
-uv run google-places-api-extract list          # whole-city circle + all neighbourhood anchors
-uv run google-places-api-extract detail --all
-```
-
-Flags narrow the coverage (use at most one):
-
-```bash
-uv run google-places-api-extract list --whole-city               # whole-city circle only
-uv run google-places-api-extract list --all-neighbourhoods       # all anchors only, no city circle
-uv run google-places-api-extract list --neighbourhood navigli_1  # a single named anchor
-```
-
-Override the anchors via `DATAMAN_NEIGHBOURHOODS` (JSON list of
-`{name, lat, lon, outer_radius_m}`); set it to `[]` so the default run covers
-only the whole-city circle.
-
----
-
-## Stage 2 — Tripadvisor scraper extract
-
-The Tripadvisor Playwright scraper is packaged as
-`src/tripadvisor_scraper_extract`. Runtime files are written under
-`data/raw/tripadvisor/`; the bundled restaurant URL list is copied there on first
-run if no URL file exists yet. See
-`docs/tripadvisor_scraper_extractor/tripadvisor-scraper-extract.md` for runtime
-paths and browser setup details.
-
-```bash
-uv run tripadvisor-scraper-extract --order bottom
-```
-
-Use `--order bottom` when another teammate is scraping from the top of the URL
-list. The default is `--order top`. The scraper auto-detects Brave on macOS,
-Windows, and Linux; pass `--brave-path <path>` if Brave is installed somewhere
-non-standard.
-
----
 
 ## 1️⃣ Domain & research questions
 
@@ -149,27 +23,55 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
 ### Main research questions
 
-1. **How consistent are restaurant ratings across different online platforms?**
-2. **Which restaurants show the highest disagreement between platforms?**
-3. **Is rating inconsistency related to data quality issues** (e.g. number of reviews,, outdated information)?
-4. **Can low-quality or sparse data inflate perceived restaurant quality?**
+> 1. **How consistent are restaurant ratings across different online platforms?**
+> 2. **Which restaurants show the highest disagreement between platforms?**
+> 3. **Is rating inconsistency related to data quality issues** (e.g. number of reviews, outdated information)?
+> 4. **Can low-quality or sparse data inflate perceived restaurant quality?**
 
 ### Secondary questions
 
-* Are certain platforms systematically more optimistic/pessimistic?
-* Does inconsistency increase for smaller or less popular restaurants?
-* Does geographic location (center vs periphery) affect data completeness?
+> * Are certain platforms systematically more optimistic/pessimistic?
+> * Does inconsistency increase for smaller or less popular restaurants?
+> * Does geographic location (center vs periphery) affect data completeness?
 
 ---
 
+
+## 🛠 Setup
+
+### Requirements
+
+* Python 3.11+
+* [`uv`](https://github.com/astral-sh/uv) package manager
+* [Brave browser](https://brave.com/) (for Tripadvisor scraper)
+
+### Install
+
+```bash
+uv sync --extra dev          # install runtime + dev dependencies
+uv run pre-commit install    # (optional) install git hooks
+uv run pytest                # run the test suite
+```
+
+### Configure API keys
+
+```bash
+printf "DATAMAN_GOOGLE_PLACES_API_KEY=your_key_here\n" > .env
+```
+
+The key must have **Places API (New)** enabled in Google Cloud
+(*APIs & Services → Library → "Places API (New)" → Enable*) — the legacy
+Places API will not work.
+
+---
+
+
 ## 2️⃣ Data sources (FAQ 5 – acquisition)
 
-❗❗❗**UP FOR DEBATE** ❗❗❗
+### Source A — Google Maps / Google Places API
 
-### Source A — Google Maps / Google Places API (implemented Stage 1)
-
-* **Type**: Official API via Places API (New)
-* **Data**:
+* **Type**: Official API via Places API
+* **Example of features**:
 
   * Restaurant name
   * Address
@@ -189,9 +91,168 @@ The project focuses on restaurants located in **Milan and surrounding municipali
   * Tiled Nearby Search + Place Details
   * Raw JSONL seed output in `data/raw/google_places/restaurants_seed.jsonl`
 
-### Source B — Tripadvisor (scraper extract added)
+#### Running the Google Places pipeline
 
-* **Type**: Web scraping or another reproducible acquisition path
+**How it works**
+
+```mermaid
+flowchart TD
+    A[list command] --> B{Coverage mode}
+    B -->|default| C[City circle\nDuomo centre, 9 km]
+    B -->|default| D[14 neighbourhood anchors]
+    B -->|--whole-city| C
+    B -->|--all-neighbourhoods| D
+    B -->|--neighbourhood X| E[Single anchor]
+
+    C & D & E --> F[Generate tile grid\n300 m tiles, 20% overlap]
+    F --> G[Deduplicate tiles\nacross all anchors]
+    G --> H[For each tile]
+    H --> I{Checkpoint\ncomplete?}
+    I -->|yes| J[Skip]
+    I -->|no| K[Fetch ≤ 3 pages\nfrom Places API]
+    K --> L[Append to\nrestaurants_seed.jsonl]
+    K --> M[Mark tile done\nin checkpoint]
+```
+
+The Places API caps each individual search to a circle of fixed radius. To cover
+a large area, the pipeline **tiles** it: a square grid of overlapping circles is
+laid over a larger outer circle, and each small circle becomes one API call.
+Circle centres are spaced at `2 × search_radius_m × (1 − tile_overlap)` apart,
+producing configurable overlap so no gap exists between adjacent tiles.
+
+A single `list` run covers two kinds of area by default:
+
+- **Whole-city circle** — one outer circle centred on Piazza del Duomo, tiled
+  out to `DATAMAN_OUTER_RADIUS_M`.
+- **Neighbourhood anchors** — smaller outer circles placed over Milan's
+  restaurant-dense zones. Each anchor generates its own tile grid; grids are
+  merged on a shared cell index so no tile is queried twice even when anchors
+  overlap each other or the city circle.
+
+**Commands**
+
+```bash
+uv run google-places-api-extract list          # collect seed venues
+uv run google-places-api-extract detail --all  # enrich every seed venue with full Place Details
+```
+
+Both runs are idempotent — completed work is checkpointed and skipped on re-run.
+Output lands in `data/raw/google_places/`. A JSON `ListReport` (`tiles_processed`,
+`unique_places`, `pages_fetched`, `errors`) is printed to stdout after each `list` run.
+
+> `google-places-api-extract list` ≡ `google-places-api-extract --mode list`, and likewise for `detail`.
+
+**Flags**
+
+`list` — controls geographic coverage (use at most one coverage flag):
+
+| Flag | Default | Description |
+|---|---|---|
+| *(none)* | — | Whole-city circle + all neighbourhood anchors |
+| `--whole-city` | — | Whole-city circle only |
+| `--all-neighbourhoods` | — | All neighbourhood anchors only, no city circle |
+| `--neighbourhood <name>` | — | Single named anchor (e.g. `navigli_1`) |
+| `--max-results <n>` | unlimited | Stop once N unique venues have been collected |
+
+`detail`:
+
+| Flag | Default | Description |
+|---|---|---|
+| `--all` | — | Enrich every venue in the seed |
+| `--place-id <id>` | — | Enrich a single venue |
+
+Key parameters (set via `.env` or environment, all prefixed `DATAMAN_`):
+
+| Variable | Default | Description |
+|---|---|---|
+| `OUTER_RADIUS_M` | `9000` | Radius of the whole-city circle (metres) |
+| `SEARCH_RADIUS_M` | `300` | Radius of each tile / individual API search (metres) |
+| `TILE_OVERLAP` | `0.2` | Overlap fraction between adjacent tiles (0 = no overlap) |
+| `MAX_PAGES_PER_TILE` | `3` | Max result pages fetched per tile |
+| `NEIGHBOURHOODS` | see below | JSON array to override built-in anchor list |
+
+**Neighbourhood anchors**
+
+The 14 built-in anchors cover Milan's highest restaurant-density zones. Each
+anchor is an outer circle that is independently tiled with 300 m circles;
+duplicate tiles across anchors or with the city circle are dropped automatically.
+
+Anchors were chosen to saturate areas where density is too high for the 9 km
+city circle alone to give full coverage within the API's per-search result cap.
+
+| Quartiere | Anchor | Center | Outer radius |
+|---|---|---|---|
+| Duomo | `duomo` | [45.4642, 9.1900](https://www.google.com/maps/@45.4642,9.1900,17z) | 1 200 m |
+| Navigli | `navigli_1` | [45.4520, 9.1760](https://www.google.com/maps/@45.4520,9.1760,17z) | 600 m |
+| | `navigli_2` | [45.4485, 9.1720](https://www.google.com/maps/@45.4485,9.1720,17z) | 600 m |
+| | `navigli_3` | [45.4450, 9.1680](https://www.google.com/maps/@45.4450,9.1680,17z) | 600 m |
+| Brera | `brera` | [45.4720, 9.1880](https://www.google.com/maps/@45.4720,9.1880,17z) | 600 m |
+| Isola | `isola` | [45.4870, 9.1880](https://www.google.com/maps/@45.4870,9.1880,17z) | 600 m |
+| Porta Venezia | `porta_venezia_1` | [45.4740, 9.2050](https://www.google.com/maps/@45.4740,9.2050,17z) | 600 m |
+| | `porta_venezia_2` | [45.4790, 9.2110](https://www.google.com/maps/@45.4790,9.2110,17z) | 600 m |
+| Porta Romana | `porta_romana_1` | [45.4540, 9.2010](https://www.google.com/maps/@45.4540,9.2010,17z) | 600 m |
+| | `porta_romana_2` | [45.4490, 9.2050](https://www.google.com/maps/@45.4490,9.2050,17z) | 600 m |
+| Sempione | `sempione_1` | [45.4790, 9.1740](https://www.google.com/maps/@45.4790,9.1740,17z) | 600 m |
+| | `sempione_2` | [45.4830, 9.1680](https://www.google.com/maps/@45.4830,9.1680,17z) | 600 m |
+| | `sempione_3` | [45.4870, 9.1620](https://www.google.com/maps/@45.4870,9.1620,17z) | 600 m |
+| Loreto | `loreto` | [45.4860, 9.2160](https://www.google.com/maps/@45.4860,9.2160,17z) | 600 m |
+
+To replace the list set `DATAMAN_NEIGHBOURHOODS` to a JSON array of
+`{name, lat, lon, outer_radius_m}` objects, or `[]` to disable anchors entirely.
+
+**Examples**
+
+Smoke test — ~10 venues around [Piazza del Duomo](https://maps.app.goo.gl/SKDd7SXBBNPgVM9Y7):
+
+```bash
+echo "DATAMAN_OUTER_RADIUS_M=500" >> .env
+uv run google-places-api-extract list --whole-city --max-results 10
+```
+
+Full production run (target ≥ 500 venues):
+
+```bash
+uv run google-places-api-extract list
+uv run google-places-api-extract detail --all
+```
+
+Single neighbourhood:
+
+```bash
+uv run google-places-api-extract list --neighbourhood navigli_1
+```
+
+Inspect the collected seed:
+
+```bash
+head data/raw/google_places/restaurants_seed.jsonl | uv run python -c \
+  "import sys, json; [print(json.loads(l)['name'], '—', json.loads(l)['formatted_address']) for l in sys.stdin]"
+```
+
+**How the current seed dataset was collected**
+
+The seed was built in three passes, each targeting the Duomo centre with a
+progressively smaller tile radius to fill gaps left by earlier runs:
+
+| Pass | Tile radius | Area | Rationale |
+|---|---|---|---|
+| 1 | 750 m | Whole-city circle around Duomo | Broad initial sweep across the city |
+| 2 | 300 m | Whole-city circle around Duomo | Finer tiling to recover venues missed by the coarser pass |
+| 3 | 100 m | Dense neighbourhood anchors only | Fine-grained sweep in high-density zones where saturation was still uncertain |
+
+Results from all three passes are deduplicated by `place_id` in the seed file.
+
+**Errors**
+
+- 4xx → `PermanentPlacesError`, not retried.
+- 429 / 5xx → retried up to 5× with exponential backoff.
+- Failed venues are logged with `place_id` and reason; the run continues.
+
+---
+
+### Source B — Tripadvisor
+
+* **Type**: Web scraping via Playwright
 * **Data**:
 
   * Scraped restaurant name
@@ -203,6 +264,25 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
   * Different user base from Google
   * Useful for cross-platform rating consistency analysis
+
+#### Running the Tripadvisor scraper
+
+The scraper is packaged as `src/tripadvisor_scraper_extract`. Runtime files are
+written under `data/raw/tripadvisor/`; the bundled restaurant URL list is copied
+there on first run if no URL file exists yet. See
+`docs/tripadvisor_scraper_extractor/tripadvisor-scraper-extract.md` for runtime
+paths and browser setup details.
+
+```bash
+uv run tripadvisor-scraper-extract --order bottom
+```
+
+Use `--order bottom` when another teammate is scraping from the top of the URL
+list. The default is `--order top`. The scraper auto-detects Brave on macOS,
+Windows, and Linux; pass `--brave-path <path>` if Brave is installed somewhere
+non-standard.
+
+---
 
 ### Source C — TheFork (planned)
 
@@ -220,6 +300,7 @@ The project focuses on restaurants located in **Milan and surrounding municipali
   * Useful comparison against review-heavy general platforms
 
 ---
+
 
 ## 3️⃣ Data storage & modeling (FAQ 6)
 
@@ -300,8 +381,6 @@ not part of the current Stage 1 scope.
 ---
 
 ## 4️⃣ Data profiling & quality assessment 
-
-
 
 ### Profiling before integration
 
