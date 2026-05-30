@@ -14,7 +14,7 @@ Your job will be to turn the user input above into:
 
 - A human friendly feature title in kebab-case (e.g. new-heist-form)
 - A safe git branch name not already taken (e.g. claude/feature/new-heist-form)
-- A detailed markdown spec file under the _specs/ directory
+- A detailed markdown spec file under the specs/ directory
 
 Then save the spec file to disk and print a short summary of what you did.
 
@@ -67,7 +67,7 @@ Before making any content, switch to a new Git branch using the `branch_name` de
 
 ## Step 4. Draft the spec content
 
-Create a markdown spec document that Plan mode can use directly and save it in the _specs folder using the `feature_slug`. Use the exact structure as defined in the spec template file here: @specs/template.md — follow all section headings, ordering, and guidelines defined there. Do not add technical implementation details such as code examples.
+Create a markdown spec document that Plan mode can use directly and save it in the specs folder using the `feature_slug`. Use the exact structure as defined in the spec template file here: @specs/template.md — follow all section headings, ordering, and guidelines defined there. Do not add technical implementation details such as code examples.
 
 ### useful documentation to write spec:
 - ...
@@ -76,7 +76,7 @@ Create a markdown spec document that Plan mode can use directly and save it in t
 After the file is saved, respond to the user with a short summary in this exact format:
 
 Branch: <branch_name>
-Spec file: _specs/<feature_slug>.md
+Spec file: specs/<feature_slug>.md
 Title: <feature_title>
 
 Do not repeat the full spec in the chat output unless the user explicitly asks to see it. The main goal is to save the spec file and report where it lives and what branch name to use.
