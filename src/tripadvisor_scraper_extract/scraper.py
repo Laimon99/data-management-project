@@ -296,22 +296,22 @@ async def async_input(prompt_text):
 async def micro_reading_pause(page):
     """
     REGOLA 4 (CAPITOLATO): Simula il tempo di lettura dell'occhio umano tra una feature e l'altra.
-    Intervallo: 400-1200 millisecondi con distribuzione casuale uniforme.
+    Intervallo: 340-1020 millisecondi con distribuzione casuale uniforme.
     """
-    delay_ms = random.uniform(400, 1200)
+    delay_ms = random.uniform(340, 1020)
     await page.wait_for_timeout(delay_ms)
 
 
 async def pause_between_pages(page, description="pagina"):
     """
     REGOLA 1 e AGGIORNAMENTO V11: Pausa casuale lunga tra le pagine per evitare rilevamento anti-bot.
-    Intervallo: 5-10 secondi per simulare comportamento umano. Utilizza esclusivamente wait_for_timeout.
+    Intervallo: 2.5-5 secondi per simulare comportamento umano. Utilizza esclusivamente wait_for_timeout.
 
     Args:
         page: Oggetto pagina di Playwright corrente.
         description: Descrizione dell'azione successiva (es. "ristorante", "pagina")
     """
-    delay_ms = random.uniform(5000, 10000)
+    delay_ms = random.uniform(2500, 5000)
     print(
         f"   [⏳] Attesa strategica anti-bot ({delay_ms / 1000:.1f}s) prima di accedere alla prossima {description}..."
     )
@@ -320,21 +320,21 @@ async def pause_between_pages(page, description="pagina"):
 
 async def human_scroll_slow(page):
     """
-    REGOLA 3 (CAPITOLATO): Scorre la pagina a piccoli scatti di ~300px con pause di 1-2 secondi.
+    REGOLA 3 (CAPITOLATO): Scorre la pagina a piccoli scatti di ~300px con pause di 0.85-1.7 secondi.
     Simula la lettura naturale di un utente che scorre lentamente la pagina.
     """
     print("   [~] Simulazione lettura umana lenta (scroll a scatti)...")
-    steps = random.randint(3, 5)
+    steps = random.randint(3, 4)
 
     for step in range(steps):
         await page.evaluate("window.scrollBy(0, 300)")
-        pause_ms = random.uniform(1000, 2000)
+        pause_ms = random.uniform(850, 1700)
         await page.wait_for_timeout(pause_ms)
 
     # Piccolo scroll verso l'alto per simulare un ripensamento umano
     if random.random() > 0.5:
         await page.evaluate("window.scrollBy(0, -150)")
-        await page.wait_for_timeout(random.uniform(800, 1200))
+        await page.wait_for_timeout(random.uniform(680, 1020))
 
 
 async def check_and_handle_antibot(page):
@@ -360,7 +360,7 @@ async def check_and_handle_antibot(page):
         print("[!] Una volta sbloccato, premi [INVIO] qui nel terminale per riprendere.")
         print("=" * 80)
         await async_input(">>> Premi [INVIO] per riprendere lo scraping...")
-        await page.wait_for_timeout(random.uniform(2000, 4000))
+        await page.wait_for_timeout(random.uniform(1700, 3400))
 
 
 async def safe_text(locator, default="NaN"):
