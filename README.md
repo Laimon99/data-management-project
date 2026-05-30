@@ -41,9 +41,17 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 
 ### Requirements
 
-* Python 3.11+
-* [`uv`](https://github.com/astral-sh/uv) package manager
-* Any Chromium-based browser — Brave, Chrome, Edge, Vivaldi, Opera, or Chromium
+* **[`uv`](https://github.com/astral-sh/uv)** —  package manager, it also manages Python automatically, no separate install needed.
+
+macOS / Linux:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+Windows (PowerShell):
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+* Any **Chromium-based browser** — Brave, Chrome, Edge, Vivaldi, Opera, or Chromium
   (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
   Chromium if none is found)
 

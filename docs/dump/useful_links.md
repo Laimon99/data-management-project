@@ -1,1 +1,0 @@
-[https://skills.sh/gosom/google-maps-scraper/google-maps-scraper](skill for google maps scraping)
