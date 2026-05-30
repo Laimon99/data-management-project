@@ -32,9 +32,9 @@ uv run tripadvisor-scraper-extract   # Tripadvisor Playwright scraper CLI
 
 Five sequential stages — each should live in its own module/directory:
 
-1. **Seed acquisition** — implemented in `src/google_places_api_extract`. Collect a base list of Milan restaurants (name, address, city, lat, lon) from Google Maps / Places API. This is the geographic backbone; coordinates are not re-geocoded later. LLMs may be used to filter out misclassified or noisy venues (e.g. places incorrectly tagged as restaurants).
+1. **Seed acquisition** — implemented in `services/google_places_api_extract`. Collect a base list of Milan restaurants (name, address, city, lat, lon) from Google Maps / Places API. This is the geographic backbone; coordinates are not re-geocoded later. LLMs may be used to filter out misclassified or noisy venues (e.g. places incorrectly tagged as restaurants).
 
-2. **Per-platform data collection** — Tripadvisor extraction is implemented in `src/tripadvisor_scraper_extract`. For TheFork and later refinements, collect ratings and review counts independently. Each platform gets its own raw output/table.
+2. **Per-platform data collection** — Tripadvisor extraction is implemented in `services/tripadvisor_scraper_extract`. For TheFork and later refinements, collect ratings and review counts independently. Each platform gets its own raw output/table.
 
 3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches.
 

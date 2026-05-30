@@ -1,6 +1,6 @@
 # Tripadvisor Scraper Extract
 
-The Tripadvisor extractor is packaged in `src/tripadvisor_scraper_extract` and
+The Tripadvisor extractor is packaged in `services/tripadvisor_scraper_extract` and
 is runnable through `uv`.
 
 ## Run

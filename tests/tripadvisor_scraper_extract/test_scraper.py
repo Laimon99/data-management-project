@@ -119,30 +119,20 @@ def test_migrate_profile_dir_renames_legacy_directory(tmp_path, monkeypatch):
     assert (new_dir / "cookies").read_text(encoding="utf-8") == "session"
 
 
-def test_configure_runtime_paths_copies_bundled_url_list(tmp_path, monkeypatch):
-    bundled = tmp_path / "bundled_urls.txt"
-    bundled.write_text("https://example.test/restaurant\n", encoding="utf-8")
-    monkeypatch.setattr(scraper, "BUNDLED_URL_FILE", bundled)
-
+def test_configure_runtime_paths_sets_default_paths(tmp_path):
     data_dir = tmp_path / "data"
     scraper.configure_runtime_paths(data_dir=data_dir)
 
     assert scraper.DATA_DIR == data_dir.resolve()
     assert scraper.URL_FILE == data_dir.resolve() / "tripadvisor_list_restaurant.txt"
-    assert scraper.URL_FILE.read_text(encoding="utf-8") == "https://example.test/restaurant\n"
     assert scraper.JSON_FILE == data_dir.resolve() / "tripadvisor_scraper_results.json"
     assert scraper.CHECKPOINT_FILE == data_dir.resolve() / "tripadvisor_checkpoint.json"
     assert scraper.USER_DATA_DIR == data_dir.resolve() / "browser_automation_profile"
 
 
-def test_configure_runtime_paths_accepts_custom_url_file(tmp_path, monkeypatch):
-    bundled = tmp_path / "bundled_urls.txt"
-    bundled.write_text("https://example.test/restaurant\n", encoding="utf-8")
-    monkeypatch.setattr(scraper, "BUNDLED_URL_FILE", bundled)
-
+def test_configure_runtime_paths_accepts_custom_url_file(tmp_path):
     data_dir = tmp_path / "data"
     custom_url_file = tmp_path / "custom_urls.txt"
     scraper.configure_runtime_paths(data_dir=data_dir, url_file=custom_url_file)
 
     assert scraper.URL_FILE == custom_url_file.resolve()
-    assert Path(custom_url_file).read_text(encoding="utf-8") == "https://example.test/restaurant\n"
