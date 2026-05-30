@@ -14,6 +14,7 @@ REVIEW_COUNT_PATTERN = re.compile(r"^\(([\d\s.,]+)\)$")
 PRICE_PATTERN = re.compile(r"^Prezzo\s+medio\s+(.+)$", re.IGNORECASE)
 DISCOUNT_PATTERN = re.compile(r"\bScont[io]\b.*\d+\s*%", re.IGNORECASE)
 SLIDE_PATTERN = re.compile(r"^Slide\s+\d+\s+di\s+\d+$", re.IGNORECASE)
+SLIDE_COUNT_PATTERN = re.compile(r"^Slide\s+\d+\s+di\s+(\d+)$", re.IGNORECASE)
 TIME_PATTERN = re.compile(r"^\d{1,2}:\d{2}$")
 PERCENT_PATTERN = re.compile(r"^-\d+\s*%$")
 ONLY_NUMBER_PATTERN = re.compile(r"^\d+$")
@@ -64,7 +65,9 @@ def parse_restaurant_card(
         cuisine_type=extract_cuisine_type(lines, address_index, price_index),
         price_range=extract_price_range(lines),
         discount=extract_discount(lines),
+        photo_count=extract_photo_count(lines),
         restaurant_url=normalized_url,
+        review_snippets=extract_review_snippets(lines),
         scraped_at=scraped_at,
         source_page_number=source_page_number,
     )
@@ -218,10 +221,25 @@ def extract_discount(lines: list[str]) -> str | None:
     return None
 
 
+def extract_photo_count(lines: list[str]) -> int | None:
+    for line in lines:
+        match = SLIDE_COUNT_PATTERN.match(line)
+        if match:
+            return int(match.group(1))
+    return None
+
+
+def extract_review_snippets(lines: list[str]) -> list[str]:
+    snippets: list[str] = []
+    for line in lines:
+        if line.startswith(("\u201c", '"')) and 20 <= len(line) <= 260:
+            snippets.append(line.strip("\u201c\u201d\" "))
+    return snippets[:3]
+
+
 def deduplication_key(record: RestaurantRecord) -> str:
     if record.restaurant_url:
         return record.restaurant_url
     name = record.restaurant_name or ""
     address = record.address or ""
     return f"{name}|{address}".casefold()
-
