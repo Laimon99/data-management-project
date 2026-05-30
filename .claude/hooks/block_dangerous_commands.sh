@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
-command=$(jq -r '.tool_input.command // ""')
+input=$(cat)
+
+if command -v jq >/dev/null 2>&1; then
+  command=$(jq -r '.tool_input.command // ""' <<< "$input")
+else
+  # Safe fallback: scan the full hook payload if jq is not available.
+  command=$input
+fi
 
 block() { echo "$1" >&2; exit 2; }
 
+grep -qiE '(^|[[:space:];&|()])\\?rm([[:space:]]|$|[;&|)])' <<< "$command" && block "rm commands are not allowed"
 grep -qiE ':\(\)\s*\{'                              <<< "$command" && block "Fork bomb detected"
 grep -qiE '(curl|wget)\s+.+\|\s*(bash|sh|zsh)'     <<< "$command" && block "Piping remote content directly to shell is not allowed"
 grep -qiE 'dd\s+if=.+of=/dev/(sd|nvme|disk)'       <<< "$command" && block "Direct disk write via dd is not allowed"
