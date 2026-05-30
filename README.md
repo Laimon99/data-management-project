@@ -63,6 +63,8 @@ uv run pre-commit install    # (optional) install git hooks
 uv run pytest                # run the test suite
 ```
 
+> New to `uv` or `pre-commit`? See the [Developer Guide](docs/dev-guide.md).
+
 ### Configure API keys
 
 ```bash
