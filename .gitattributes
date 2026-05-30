@@ -17,3 +17,6 @@
 *.png binary
 *.jpg binary
 *.pdf binary
+
+# Raw data dumps committed with CRLF — keep bytes as-is, no conversion.
+data/raw/** -text
