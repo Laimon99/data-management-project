@@ -24,7 +24,8 @@ uv run google-places-api-extract     # Google Places seed CLI
 uv run tripadvisor-scraper-extract   # Tripadvisor Playwright scraper CLI
 ```
 
-`pyproject.toml` should use ruff with `line-length = 100`, `target-version = "py311"`, `select = ["E", "F", "I"]`. Pre-commit should run `ruff --fix` + `ruff-format`.
+`target-version = "py311"`.
+ Pre-commit should run `ruff --fix` + `ruff-format`.
 
 ---
 
@@ -47,12 +48,7 @@ Five sequential stages — each should live in its own module/directory:
 ## Storage
 
 Current acquisition persistence is raw file output under `data/raw/`:
-Google Places writes to `data/raw/google_places/` (`restaurants_seed.jsonl`
-plus checkpoints), and Tripadvisor writes runtime files under
-`data/raw/tripadvisor/` (`tripadvisor_list_restaurant.txt`,
-`tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser
-profile data). Treat DBMS/storage code for downstream stages as out of scope
-until the storage design is revisited.
+Google Places writes to `data/raw/google_places/` (`restaurants_seed.jsonl` plus checkpoints), and Tripadvisor writes runtime files under `data/raw/tripadvisor/` (`tripadvisor_list_restaurant.txt`, `tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser profile data). Treat DBMS/storage code for downstream stages as out of scope until the storage design is revisited.
 
 A document-based database remains a candidate for later raw platform data, and relational/columnar storage remains acceptable for the integrated ratings table and mandatory queries.
 
@@ -67,7 +63,5 @@ A document-based database remains a candidate for later raw platform data, and r
 ## Key constraints
 
 - All `rm` commands are blocked by a pre-tool hook (`.claude/hooks/block_dangerous_commands.sh`).
-- Never read `.env`, `secrets/`, `*credential*`, `*.pem`, `*.key` — denied in `.claude/settings.json`.
-- Plans go in `./_plans` (configured in settings).
+- Never read `.env`, `secrets/`, `*credential*`, `*.pem`, `*.key` — denied in agent settings.
 - Code must be cleanly separated by pipeline stage/source — no new monolithic scripts.
-- Auto-memory is disabled (`autoMemoryEnabled: false`).
