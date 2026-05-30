@@ -1,20 +1,35 @@
 # Tripadvisor Milan Scraper
 
-Python scraper for Tripadvisor Milan restaurant listing pages. It uses Playwright, reads only listing pages, and writes a normalized JSON dataset aligned with Google, Tripadvisor, and TheFork restaurant datasets.
+Python scraper for Tripadvisor Milan restaurants. It first collects restaurants from listing pages, deduplicates restaurant URLs, then optionally opens each restaurant detail page to enrich the normalized records.
 
 ## What It Collects
 
-The scraper extracts only data visible on Tripadvisor listing cards:
+Listing pages provide fallback data:
 
+- restaurant URL
 - restaurant name
 - rating
 - review count
 - cuisine type
 - price range
-- restaurant URL
+- photo count when visible
+- review snippets when visible
 - source page number
 
-Fields not reliably available from listing pages, such as address, website, phone number, email, opening hours, latitude, longitude, discount, and full reviews, are saved as `null` or `[]` according to the normalized schema.
+Detail pages try to improve:
+
+- full restaurant name and address
+- latitude and longitude when explicitly present
+- rating and review count
+- cuisine type and price range
+- discount if exposed
+- photo count
+- website, phone number, and email when exposed
+- opening hours
+- review snippets and up to 5 reviews
+- `detail_scraped`
+
+Extraction priority is JSON-LD, embedded JSON, visible HTML text, links and attributes, listing fallback data, then `null`.
 
 ## Installation
 
@@ -28,22 +43,22 @@ The scraper first tries the installed Chrome browser channel, then Microsoft Edg
 
 ## Execution
 
-Run the full scraper:
+Run the full listing + detail scraper:
 
 ```bash
 python -m src.main
 ```
 
-Run a short smoke test:
+Run a small validation sample without overwriting the main output directory:
 
 ```bash
-python -m src.main --max-pages 1
+python -m src.main --manual-unlock --headed --user-data-dir output/browser_profile --max-pages 1 --max-restaurants 10 --output-dir output/detail_sample
 ```
 
-Run with a specific browser channel:
+Run listing-only mode:
 
 ```bash
-python -m src.main --browser-channel chrome
+python -m src.main --no-detail-pages
 ```
 
 Warm up and save a persistent browser session:
@@ -52,34 +67,46 @@ Warm up and save a persistent browser session:
 python -m src.main --manual-unlock --headed --user-data-dir output/browser_profile --save-session-only
 ```
 
-Run with assisted manual unlock:
-
-```bash
-python -m src.main --manual-unlock --headed --user-data-dir output/browser_profile
-```
-
-If Tripadvisor shows a DataDome or captcha challenge, solve it in the browser window. The scraper waits for restaurant links to appear and then continues automatically.
-
 Resume from the partial JSON after an interruption:
 
 ```bash
 python -m src.main --manual-unlock --headed --user-data-dir output/browser_profile --resume
 ```
 
+Run automatic detail retries until every restaurant is complete:
+
+```bash
+python -m src.main --auto-detail-until-complete --manual-unlock --headed --user-data-dir output/browser_profile --detail-delay-seconds 10 --detail-batch-size 25
+```
+
 Useful options:
 
 ```text
---max-pages N              Stop after N listing pages.
---delay-seconds N          Delay between listing pages.
---partial-every-pages N    Save partial progress every N processed pages.
---browser-channel NAME     Use chrome, msedge, or chromium.
---headed                   Open a visible browser window.
---user-data-dir PATH       Reuse a persistent browser profile.
---manual-unlock            Wait for manual DataDome or captcha unlock.
---unlock-timeout-seconds N Wait up to N seconds for manual unlock.
---save-session-only        Save the browser session without scraping JSON output.
---resume                   Continue from the existing partial JSON.
---log-level LEVEL          Use INFO, DEBUG, WARNING, or ERROR.
+--max-pages N                    Stop after N listing pages.
+--max-restaurants N              Enrich at most N restaurants.
+--delay-seconds N                Delay between listing pages.
+--detail-delay-seconds N         Delay between detail pages.
+--partial-every-pages N          Save partial progress every N listing pages.
+--partial-every-restaurants N    Save partial progress every N enriched restaurants.
+--browser-channel NAME           Use chrome, msedge, or chromium.
+--headed                         Open a visible browser window.
+--user-data-dir PATH             Reuse a persistent browser profile.
+--manual-unlock                  Wait for manual DataDome or captcha unlock.
+--unlock-timeout-seconds N       Wait up to N seconds for manual unlock.
+--save-session-only              Save the browser session without scraping JSON output.
+--resume                         Continue from the existing partial JSON.
+--auto-detail-until-complete     Retry missing detail pages with cooldowns until complete.
+--detail-batch-size N            Reopen the browser after N missing detail pages.
+--cooldown-seconds N             Initial cooldown after a blocked detail batch.
+--max-cooldown-seconds N         Maximum cooldown after repeated blocked batches.
+--cooldown-multiplier N          Multiplier for repeated blocked cooldowns.
+--max-auto-detail-cycles N       Maximum automatic retry cycles.
+--max-consecutive-detail-failures N
+                                 Stop detail scraping after repeated detail failures.
+--save-final-incomplete          Write final JSON even if some detail pages are missing.
+--output-dir PATH                Save output files in a custom directory.
+--no-detail-pages                Skip detail pages.
+--log-level LEVEL                Use INFO, DEBUG, WARNING, or ERROR.
 ```
 
 ## Output
@@ -96,11 +123,18 @@ Partial progress JSON:
 output/tripadvisor_milan_restaurants_normalized_partial.json
 ```
 
+Validation report:
+
+```text
+output/tripadvisor_milan_validation_report.json
+```
+
 ## Notes
 
-- The scraper never opens individual restaurant detail pages.
 - Restaurant links are identified with `a[href*="Restaurant_Review-"]` and filtered to URLs matching `Restaurant_Review-g187849-d<id>-Reviews-`.
+- Tripadvisor offset pagination uses URLs such as `oa30`, `oa60`, and `oa90` when a next link is not reliable.
 - The restaurant URL, stripped of query and fragment parts, is the main deduplication key.
-- If a restaurant URL is missing, the fallback key is restaurant name plus address, then restaurant name plus page number.
+- If a detail page fails, listing data is kept and `detail_scraped` is set to `false`.
+- In `--auto-detail-until-complete` mode, blocked or failed detail batches are saved, cooled down, and retried from the next missing detail.
+- Tripadvisor may return a DataDome captcha or block page. In `--manual-unlock` mode, the scraper keeps the browser open and waits for manual unlock.
 - The fixed normalized city value is `Milan`.
-- Tripadvisor may return a DataDome captcha or block page. In non-interactive mode, the scraper stops with a clear English error. In `--manual-unlock` mode, it keeps the browser open and waits for manual unlock.

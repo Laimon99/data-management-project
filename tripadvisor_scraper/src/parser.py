@@ -18,6 +18,7 @@ REVIEW_COUNT_PATTERN = re.compile(
     r"\(?\s*([\d.,\s]+)\s+(?:reviews?|recensioni)\s*\)?",
     re.IGNORECASE,
 )
+PHOTO_COUNT_PATTERN = re.compile(r"\(?\s*([\d.,\s]+)\s+(?:photos?|foto)\s*\)?", re.IGNORECASE)
 PRICE_RANGE_PATTERN = re.compile(
     r"(\${1,4}(?:\s*-\s*\${1,4})?|€{1,4}(?:\s*-\s*€{1,4})?)"
 )
@@ -74,7 +75,9 @@ def parse_restaurant_card(
         review_count=extract_review_count(lines),
         cuisine_type=cuisine_type,
         price_range=price_range,
+        photo_count=extract_photo_count(lines),
         restaurant_url=normalized_url,
+        review_snippets=extract_review_snippets(lines),
         scraped_at=scraped_at,
         source_page_number=source_page_number,
     )
@@ -293,6 +296,24 @@ def extract_address(lines: list[str]) -> str | None:
         if ADDRESS_HINT_PATTERN.search(line) and not is_review_count_line(line):
             return line
     return None
+
+
+def extract_photo_count(lines: list[str]) -> int | None:
+    for line in lines:
+        match = PHOTO_COUNT_PATTERN.search(line)
+        if match:
+            digits = re.sub(r"\D", "", match.group(1))
+            if digits:
+                return int(digits)
+    return None
+
+
+def extract_review_snippets(lines: list[str]) -> list[str]:
+    snippets: list[str] = []
+    for line in lines:
+        if line.startswith(("\u201c", '"')) and 20 <= len(line) <= 280:
+            snippets.append(line.strip("\u201c\u201d\" "))
+    return snippets[:3]
 
 
 def deduplication_key(record: RestaurantRecord) -> str:
