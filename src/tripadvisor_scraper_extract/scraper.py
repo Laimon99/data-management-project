@@ -29,7 +29,7 @@ from playwright.async_api import async_playwright
 BASE_URL = "https://www.tripadvisor.it/Restaurants-g187849-Milan_Lombardy.html"
 
 PACKAGE_DIR = Path(__file__).resolve().parent
-BUNDLED_URL_FILE = PACKAGE_DIR / "tripadvisor_list_restaurant.txt"
+
 DEFAULT_DATA_DIR = Path("data/raw/tripadvisor")
 
 DATA_DIR = Path(os.environ.get("TRIPADVISOR_DATA_DIR", DEFAULT_DATA_DIR)).expanduser()
@@ -211,8 +211,6 @@ def configure_runtime_paths(data_dir=None, url_file=None):
 
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     URL_FILE.parent.mkdir(parents=True, exist_ok=True)
-    if not URL_FILE.exists() and BUNDLED_URL_FILE.exists():
-        shutil.copyfile(BUNDLED_URL_FILE, URL_FILE)
 
     migrate_profile_dir()
 
