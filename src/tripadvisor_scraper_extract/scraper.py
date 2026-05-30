@@ -298,7 +298,7 @@ async def micro_reading_pause(page):
     REGOLA 4 (CAPITOLATO): Simula il tempo di lettura dell'occhio umano tra una feature e l'altra.
     Intervallo: 340-1020 millisecondi con distribuzione casuale uniforme.
     """
-    delay_ms = random.uniform(340, 1020)
+    delay_ms = random.uniform(800, 1200)
     await page.wait_for_timeout(delay_ms)
 
 
@@ -311,30 +311,11 @@ async def pause_between_pages(page, description="pagina"):
         page: Oggetto pagina di Playwright corrente.
         description: Descrizione dell'azione successiva (es. "ristorante", "pagina")
     """
-    delay_ms = random.uniform(2500, 5000)
+    delay_ms = random.uniform(600, 950)
     print(
         f"   [⏳] Attesa strategica anti-bot ({delay_ms / 1000:.1f}s) prima di accedere alla prossima {description}..."
     )
     await page.wait_for_timeout(delay_ms)
-
-
-async def human_scroll_slow(page):
-    """
-    REGOLA 3 (CAPITOLATO): Scorre la pagina a piccoli scatti di ~300px con pause di 0.85-1.7 secondi.
-    Simula la lettura naturale di un utente che scorre lentamente la pagina.
-    """
-    print("   [~] Simulazione lettura umana lenta (scroll a scatti)...")
-    steps = random.randint(3, 4)
-
-    for step in range(steps):
-        await page.evaluate("window.scrollBy(0, 300)")
-        pause_ms = random.uniform(850, 1700)
-        await page.wait_for_timeout(pause_ms)
-
-    # Piccolo scroll verso l'alto per simulare un ripensamento umano
-    if random.random() > 0.5:
-        await page.evaluate("window.scrollBy(0, -150)")
-        await page.wait_for_timeout(random.uniform(680, 1020))
 
 
 async def check_and_handle_antibot(page):
@@ -360,7 +341,7 @@ async def check_and_handle_antibot(page):
         print("[!] Una volta sbloccato, premi [INVIO] qui nel terminale per riprendere.")
         print("=" * 80)
         await async_input(">>> Premi [INVIO] per riprendere lo scraping...")
-        await page.wait_for_timeout(random.uniform(1700, 3400))
+        await page.wait_for_timeout(random.uniform(1500, 2500))
 
 
 async def safe_text(locator, default="NaN"):
@@ -370,7 +351,7 @@ async def safe_text(locator, default="NaN"):
     """
     try:
         if await locator.count() > 0:
-            text = await locator.first.text_content(timeout=2500)
+            text = await locator.first.text_content(timeout=1000)
             return text.strip() if text else default
     except Exception:
         pass
@@ -384,7 +365,7 @@ async def safe_attr(locator, attr_name, default="NaN"):
     """
     try:
         if await locator.count() > 0:
-            val = await locator.first.get_attribute(attr_name, timeout=2500)
+            val = await locator.first.get_attribute(attr_name, timeout=1500)
             return val.strip() if val else default
     except Exception:
         pass
@@ -474,9 +455,6 @@ async def extract_restaurant_urls(page):
 
     while current_page <= pages_to_scrape:
         print(f"\n[→] Scansione Pagina {current_page} in corso...")
-
-        await check_and_handle_antibot(page)
-        await human_scroll_slow(page)
 
         cards = page.locator('div[data-automation="restaurantCard"]')
         card_count = await cards.count()
@@ -619,7 +597,7 @@ async def extract_restaurant_features(page, url):
         return None
 
     await check_and_handle_antibot(page)
-    await human_scroll_slow(page)
+    await micro_reading_pause(page)
 
     data = {
         "restaurant_name": "NaN",
