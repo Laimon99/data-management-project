@@ -35,9 +35,8 @@ Extraction priority is JSON-LD, embedded JSON, visible HTML text, links and attr
 ## Installation
 
 ```bash
-cd thefork_scraper
-pip install -r requirements.txt
-python -m playwright install chromium
+uv sync
+uv run playwright install chromium
 ```
 
 The scraper first tries the installed Chrome browser channel, then Microsoft Edge, then bundled Chromium.
@@ -47,31 +46,31 @@ The scraper first tries the installed Chrome browser channel, then Microsoft Edg
 Run the full listing + detail scraper:
 
 ```bash
-python -m src.main
+uv run thefork-scraper-extract
 ```
 
 Run a small validation sample without overwriting the main output directory:
 
 ```bash
-python -m src.main --max-pages 1 --max-restaurants 10 --output-dir output/detail_sample
+uv run thefork-scraper-extract --max-pages 1 --max-restaurants 10 --output-dir data/raw/thefork/detail_sample
 ```
 
 Run listing-only mode:
 
 ```bash
-python -m src.main --no-detail-pages
+uv run thefork-scraper-extract --no-detail-pages
 ```
 
 Resume detail scraping from the partial JSON after a block or interruption:
 
 ```bash
-python -m src.main --resume-detail --detail-delay-seconds 8 --max-consecutive-detail-failures 5
+uv run thefork-scraper-extract --resume-detail --detail-delay-seconds 8 --max-consecutive-detail-failures 5
 ```
 
 Run automatic detail retries until every restaurant is complete:
 
 ```bash
-python -m src.main --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 25 --max-consecutive-detail-failures 5
+uv run thefork-scraper-extract --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 25 --max-consecutive-detail-failures 5
 ```
 
 Useful options:
@@ -102,22 +101,24 @@ Useful options:
 
 ## Output
 
+Files are written to `data/raw/thefork/` by default (override with `--output-dir`).
+
 Final JSON:
 
 ```text
-output/thefork_milan_restaurants_normalized.json
+data/raw/thefork/thefork_milan_restaurants_normalized.json
 ```
 
 Partial progress JSON:
 
 ```text
-output/thefork_milan_restaurants_normalized_partial.json
+data/raw/thefork/thefork_milan_restaurants_normalized_partial.json
 ```
 
 Validation report:
 
 ```text
-output/thefork_milan_validation_report.json
+data/raw/thefork/thefork_milan_validation_report.json
 ```
 
 ## Notes

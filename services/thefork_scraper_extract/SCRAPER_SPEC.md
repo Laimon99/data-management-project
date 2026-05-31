@@ -78,9 +78,9 @@ DELAY_BETWEEN_LISTING_PAGES_SECONDS = 1.5
 DELAY_BETWEEN_DETAIL_PAGES_SECONDS = 2.0
 SAVE_PARTIAL_EVERY_N_RESTAURANTS = 25
 MAX_CONSECUTIVE_EMPTY_PAGES = 3
-OUTPUT_FILE = "output/thefork_milan_restaurants_normalized.json"
-PARTIAL_OUTPUT_FILE = "output/thefork_milan_restaurants_normalized_partial.json"
-VALIDATION_REPORT_FILE = "output/thefork_milan_validation_report.json"
+OUTPUT_FILE = "data/raw/thefork/thefork_milan_restaurants_normalized.json"
+PARTIAL_OUTPUT_FILE = "data/raw/thefork/thefork_milan_restaurants_normalized_partial.json"
+VALIDATION_REPORT_FILE = "data/raw/thefork/thefork_milan_validation_report.json"
 ```
 
 ---
@@ -498,7 +498,7 @@ After scraping a small sample, for example 10 to 20 restaurants, generate a fiel
 Save it to:
 
 ```text
-output/thefork_milan_validation_report.json
+data/raw/thefork/thefork_milan_validation_report.json
 ```
 
 If a field is always null or always empty across the sample, Codex must:
@@ -522,24 +522,29 @@ Do not keep useless fields that are null for every restaurant. Keep fields that 
 Final output:
 
 ```text
-output/thefork_milan_restaurants_normalized.json
+data/raw/thefork/thefork_milan_restaurants_normalized.json
 ```
 
 Partial output:
 
 ```text
-output/thefork_milan_restaurants_normalized_partial.json
+data/raw/thefork/thefork_milan_restaurants_normalized_partial.json
 ```
 
 Validation report:
 
 ```text
-output/thefork_milan_validation_report.json
+data/raw/thefork/thefork_milan_validation_report.json
 ```
 
 ---
 
 ## Recommended Project Structure
+
+> This reflects the original standalone design. In this repo the scraper lives
+> at `services/thefork_scraper_extract/` and is run via
+> `uv run thefork-scraper-extract`; see the service `README.md` for the current
+> layout and invocation.
 
 ```text
 thefork_scraper/
