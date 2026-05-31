@@ -95,7 +95,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-dir",
-        default="output",
+        default="data/raw/thefork",
         help="Directory for final, partial, and validation JSON files.",
     )
     parser.add_argument(
@@ -119,7 +119,9 @@ def main() -> None:
     args = parse_args()
     configure_logging(args.log_level)
 
-    project_root = Path(__file__).resolve().parents[1]
+    # services/thefork_scraper_extract/main.py -> repo root is three levels up,
+    # so default --output-dir "data/raw/thefork" resolves under the repo data dir.
+    project_root = Path(__file__).resolve().parents[2]
     storage = create_default_storage(project_root, args.output_dir)
     scraper = TheForkScraper(
         storage=storage,
