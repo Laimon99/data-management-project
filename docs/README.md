@@ -9,6 +9,7 @@ Project-level documentation: architecture, pipeline design, storage decisions, a
 | `PIPELINE.md` | High-level overview of the five-stage pipeline and data flow (rough design doc, not a locked spec) |
 | `storage-design.md` | Candidate DBMS evaluation (MongoDB, DuckDB, ClickHouse, etc.) and architecture options for raw → integrated → analytics layers |
 | `dev-guide.md` | Developer setup, tooling, and contribution conventions |
+| `antibot-comparison.md` | Why the TheFork scraper keeps its Chromium approach, and the anti-bot escalation ladder vs. the Tripadvisor persistent-profile design |
 | `requirements/EXAM_REQUIREMENTS.md` | Exam deliverable checklist |
 | `requirements/PROF_PITCH.md` | Original project pitch to the professor |
 | `dump/` | Drafts and exploratory notes that informed but don't govern the current design |
