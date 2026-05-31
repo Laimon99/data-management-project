@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import random
 import re
 from collections.abc import Iterable
 from typing import Any
@@ -44,10 +45,20 @@ class TheForkDetailScraper:
         max_reviews_per_restaurant: int = 5,
         navigation_timeout_ms: int = 60_000,
         detail_timeout_ms: int = 30_000,
+        max_block_retries: int = 1,
+        block_retry_delay_ms: int = 5_000,
+        human_scroll_enabled: bool = False,
+        human_scroll_min_steps: int = 2,
+        human_scroll_max_steps: int = 4,
     ) -> None:
         self.max_reviews_per_restaurant = max(0, max_reviews_per_restaurant)
         self.navigation_timeout_ms = navigation_timeout_ms
         self.detail_timeout_ms = detail_timeout_ms
+        self.max_block_retries = max(0, max_block_retries)
+        self.block_retry_delay_ms = max(0, block_retry_delay_ms)
+        self.human_scroll_enabled = human_scroll_enabled
+        self.human_scroll_min_steps = max(1, human_scroll_min_steps)
+        self.human_scroll_max_steps = max(self.human_scroll_min_steps, human_scroll_max_steps)
 
     def enrich_record(self, page: Page, record: RestaurantRecord, scraped_at: str) -> RestaurantRecord:
         if not record.restaurant_url:
@@ -56,9 +67,9 @@ class TheForkDetailScraper:
             return record
 
         try:
-            response = page.goto(record.restaurant_url, wait_until="domcontentloaded", timeout=self.navigation_timeout_ms)
-            if response and response.status >= 400:
-                logging.warning("Detail page returned HTTP %s: %s", response.status, record.restaurant_url)
+            status = self._load_detail_page_with_retries(page, record.restaurant_url)
+            if status and status >= 400:
+                logging.warning("Detail page returned HTTP %s: %s", status, record.restaurant_url)
                 record.detail_scraped = False
                 record.scraped_at = scraped_at
                 return record
@@ -68,6 +79,7 @@ class TheForkDetailScraper:
             except PlaywrightTimeoutError:
                 logging.debug("Detail page did not reach network idle: %s", record.restaurant_url)
 
+            self._light_human_scroll(page)
             payload = self._extract_page_payload(page)
             detail_data = self._parse_detail_payload(payload, record)
             self._merge_detail_data(record, detail_data, scraped_at)
@@ -78,6 +90,39 @@ class TheForkDetailScraper:
             record.detail_scraped = False
             record.scraped_at = scraped_at
             return record
+
+    def _load_detail_page_with_retries(self, page: Page, url: str) -> int | None:
+        status: int | None = None
+        for attempt in range(self.max_block_retries + 1):
+            response = page.goto(url, wait_until="domcontentloaded", timeout=self.navigation_timeout_ms)
+            status = response.status if response else None
+            if status != 403:
+                return status
+            if attempt >= self.max_block_retries:
+                return status
+            logging.warning(
+                "Detail page returned HTTP 403. Waiting briefly and retrying once: %s",
+                url,
+            )
+            if self.block_retry_delay_ms > 0:
+                page.wait_for_timeout(self.block_retry_delay_ms)
+        return status
+
+    def _light_human_scroll(self, page: Page) -> None:
+        if not self.human_scroll_enabled:
+            return
+
+        try:
+            steps = random.randint(self.human_scroll_min_steps, self.human_scroll_max_steps)
+            for _ in range(steps):
+                page.mouse.wheel(0, random.randint(260, 560))
+                page.wait_for_timeout(int(random.uniform(500, 1300)))
+
+            if random.random() < 0.35:
+                page.mouse.wheel(0, -random.randint(100, 240))
+                page.wait_for_timeout(int(random.uniform(400, 900)))
+        except PlaywrightError:
+            logging.debug("Light human scroll failed, continuing extraction.")
 
     def _extract_page_payload(self, page: Page) -> dict[str, Any]:
         return page.evaluate(

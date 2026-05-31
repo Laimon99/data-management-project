@@ -71,7 +71,39 @@ python -m src.main --resume-detail --detail-delay-seconds 8 --max-consecutive-de
 Run automatic detail retries until every restaurant is complete:
 
 ```bash
-python -m src.main --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 25 --max-consecutive-detail-failures 5
+python -m src.main --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 24 --max-consecutive-detail-failures 5
+```
+
+Run a direct-IP calibration before buying or assigning proxies:
+
+```bash
+python -m src.main --calibrate-detail-blocks --calibration-max-records 10 --calibration-delay-seconds 5,10,20
+```
+
+Run the same calibration with a proxy list:
+
+```bash
+python -m src.main --calibrate-detail-blocks --proxy-list proxy_list.txt --calibration-max-records 10 --calibration-delay-seconds 5,10,20
+```
+
+Run the final scraper through one proxy or a rotating proxy list:
+
+```bash
+python -m src.main --auto-detail-until-complete --proxy-list proxy_list.txt --detail-delay-seconds 10 --detail-batch-size 24
+```
+
+Recommended proxy strategy for postponing IP blocks:
+
+```bash
+python -m src.main --proxy-round-robin --proxy-list proxy_list.txt --user-data-dir output/browser_profile --restaurants-per-proxy-turn 1 --proxy-min-rest-seconds 90 --proxy-max-failed-turns 3 --detail-delay-min-seconds 4 --detail-delay-max-seconds 9 --proxy-turn-jitter-seconds 3 --human-detail-scroll
+```
+
+This mode rotates after a small number of detail pages, gives each proxy a rest window before reuse, keeps one persistent browser profile per proxy, and saves a proxy progress report after every turn.
+
+Optional Brave run:
+
+```bash
+python -m src.main --proxy-round-robin --proxy-list proxy_list.txt --user-data-dir output/browser_profile --browser-executable-path "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" --headed --restaurants-per-proxy-turn 1 --proxy-min-rest-seconds 90 --detail-delay-min-seconds 4 --detail-delay-max-seconds 9 --human-detail-scroll
 ```
 
 Useful options:
@@ -81,9 +113,32 @@ Useful options:
 --max-restaurants N              Enrich at most N restaurants.
 --delay-seconds N                Delay between listing pages.
 --detail-delay-seconds N         Delay between detail pages.
+--detail-delay-min-seconds N     Minimum random delay between detail pages.
+--detail-delay-max-seconds N     Maximum random delay between detail pages.
+--human-detail-scroll            Lightly scroll detail pages before extraction.
 --partial-every-pages N          Save partial progress every N listing pages.
 --partial-every-restaurants N    Save partial progress every N enriched restaurants.
 --browser-channel NAME           Use chrome, msedge, or chromium.
+--browser-executable-path PATH   Use an explicit browser executable, for example Brave.
+--proxy-list PATH                Read one proxy URL per line and rotate it by browser batch.
+--proxy-server URL               Use one proxy server, for example http://host:port.
+--proxy-username TEXT            Username for --proxy-server.
+--proxy-password TEXT            Password for --proxy-server.
+--proxy-round-robin              Rotate proxies after a small number of detail pages.
+--restaurants-per-proxy-turn N   Detail pages attempted before switching proxy.
+--proxy-min-rest-seconds N       Minimum rest time before the same proxy is reused.
+--proxy-max-failed-turns N       Retire a proxy after repeated failed turns.
+--proxy-turn-jitter-seconds N    Add random delay between proxy turns.
+--include-direct-ip-after-proxies
+                                 Use the direct IP after all proxies are retired.
+--calibrate-detail-blocks        Run block-limit calibration and save reports.
+--calibration-output-dir PATH    Save calibration reports and sample records.
+--calibration-max-records N      Test at most N missing detail records per calibration run.
+--calibration-delay-seconds CSV  Test comma-separated delays, for example 5,10,20.
+--calibration-batch-size N       Max records attempted in one calibration session.
+--calibration-time-budget-hours N
+                                 Target scraping time used for proxy estimates.
+--calibration-max-proxies N      Max proxies considered by calibration estimates.
 --headed                         Open a visible browser window.
 --output-dir PATH                Save output files in a custom directory.
 --no-detail-pages                Skip detail pages.
@@ -120,6 +175,18 @@ Validation report:
 output/thefork_milan_validation_report.json
 ```
 
+Calibration report:
+
+```text
+output/calibration/thefork_block_calibration_report.json
+```
+
+Proxy progress report:
+
+```text
+output/thefork_proxy_progress_report.json
+```
+
 ## Notes
 
 - Restaurant links are identified with `a[href*="/ristorante/"]` and filtered to URLs matching `/ristorante/<slug>-r<id>`.
@@ -127,5 +194,11 @@ output/thefork_milan_validation_report.json
 - If a detail page fails, listing data is kept and `detail_scraped` is set to `false`.
 - If repeated detail pages return errors such as HTTP 403, the scraper stops early, keeps the partial JSON, and can be resumed later with `--resume-detail`.
 - In `--auto-detail-until-complete` mode, repeated HTTP 403 responses trigger a cooldown and automatic retry from the next missing detail.
+- In `--proxy-round-robin` mode, `--max-restaurants` limits only the work queue and does not truncate the partial JSON.
+- If every proxy returns HTTP 403 immediately, the pool is already blocked or too low quality; let it cool down or replace it before a full run.
+- Current calibration with the direct IP completed 24 of 25 detail pages at 10 seconds delay; the first HTTP 403 appeared on attempt 25. The default detail batch is therefore 24.
+- With a 20 hour budget and 15 minute cooldowns, the report estimates 1 proxy as the mathematical minimum and 2 proxies as the recommended margin target.
+- Proxy credentials should stay in a local `proxy_list.txt` or environment-specific file; those files are ignored by Git.
+- Calibration outputs are kept in `output/calibration/` so the experiments can be reviewed later.
 - The fixed normalized city value is `Milan`.
 - TheFork card and detail text may remain in Italian because it is source data.

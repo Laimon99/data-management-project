@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import math
+import random
 import re
 import time
 from datetime import datetime, timezone
@@ -17,6 +18,7 @@ from . import config
 from .detail_scraper import TheForkDetailScraper
 from .models import RestaurantRecord
 from .parser import deduplication_key, parse_restaurant_card
+from .proxy_utils import ProxyConfig, proxy_for_batch
 from .storage import JsonStorage
 from .validators import build_validation_report
 
@@ -42,6 +44,7 @@ class TheForkScraper:
         storage: JsonStorage,
         start_url: str = START_URL,
         browser_channel: str | None = None,
+        browser_executable_path: str | None = None,
         headless: bool = True,
         delay_seconds: float = 1.5,
         partial_every_pages: int = 5,
@@ -51,6 +54,9 @@ class TheForkScraper:
         card_timeout_ms: int = 30_000,
         scrape_detail_pages: bool = config.SCRAPE_DETAIL_PAGES,
         detail_delay_seconds: float = config.DELAY_BETWEEN_DETAIL_PAGES_SECONDS,
+        detail_delay_min_seconds: float | None = None,
+        detail_delay_max_seconds: float | None = None,
+        human_scroll_enabled: bool = False,
         max_reviews_per_restaurant: int = config.MAX_REVIEWS_PER_RESTAURANT,
         resume_detail: bool = False,
         max_consecutive_detail_failures: int = 10,
@@ -61,10 +67,20 @@ class TheForkScraper:
         cooldown_multiplier: float = config.COOLDOWN_MULTIPLIER,
         max_auto_detail_cycles: int = config.MAX_AUTO_DETAIL_CYCLES,
         save_final_incomplete: bool = False,
+        proxy_configs: list[ProxyConfig] | None = None,
+        user_data_dir: Path | None = None,
+        proxy_burn_through: bool = False,
+        include_direct_ip_after_proxies: bool = False,
+        proxy_round_robin: bool = False,
+        restaurants_per_proxy_turn: int = 1,
+        proxy_min_rest_seconds: float = 90.0,
+        proxy_max_failed_turns: int = 3,
+        proxy_turn_jitter_seconds: float = 5.0,
     ) -> None:
         self.storage = storage
         self.start_url = start_url
         self.browser_channel = normalize_browser_channel(browser_channel)
+        self.browser_executable_path = browser_executable_path
         self.headless = headless
         self.delay_seconds = delay_seconds
         self.partial_every_pages = max(1, partial_every_pages)
@@ -74,6 +90,9 @@ class TheForkScraper:
         self.card_timeout_ms = card_timeout_ms
         self.scrape_detail_pages = scrape_detail_pages
         self.detail_delay_seconds = detail_delay_seconds
+        self.detail_delay_min_seconds = detail_delay_min_seconds
+        self.detail_delay_max_seconds = detail_delay_max_seconds
+        self.human_scroll_enabled = human_scroll_enabled
         self.max_reviews_per_restaurant = max_reviews_per_restaurant
         self.resume_detail = resume_detail
         self.max_consecutive_detail_failures = max(1, max_consecutive_detail_failures)
@@ -84,9 +103,25 @@ class TheForkScraper:
         self.cooldown_multiplier = max(1.0, cooldown_multiplier)
         self.max_auto_detail_cycles = max(1, max_auto_detail_cycles)
         self.save_final_incomplete = save_final_incomplete
+        self.proxy_configs = proxy_configs or []
+        self.user_data_dir = user_data_dir
+        self.proxy_burn_through = proxy_burn_through
+        self.include_direct_ip_after_proxies = include_direct_ip_after_proxies
+        self.proxy_round_robin = proxy_round_robin
+        self.restaurants_per_proxy_turn = max(1, restaurants_per_proxy_turn)
+        self.proxy_min_rest_seconds = max(0.0, proxy_min_rest_seconds)
+        self.proxy_max_failed_turns = max(1, proxy_max_failed_turns)
+        self.proxy_turn_jitter_seconds = max(0.0, proxy_turn_jitter_seconds)
+        self.detail_batch_counter = 0
         self.detail_stopped_early = False
 
     def scrape(self, max_pages: int | None = None, max_restaurants: int | None = None) -> list[RestaurantRecord]:
+        if self.proxy_round_robin:
+            return self._proxy_round_robin_until_complete(max_pages=max_pages, max_restaurants=max_restaurants)
+
+        if self.proxy_burn_through:
+            return self._proxy_burn_through_until_complete(max_pages=max_pages, max_restaurants=max_restaurants)
+
         if self.auto_detail_until_complete:
             return self._auto_detail_until_complete(max_pages=max_pages, max_restaurants=max_restaurants)
 
@@ -108,6 +143,8 @@ class TheForkScraper:
         raise RuntimeError("The scraper could not load TheFork with any configured browser channel.") from last_error
 
     def _candidate_channels(self) -> list[str | None]:
+        if self.browser_executable_path:
+            return [None]
         if self.browser_channel is not None:
             return [self.browser_channel]
         return list(DEFAULT_BROWSER_CHANNELS)
@@ -129,17 +166,35 @@ class TheForkScraper:
                 "headless": self.headless,
                 "args": ["--disable-blink-features=AutomationControlled"],
             }
-            if browser_channel is not None:
+            if self.browser_executable_path:
+                launch_options["executable_path"] = self.browser_executable_path
+            elif browser_channel is not None:
                 launch_options["channel"] = browser_channel
+            proxy = proxy_for_batch(self.proxy_configs, 1)
+            if proxy is not None:
+                logging.info("Using proxy for browser session: %s", proxy.safe_label())
+                launch_options["proxy"] = proxy.to_playwright()
 
-            browser = playwright.chromium.launch(**launch_options)
-            context = browser.new_context(
-                locale="it-IT",
-                timezone_id="Europe/Rome",
-                viewport={"width": 1440, "height": 1800},
-                user_agent=DEFAULT_USER_AGENT,
-                extra_http_headers={"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
-            )
+            browser = None
+            context_options: dict[str, Any] = {
+                "locale": "it-IT",
+                "timezone_id": "Europe/Rome",
+                "viewport": {"width": 1440, "height": 1800},
+                "user_agent": DEFAULT_USER_AGENT,
+                "extra_http_headers": {"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
+            }
+            if self.user_data_dir is not None:
+                profile_dir = profile_dir_for_proxy(self.user_data_dir, proxy)
+                profile_dir.mkdir(parents=True, exist_ok=True)
+                logging.info("Using persistent browser profile: %s", profile_dir)
+                context = playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(profile_dir),
+                    **launch_options,
+                    **context_options,
+                )
+            else:
+                browser = playwright.chromium.launch(**launch_options)
+                context = browser.new_context(**context_options)
             page = context.new_page()
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
@@ -242,7 +297,8 @@ class TheForkScraper:
                 return records
             finally:
                 context.close()
-                browser.close()
+                if browser is not None:
+                    browser.close()
 
     def _load_page(self, page: Page, page_url: str) -> int | None:
         try:
@@ -402,8 +458,7 @@ class TheForkScraper:
     ) -> list[RestaurantRecord]:
         channel = self._candidate_channels()[0]
         records = self.storage.load_partial()
-        if max_restaurants is not None:
-            records = records[:max_restaurants]
+        record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
 
         if not records:
             logging.info("No partial output found. Collecting listing data before detail auto-resume.")
@@ -424,6 +479,7 @@ class TheForkScraper:
 
         cooldown_seconds = self.cooldown_seconds
         previous_remaining = count_pending_details(records)
+        blocked_proxy_cycles = 0
 
         for cycle in range(1, self.max_auto_detail_cycles + 1):
             remaining = count_pending_details(records)
@@ -454,6 +510,17 @@ class TheForkScraper:
             made_progress = remaining < previous_remaining
             previous_remaining = remaining
             if self.detail_stopped_early or not made_progress:
+                if self.proxy_configs and blocked_proxy_cycles < len(self.proxy_configs) - 1:
+                    blocked_proxy_cycles += 1
+                    logging.warning(
+                        "TheFork detail batch was blocked or made no progress. "
+                        "Rotating to the next proxy without a full cooldown (%s/%s blocked proxy batches).",
+                        blocked_proxy_cycles,
+                        len(self.proxy_configs),
+                    )
+                    time.sleep(min(30, max(1, self.detail_delay_seconds)))
+                    continue
+
                 logging.warning(
                     "TheFork detail scraping is blocked or made no progress. "
                     "Cooling down for %s seconds before retrying.",
@@ -465,7 +532,9 @@ class TheForkScraper:
                     self.max_cooldown_seconds,
                     int(max(cooldown_seconds + 1, cooldown_seconds * self.cooldown_multiplier)),
                 )
+                blocked_proxy_cycles = 0
             else:
+                blocked_proxy_cycles = 0
                 cooldown_seconds = self.cooldown_seconds
 
         logging.warning(
@@ -479,6 +548,509 @@ class TheForkScraper:
             self.storage.save_final(records)
         return records
 
+    def _proxy_burn_through_until_complete(
+        self,
+        max_pages: int | None,
+        max_restaurants: int | None,
+    ) -> list[RestaurantRecord]:
+        records = self.storage.load_partial()
+        record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
+
+        if not records:
+            logging.info("No partial output found. Collecting listing data before proxy burn-through detail scraping.")
+            original_scrape_detail_pages = self.scrape_detail_pages
+            original_resume_detail = self.resume_detail
+            try:
+                self.scrape_detail_pages = False
+                self.resume_detail = False
+                records = self._scrape_with_channel(
+                    self._candidate_channels()[0],
+                    max_pages=max_pages,
+                    max_restaurants=max_restaurants,
+                    save_final=False,
+                )
+            finally:
+                self.scrape_detail_pages = original_scrape_detail_pages
+                self.resume_detail = original_resume_detail
+            record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
+
+        proxy_sequence: list[ProxyConfig | None] = list(self.proxy_configs)
+        if self.include_direct_ip_after_proxies or not proxy_sequence:
+            proxy_sequence.append(None)
+
+        report = {
+            "source": "thefork",
+            "started_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z"),
+            "mode": "proxy_burn_through",
+            "initial_total_records": len(records),
+            "record_limit": record_limit,
+            "initial_pending_details": count_pending_details(records, record_limit),
+            "max_consecutive_failures": self.max_consecutive_detail_failures,
+            "detail_delay_seconds": self.detail_delay_seconds,
+            "proxy_results": [],
+        }
+        self.storage.save_proxy_progress_report(report)
+
+        for proxy_index, proxy in enumerate(proxy_sequence, start=1):
+            pending_before = count_pending_details(records, record_limit)
+            if pending_before == 0:
+                break
+
+            proxy_label = proxy.safe_label() if proxy else "direct_ip"
+            logging.info(
+                "Starting TheFork proxy burn-through %s/%s with %s. Pending details: %s",
+                proxy_index,
+                len(proxy_sequence),
+                proxy_label,
+                pending_before,
+            )
+            started_at = time.monotonic()
+            result = self._scrape_until_proxy_blocked(self._candidate_channels()[0], records, proxy, record_limit)
+            records = result.pop("records")
+            pending_after = count_pending_details(records, record_limit)
+            result.update(
+                {
+                    "proxy_label": proxy_label,
+                    "proxy_index": proxy_index,
+                    "pending_before": pending_before,
+                    "pending_after": pending_after,
+                    "completed_with_this_proxy": pending_before - pending_after,
+                    "duration_seconds": round(time.monotonic() - started_at, 3),
+                    "retired": result.get("stopped_by_failures", False),
+                }
+            )
+            report["proxy_results"].append(result)
+            report["latest_pending_details"] = pending_after
+            report["latest_detail_completed"] = (record_limit or len(records)) - pending_after
+            self.storage.save_partial(records)
+            self.storage.save_validation_report(build_validation_report(records))
+            self.storage.save_proxy_progress_report(report)
+
+            if pending_after == 0:
+                if record_limit is None:
+                    self.storage.save_final(records)
+                    logging.info("All TheFork detail pages have been scraped.")
+                else:
+                    logging.info("The configured restaurant limit has no pending TheFork detail records.")
+                return records
+
+            if result["completed_with_this_proxy"] == 0:
+                logging.warning("Proxy %s produced no completed detail records before retirement.", proxy_label)
+
+        remaining = count_pending_details(records, record_limit)
+        logging.warning("Proxy burn-through ended with %s pending TheFork detail records.", remaining)
+        self.storage.save_partial(records)
+        self.storage.save_validation_report(build_validation_report(records))
+        self.storage.save_proxy_progress_report(report)
+        if (remaining == 0 and record_limit is None) or self.save_final_incomplete:
+            self.storage.save_final(records)
+        return records
+
+    def _scrape_until_proxy_blocked(
+        self,
+        browser_channel: str | None,
+        records: list[RestaurantRecord],
+        proxy: ProxyConfig | None,
+        record_limit: int | None = None,
+    ) -> dict[str, Any]:
+        result: dict[str, Any] = {
+            "attempted": 0,
+            "succeeded": 0,
+            "failed": 0,
+            "stopped_by_failures": False,
+            "records": records,
+        }
+        with sync_playwright() as playwright:
+            launch_options: dict[str, Any] = {
+                "headless": self.headless,
+                "args": ["--disable-blink-features=AutomationControlled"],
+            }
+            if self.browser_executable_path:
+                launch_options["executable_path"] = self.browser_executable_path
+            elif browser_channel is not None:
+                launch_options["channel"] = browser_channel
+            if proxy is not None:
+                logging.info("Using proxy for burn-through run: %s", proxy.safe_label())
+                launch_options["proxy"] = proxy.to_playwright()
+
+            browser = None
+            context_options: dict[str, Any] = {
+                "locale": "it-IT",
+                "timezone_id": "Europe/Rome",
+                "viewport": {"width": 1440, "height": 1800},
+                "user_agent": DEFAULT_USER_AGENT,
+                "extra_http_headers": {"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
+            }
+            if self.user_data_dir is not None:
+                profile_dir = profile_dir_for_proxy(self.user_data_dir, proxy)
+                profile_dir.mkdir(parents=True, exist_ok=True)
+                logging.info("Using persistent browser profile: %s", profile_dir)
+                context = playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(profile_dir),
+                    **launch_options,
+                    **context_options,
+                )
+            else:
+                browser = playwright.chromium.launch(**launch_options)
+                context = browser.new_context(**context_options)
+
+            page = context.pages[0] if context.pages else context.new_page()
+            page.set_default_timeout(self.card_timeout_ms)
+            page.set_default_navigation_timeout(self.navigation_timeout_ms)
+            try:
+                detail_scraper = self._create_detail_scraper()
+                detail_scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+                consecutive_failures = 0
+                for index, record in enumerate(records, start=1):
+                    if record_limit is not None and index > record_limit:
+                        break
+                    if record.detail_scraped:
+                        continue
+
+                    logging.info(
+                        "Burn-through detail attempt with %s: record %s/%s %s",
+                        proxy.safe_label() if proxy else "direct_ip",
+                        index,
+                        len(records),
+                        record.restaurant_url,
+                    )
+                    enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
+                    records[index - 1] = enriched_record
+                    result["attempted"] += 1
+
+                    if enriched_record.detail_scraped:
+                        result["succeeded"] += 1
+                        consecutive_failures = 0
+                    else:
+                        result["failed"] += 1
+                        consecutive_failures += 1
+
+                    if index == 1 or index % self.partial_every_restaurants == 0:
+                        self.storage.save_partial(records)
+
+                    if consecutive_failures >= self.max_consecutive_detail_failures:
+                        result["stopped_by_failures"] = True
+                        logging.warning(
+                            "Retiring current proxy after %s consecutive detail failures.",
+                            consecutive_failures,
+                        )
+                        break
+
+                    self._wait_between_detail_pages(page)
+
+                result["records"] = records
+                return result
+            finally:
+                context.close()
+                if browser is not None:
+                    browser.close()
+
+    def _proxy_round_robin_until_complete(
+        self,
+        max_pages: int | None,
+        max_restaurants: int | None,
+    ) -> list[RestaurantRecord]:
+        channel = self._candidate_channels()[0]
+        records = self.storage.load_partial()
+        record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
+
+        if not records:
+            logging.info("No partial output found. Collecting listing data before round-robin detail scraping.")
+            original_scrape_detail_pages = self.scrape_detail_pages
+            original_resume_detail = self.resume_detail
+            try:
+                self.scrape_detail_pages = False
+                self.resume_detail = False
+                records = self._scrape_with_channel(
+                    channel,
+                    max_pages=max_pages,
+                    max_restaurants=max_restaurants,
+                    save_final=False,
+                )
+            finally:
+                self.scrape_detail_pages = original_scrape_detail_pages
+                self.resume_detail = original_resume_detail
+            record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
+
+        proxy_sequence: list[ProxyConfig | None] = list(self.proxy_configs)
+        if self.include_direct_ip_after_proxies or not proxy_sequence:
+            proxy_sequence.append(None)
+
+        states: list[dict[str, Any]] = []
+        for proxy_index, proxy in enumerate(proxy_sequence, start=1):
+            states.append(
+                {
+                    "proxy": proxy,
+                    "proxy_index": proxy_index,
+                    "proxy_label": proxy.safe_label() if proxy else "direct_ip",
+                    "turns": 0,
+                    "attempted": 0,
+                    "succeeded": 0,
+                    "failed": 0,
+                    "failed_turns": 0,
+                    "retired": False,
+                    "retired_at": None,
+                    "retire_reason": None,
+                    "last_used_monotonic": 0.0,
+                    "last_used_at": None,
+                }
+            )
+
+        report: dict[str, Any] = {
+            "source": "thefork",
+            "started_at": utc_timestamp(),
+            "updated_at": utc_timestamp(),
+            "mode": "proxy_round_robin",
+            "initial_total_records": len(records),
+            "record_limit": record_limit,
+            "initial_pending_details": count_pending_details(records, record_limit),
+            "strategy": {
+                "restaurants_per_proxy_turn": self.restaurants_per_proxy_turn,
+                "proxy_min_rest_seconds": self.proxy_min_rest_seconds,
+                "proxy_max_failed_turns": self.proxy_max_failed_turns,
+                "proxy_turn_jitter_seconds": self.proxy_turn_jitter_seconds,
+                "detail_delay_seconds": self.detail_delay_seconds,
+                "include_direct_ip_after_proxies": self.include_direct_ip_after_proxies,
+            },
+            "proxy_results": [serializable_proxy_state(state) for state in states],
+            "events": [],
+        }
+        self.storage.save_proxy_progress_report(report)
+
+        for cycle in range(1, self.max_auto_detail_cycles + 1):
+            pending_before = count_pending_details(records, record_limit)
+            if pending_before == 0:
+                self.storage.save_partial(records)
+                self.storage.save_validation_report(build_validation_report(records))
+                if record_limit is None:
+                    self.storage.save_final(records)
+                    logging.info("All TheFork detail pages have been scraped.")
+                else:
+                    logging.info("The configured restaurant limit has no pending TheFork detail records.")
+                return records
+
+            active_states = [state for state in states if not state["retired"]]
+            if not active_states:
+                logging.warning("No active proxies remain. Round-robin mode is stopping with %s pending details.", pending_before)
+                break
+
+            state = self._next_round_robin_proxy_state(active_states)
+            wait_seconds = self._proxy_wait_seconds(state)
+            if wait_seconds > 0:
+                logging.info(
+                    "Waiting %.1f seconds before reusing %s.",
+                    wait_seconds,
+                    state["proxy_label"],
+                )
+                time.sleep(wait_seconds)
+
+            logging.info(
+                "Round-robin proxy turn %s/%s with %s. Pending details: %s",
+                cycle,
+                self.max_auto_detail_cycles,
+                state["proxy_label"],
+                pending_before,
+            )
+            started_at = time.monotonic()
+            result = self._scrape_proxy_turn(channel, records, state["proxy"], record_limit)
+            records = result.pop("records")
+            duration_seconds = round(time.monotonic() - started_at, 3)
+            pending_after = count_pending_details(records, record_limit)
+
+            state["turns"] += 1
+            state["attempted"] += result.get("attempted", 0)
+            state["succeeded"] += result.get("succeeded", 0)
+            state["failed"] += result.get("failed", 0)
+            state["last_used_monotonic"] = time.monotonic()
+            state["last_used_at"] = utc_timestamp()
+
+            if result.get("succeeded", 0) > 0:
+                state["failed_turns"] = 0
+            else:
+                state["failed_turns"] += 1
+
+            if state["failed_turns"] >= self.proxy_max_failed_turns:
+                state["retired"] = True
+                state["retired_at"] = utc_timestamp()
+                state["retire_reason"] = (
+                    f"{state['failed_turns']} consecutive turns without a completed detail record"
+                )
+                logging.warning(
+                    "Retiring %s after %s failed round-robin turns.",
+                    state["proxy_label"],
+                    state["failed_turns"],
+                )
+
+            event = {
+                "cycle": cycle,
+                "proxy_label": state["proxy_label"],
+                "attempted": result.get("attempted", 0),
+                "succeeded": result.get("succeeded", 0),
+                "failed": result.get("failed", 0),
+                "pending_before": pending_before,
+                "pending_after": pending_after,
+                "duration_seconds": duration_seconds,
+                "error": result.get("error"),
+                "blocked_or_failed_turn": result.get("blocked_or_failed_turn", False),
+                "created_at": utc_timestamp(),
+            }
+            report["events"].append(event)
+            report["events"] = report["events"][-500:]
+            report["updated_at"] = utc_timestamp()
+            report["latest_pending_details"] = pending_after
+            report["latest_detail_completed"] = (record_limit or len(records)) - pending_after
+            report["proxy_results"] = [serializable_proxy_state(current_state) for current_state in states]
+            self.storage.save_partial(records)
+            self.storage.save_validation_report(build_validation_report(records))
+            self.storage.save_proxy_progress_report(report)
+
+            logging.info(
+                "Round-robin turn completed for %s: %s attempted, %s succeeded, %s pending.",
+                state["proxy_label"],
+                result.get("attempted", 0),
+                result.get("succeeded", 0),
+                pending_after,
+            )
+
+            if pending_after == 0:
+                if record_limit is None:
+                    self.storage.save_final(records)
+                    logging.info("All TheFork detail pages have been scraped.")
+                else:
+                    logging.info("The configured restaurant limit has no pending TheFork detail records.")
+                return records
+
+            if self.proxy_turn_jitter_seconds > 0:
+                time.sleep(random.uniform(0, self.proxy_turn_jitter_seconds))
+
+        remaining = count_pending_details(records, record_limit)
+        logging.warning("Round-robin proxy mode ended with %s pending TheFork detail records.", remaining)
+        self.storage.save_partial(records)
+        self.storage.save_validation_report(build_validation_report(records))
+        report["updated_at"] = utc_timestamp()
+        report["latest_pending_details"] = remaining
+        report["proxy_results"] = [serializable_proxy_state(state) for state in states]
+        self.storage.save_proxy_progress_report(report)
+        if (remaining == 0 and record_limit is None) or self.save_final_incomplete:
+            self.storage.save_final(records)
+        return records
+
+    def _next_round_robin_proxy_state(self, active_states: list[dict[str, Any]]) -> dict[str, Any]:
+        return min(active_states, key=lambda state: (state["last_used_monotonic"], state["turns"], state["proxy_index"]))
+
+    def _proxy_wait_seconds(self, state: dict[str, Any]) -> float:
+        if state["last_used_monotonic"] <= 0 or self.proxy_min_rest_seconds <= 0:
+            return 0.0
+        elapsed_seconds = time.monotonic() - state["last_used_monotonic"]
+        return max(0.0, self.proxy_min_rest_seconds - elapsed_seconds)
+
+    def _scrape_proxy_turn(
+        self,
+        browser_channel: str | None,
+        records: list[RestaurantRecord],
+        proxy: ProxyConfig | None,
+        record_limit: int | None = None,
+    ) -> dict[str, Any]:
+        result: dict[str, Any] = {
+            "attempted": 0,
+            "succeeded": 0,
+            "failed": 0,
+            "blocked_or_failed_turn": False,
+            "records": records,
+            "error": None,
+        }
+        try:
+            with sync_playwright() as playwright:
+                launch_options: dict[str, Any] = {
+                    "headless": self.headless,
+                    "args": ["--disable-blink-features=AutomationControlled"],
+                }
+                if self.browser_executable_path:
+                    launch_options["executable_path"] = self.browser_executable_path
+                elif browser_channel is not None:
+                    launch_options["channel"] = browser_channel
+                if proxy is not None:
+                    logging.info("Using proxy for round-robin turn: %s", proxy.safe_label())
+                    launch_options["proxy"] = proxy.to_playwright()
+
+                browser = None
+                context_options: dict[str, Any] = {
+                    "locale": "it-IT",
+                    "timezone_id": "Europe/Rome",
+                    "viewport": {"width": 1440, "height": 1800},
+                    "user_agent": DEFAULT_USER_AGENT,
+                    "extra_http_headers": {"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
+                }
+                if self.user_data_dir is not None:
+                    profile_dir = profile_dir_for_proxy(self.user_data_dir, proxy)
+                    profile_dir.mkdir(parents=True, exist_ok=True)
+                    logging.info("Using persistent browser profile: %s", profile_dir)
+                    context = playwright.chromium.launch_persistent_context(
+                        user_data_dir=str(profile_dir),
+                        **launch_options,
+                        **context_options,
+                    )
+                else:
+                    browser = playwright.chromium.launch(**launch_options)
+                    context = browser.new_context(**context_options)
+
+                page = context.pages[0] if context.pages else context.new_page()
+                page.set_default_timeout(self.card_timeout_ms)
+                page.set_default_navigation_timeout(self.navigation_timeout_ms)
+                try:
+                    detail_scraper = self._create_detail_scraper()
+                    detail_scraped_at = utc_timestamp()
+                    processed_in_turn = 0
+
+                    for index, record in enumerate(records, start=1):
+                        if record_limit is not None and index > record_limit:
+                            break
+                        if record.detail_scraped:
+                            continue
+                        if processed_in_turn >= self.restaurants_per_proxy_turn:
+                            break
+
+                        logging.info(
+                            "Round-robin detail attempt with %s: record %s/%s %s",
+                            proxy.safe_label() if proxy else "direct_ip",
+                            index,
+                            record_limit or len(records),
+                            record.restaurant_url,
+                        )
+                        enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
+                        records[index - 1] = enriched_record
+                        result["attempted"] += 1
+                        processed_in_turn += 1
+
+                        if enriched_record.detail_scraped:
+                            result["succeeded"] += 1
+                        else:
+                            result["failed"] += 1
+                            result["blocked_or_failed_turn"] = True
+                            break
+
+                        if processed_in_turn < self.restaurants_per_proxy_turn:
+                            self._wait_between_detail_pages(page)
+
+                    result["records"] = records
+                    if result["attempted"] > 0 and result["succeeded"] == 0:
+                        result["blocked_or_failed_turn"] = True
+                    return result
+                finally:
+                    context.close()
+                    if browser is not None:
+                        browser.close()
+        except (PlaywrightError, PlaywrightTimeoutError) as error:
+            result["failed"] += 1
+            result["blocked_or_failed_turn"] = True
+            result["error"] = str(error)
+            logging.warning(
+                "Round-robin proxy turn failed before completing a detail record with %s: %s",
+                proxy.safe_label() if proxy else "direct_ip",
+                error,
+            )
+            return result
+
     def _scrape_detail_batch_with_channel(
         self,
         browser_channel: str | None,
@@ -489,25 +1061,45 @@ class TheForkScraper:
                 "headless": self.headless,
                 "args": ["--disable-blink-features=AutomationControlled"],
             }
-            if browser_channel is not None:
+            if self.browser_executable_path:
+                launch_options["executable_path"] = self.browser_executable_path
+            elif browser_channel is not None:
                 launch_options["channel"] = browser_channel
+            self.detail_batch_counter += 1
+            proxy = proxy_for_batch(self.proxy_configs, self.detail_batch_counter)
+            if proxy is not None:
+                logging.info("Using proxy for detail batch %s: %s", self.detail_batch_counter, proxy.safe_label())
+                launch_options["proxy"] = proxy.to_playwright()
 
-            browser = playwright.chromium.launch(**launch_options)
-            context = browser.new_context(
-                locale="it-IT",
-                timezone_id="Europe/Rome",
-                viewport={"width": 1440, "height": 1800},
-                user_agent=DEFAULT_USER_AGENT,
-                extra_http_headers={"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
-            )
-            page = context.new_page()
+            browser = None
+            context_options: dict[str, Any] = {
+                "locale": "it-IT",
+                "timezone_id": "Europe/Rome",
+                "viewport": {"width": 1440, "height": 1800},
+                "user_agent": DEFAULT_USER_AGENT,
+                "extra_http_headers": {"Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7"},
+            }
+            if self.user_data_dir is not None:
+                profile_dir = profile_dir_for_proxy(self.user_data_dir, proxy)
+                profile_dir.mkdir(parents=True, exist_ok=True)
+                logging.info("Using persistent browser profile: %s", profile_dir)
+                context = playwright.chromium.launch_persistent_context(
+                    user_data_dir=str(profile_dir),
+                    **launch_options,
+                    **context_options,
+                )
+            else:
+                browser = playwright.chromium.launch(**launch_options)
+                context = browser.new_context(**context_options)
+            page = context.pages[0] if context.pages else context.new_page()
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
             try:
                 return self._scrape_detail_pages(page, records, max_detail_records=self.detail_batch_size)
             finally:
                 context.close()
-                browser.close()
+                if browser is not None:
+                    browser.close()
 
     def _scrape_detail_pages(
         self,
@@ -515,11 +1107,7 @@ class TheForkScraper:
         records: list[RestaurantRecord],
         max_detail_records: int | None = None,
     ) -> list[RestaurantRecord]:
-        detail_scraper = TheForkDetailScraper(
-            max_reviews_per_restaurant=self.max_reviews_per_restaurant,
-            navigation_timeout_ms=self.navigation_timeout_ms,
-            detail_timeout_ms=self.card_timeout_ms,
-        )
+        detail_scraper = self._create_detail_scraper()
         detail_scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
         total_records = len(records)
         consecutive_failures = 0
@@ -561,10 +1149,39 @@ class TheForkScraper:
                 self.storage.save_partial(records)
                 break
 
-            if self.detail_delay_seconds > 0 and index < total_records:
-                time.sleep(self.detail_delay_seconds)
+            if index < total_records:
+                self._wait_between_detail_pages(page)
 
         return records
+
+    def _create_detail_scraper(self) -> TheForkDetailScraper:
+        return TheForkDetailScraper(
+            max_reviews_per_restaurant=self.max_reviews_per_restaurant,
+            navigation_timeout_ms=self.navigation_timeout_ms,
+            detail_timeout_ms=self.card_timeout_ms,
+            human_scroll_enabled=self.human_scroll_enabled,
+        )
+
+    def _detail_delay_for_next_page(self) -> float:
+        if self.detail_delay_min_seconds is None and self.detail_delay_max_seconds is None:
+            return max(0.0, self.detail_delay_seconds)
+
+        min_delay = self.detail_delay_min_seconds
+        max_delay = self.detail_delay_max_seconds
+        if min_delay is None:
+            min_delay = self.detail_delay_seconds
+        if max_delay is None:
+            max_delay = min_delay
+
+        min_delay = max(0.0, min_delay)
+        max_delay = max(min_delay, max_delay)
+        return random.uniform(min_delay, max_delay)
+
+    def _wait_between_detail_pages(self, page: Page) -> None:
+        delay_seconds = self._detail_delay_for_next_page()
+        if delay_seconds <= 0:
+            return
+        page.wait_for_timeout(int(delay_seconds * 1000))
 
     def _detect_max_page(self, page: Page, page_card_count: int) -> int | None:
         pagination_max_page = self._detect_pagination_max_page(page)
@@ -670,8 +1287,27 @@ def should_save_partial(processed_pages: int, partial_every_pages: int) -> bool:
     return processed_pages == 1 or processed_pages % partial_every_pages == 0
 
 
-def count_pending_details(records: list[RestaurantRecord]) -> int:
-    return sum(1 for record in records if not record.detail_scraped)
+def count_pending_details(records: list[RestaurantRecord], record_limit: int | None = None) -> int:
+    scoped_records = records[:record_limit] if record_limit is not None else records
+    return sum(1 for record in scoped_records if not record.detail_scraped)
+
+
+def serializable_proxy_state(state: dict[str, Any]) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in state.items()
+        if key not in {"proxy", "last_used_monotonic"}
+    }
+
+
+def utc_timestamp() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def profile_dir_for_proxy(base_dir: Path, proxy: ProxyConfig | None) -> Path:
+    if proxy is None:
+        return base_dir
+    return base_dir.parent / "browser_profiles" / proxy.safe_label()
 
 
 def create_default_storage(project_root: Path, output_dir: str | None = None) -> JsonStorage:
