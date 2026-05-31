@@ -9,10 +9,24 @@ from .scraper import START_URL, TheForkScraper, create_default_storage
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Scrape TheFork Milan listing pages into normalized JSON.")
-    parser.add_argument("--start-url", default=START_URL, help="TheFork Milan listing URL to start from.")
-    parser.add_argument("--max-pages", type=int, default=config.MAX_LISTING_PAGES, help="Maximum number of listing pages to scrape.")
-    parser.add_argument("--max-restaurants", type=int, default=config.MAX_RESTAURANTS, help="Maximum number of restaurants to enrich.")
+    parser = argparse.ArgumentParser(
+        description="Scrape TheFork Milan listing pages into normalized JSON."
+    )
+    parser.add_argument(
+        "--start-url", default=START_URL, help="TheFork Milan listing URL to start from."
+    )
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=config.MAX_LISTING_PAGES,
+        help="Maximum number of listing pages to scrape.",
+    )
+    parser.add_argument(
+        "--max-restaurants",
+        type=int,
+        default=config.MAX_RESTAURANTS,
+        help="Maximum number of restaurants to enrich.",
+    )
     parser.add_argument(
         "--delay-seconds",
         type=float,
@@ -45,7 +59,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--resume-detail",
         action="store_true",
-        help="Load the partial JSON and continue enriching records that do not have detail_scraped=true.",
+        help="""Load the partial JSON and continue enriching records that do not
+        have detail_scraped=true.""",
     )
     parser.add_argument(
         "--max-consecutive-detail-failures",
@@ -103,8 +118,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional Playwright Chromium channel, for example chrome, msedge, or chromium.",
     )
-    parser.add_argument("--headed", action="store_true", help="Run the browser with a visible window.")
-    parser.add_argument("--log-level", default="INFO", help="Logging level, for example INFO or DEBUG.")
+    parser.add_argument(
+        "--headed", action="store_true", help="Run the browser with a visible window."
+    )
+    parser.add_argument(
+        "--log-level", default="INFO", help="Logging level, for example INFO or DEBUG."
+    )
     return parser.parse_args()
 
 

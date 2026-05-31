@@ -8,7 +8,8 @@ from typing import Any
 from urllib.parse import urlparse
 
 from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
+from playwright.sync_api import Page
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from .models import RestaurantRecord
 from .parser import (
@@ -19,7 +20,6 @@ from .parser import (
     normalize_restaurant_url,
     split_visible_lines,
 )
-
 
 THEFORK_HOST = "www.thefork.it"
 MAX_SCRIPT_CHARS = 300_000
@@ -34,7 +34,9 @@ PRICE_TEXT_PATTERN = re.compile(
     r"(?:Prezzo\s+medio|Average\s+price)\s*(?:EUR|\u20ac)?\s*([\d.,]+\s*(?:\u20ac|EUR)?)",
     re.IGNORECASE,
 )
-DISCOUNT_TEXT_PATTERN = re.compile(r"\b(?:Scont[io]|discount|off)\b[^\n]{0,80}\d+\s*%", re.IGNORECASE)
+DISCOUNT_TEXT_PATTERN = re.compile(
+    r"\b(?:Scont[io]|discount|off)\b[^\n]{0,80}\d+\s*%", re.IGNORECASE
+)
 SLIDE_COUNT_PATTERN = re.compile(r"Slide\s+\d+\s+di\s+(\d+)", re.IGNORECASE)
 
 
@@ -49,16 +51,24 @@ class TheForkDetailScraper:
         self.navigation_timeout_ms = navigation_timeout_ms
         self.detail_timeout_ms = detail_timeout_ms
 
-    def enrich_record(self, page: Page, record: RestaurantRecord, scraped_at: str) -> RestaurantRecord:
+    def enrich_record(
+        self, page: Page, record: RestaurantRecord, scraped_at: str
+    ) -> RestaurantRecord:
         if not record.restaurant_url:
             record.detail_scraped = False
             record.scraped_at = scraped_at
             return record
 
         try:
-            response = page.goto(record.restaurant_url, wait_until="domcontentloaded", timeout=self.navigation_timeout_ms)
+            response = page.goto(
+                record.restaurant_url,
+                wait_until="domcontentloaded",
+                timeout=self.navigation_timeout_ms,
+            )
             if response and response.status >= 400:
-                logging.warning("Detail page returned HTTP %s: %s", response.status, record.restaurant_url)
+                logging.warning(
+                    "Detail page returned HTTP %s: %s", response.status, record.restaurant_url
+                )
                 record.detail_scraped = False
                 record.scraped_at = scraped_at
                 return record
@@ -89,15 +99,22 @@ class TheForkDetailScraper:
                 return element ? element.getAttribute('content') : null;
               };
               const scripts = Array.from(document.querySelectorAll(
-                'script[type="application/ld+json"], script[type="application/json"], script[id*="NEXT"], script[id*="state"], script[id*="apollo"]'
+                'script[type="application/ld+json"], script[type="application/json"], ' +
+                'script[id*="NEXT"], script[id*="state"], script[id*="apollo"]'
               )).map((script) => (script.textContent || '').slice(0, maxScriptChars));
               const links = Array.from(document.querySelectorAll('a[href]')).map((link) => ({
                 href: link.href || link.getAttribute('href') || '',
                 text: clean(link.innerText || link.textContent || ''),
                 rel: link.getAttribute('rel') || '',
               }));
-              const images = Array.from(document.querySelectorAll('img[src], source[srcset]')).map((image) => ({
-                src: image.currentSrc || image.src || image.getAttribute('src') || image.getAttribute('srcset') || '',
+              const images = Array.from(document.querySelectorAll('img[src], source[srcset]'))
+                .map((image) => ({
+                src:
+                  image.currentSrc ||
+                  image.src ||
+                  image.getAttribute('src') ||
+                  image.getAttribute('srcset') ||
+                  '',
                 alt: image.getAttribute('alt') || '',
               }));
               const body = document.body || document.documentElement;
@@ -117,34 +134,81 @@ class TheForkDetailScraper:
             MAX_SCRIPT_CHARS,
         )
 
-    def _parse_detail_payload(self, payload: dict[str, Any], listing_record: RestaurantRecord) -> dict[str, Any]:
+    def _parse_detail_payload(
+        self, payload: dict[str, Any], listing_record: RestaurantRecord
+    ) -> dict[str, Any]:
         json_documents = parse_json_documents(payload.get("json_scripts") or [])
         structured = extract_structured_restaurant_data(json_documents)
-        embedded = extract_embedded_data(json_documents, payload.get("body_text") or "", payload.get("links") or [])
+        embedded = extract_embedded_data(
+            json_documents, payload.get("body_text") or "", payload.get("links") or []
+        )
         visible = extract_visible_data(payload)
 
         restaurant_url = normalize_restaurant_url(
-            payload.get("canonical_url") or payload.get("page_url") or listing_record.restaurant_url or ""
+            payload.get("canonical_url")
+            or payload.get("page_url")
+            or listing_record.restaurant_url
+            or ""
         )
 
         return {
             "source_id": extract_source_id(restaurant_url or listing_record.restaurant_url or ""),
-            "restaurant_name": first_value(structured.get("restaurant_name"), embedded.get("restaurant_name"), visible.get("restaurant_name")),
-            "address": first_value(structured.get("address"), embedded.get("address"), visible.get("address")),
-            "latitude": first_value(structured.get("latitude"), embedded.get("latitude"), visible.get("latitude")),
-            "longitude": first_value(structured.get("longitude"), embedded.get("longitude"), visible.get("longitude")),
-            "rating": first_value(structured.get("rating"), embedded.get("rating"), visible.get("rating")),
-            "review_count": first_value(structured.get("review_count"), embedded.get("review_count"), visible.get("review_count")),
-            "cuisine_type": first_value(structured.get("cuisine_type"), embedded.get("cuisine_type"), visible.get("cuisine_type")),
-            "price_range": first_value(structured.get("price_range"), embedded.get("price_range"), visible.get("price_range")),
+            "restaurant_name": first_value(
+                structured.get("restaurant_name"),
+                embedded.get("restaurant_name"),
+                visible.get("restaurant_name"),
+            ),
+            "address": first_value(
+                structured.get("address"), embedded.get("address"), visible.get("address")
+            ),
+            "latitude": first_value(
+                structured.get("latitude"), embedded.get("latitude"), visible.get("latitude")
+            ),
+            "longitude": first_value(
+                structured.get("longitude"), embedded.get("longitude"), visible.get("longitude")
+            ),
+            "rating": first_value(
+                structured.get("rating"), embedded.get("rating"), visible.get("rating")
+            ),
+            "review_count": first_value(
+                structured.get("review_count"),
+                embedded.get("review_count"),
+                visible.get("review_count"),
+            ),
+            "cuisine_type": first_value(
+                structured.get("cuisine_type"),
+                embedded.get("cuisine_type"),
+                visible.get("cuisine_type"),
+            ),
+            "price_range": first_value(
+                structured.get("price_range"),
+                embedded.get("price_range"),
+                visible.get("price_range"),
+            ),
             "discount": first_value(embedded.get("discount"), visible.get("discount")),
-            "photo_count": first_value(structured.get("photo_count"), embedded.get("photo_count"), visible.get("photo_count")),
-            "website": first_value(structured.get("website"), embedded.get("website"), visible.get("website")),
-            "phone_number": first_value(structured.get("phone_number"), embedded.get("phone_number"), visible.get("phone_number")),
-            "email": first_value(structured.get("email"), embedded.get("email"), visible.get("email")),
-            "working_days_hours": first_value(structured.get("working_days_hours"), embedded.get("working_days_hours")),
+            "photo_count": first_value(
+                structured.get("photo_count"),
+                embedded.get("photo_count"),
+                visible.get("photo_count"),
+            ),
+            "website": first_value(
+                structured.get("website"), embedded.get("website"), visible.get("website")
+            ),
+            "phone_number": first_value(
+                structured.get("phone_number"),
+                embedded.get("phone_number"),
+                visible.get("phone_number"),
+            ),
+            "email": first_value(
+                structured.get("email"), embedded.get("email"), visible.get("email")
+            ),
+            "working_days_hours": first_value(
+                structured.get("working_days_hours"), embedded.get("working_days_hours")
+            ),
             "restaurant_url": restaurant_url,
-            "review_snippets": unique_texts([*(embedded.get("review_snippets") or []), *(visible.get("review_snippets") or [])]),
+            "review_snippets": unique_texts(
+                [*(embedded.get("review_snippets") or []), *(visible.get("review_snippets") or [])]
+            ),
             "reviews": merge_reviews(
                 structured.get("reviews") or [],
                 embedded.get("reviews") or [],
@@ -180,7 +244,9 @@ class TheForkDetailScraper:
             if value not in (None, "", []):
                 setattr(record, field_name, value)
 
-        record.review_snippets = unique_texts([*record.review_snippets, *(detail_data.get("review_snippets") or [])])
+        record.review_snippets = unique_texts(
+            [*record.review_snippets, *(detail_data.get("review_snippets") or [])]
+        )
         if detail_data.get("reviews"):
             record.reviews = detail_data["reviews"]
         record.scraped_at = scraped_at
@@ -212,24 +278,45 @@ def extract_structured_restaurant_data(json_documents: list[Any]) -> dict[str, A
     return {
         "restaurant_name": clean_optional(restaurant_node.get("name")),
         "address": normalize_address(restaurant_node.get("address")),
-        "latitude": parse_float(first_value(geo.get("latitude") if geo else None, geo.get("lat") if geo else None)),
-        "longitude": parse_float(first_value(geo.get("longitude") if geo else None, geo.get("lng") if geo else None)),
+        "latitude": parse_float(
+            first_value(geo.get("latitude") if geo else None, geo.get("lat") if geo else None)
+        ),
+        "longitude": parse_float(
+            first_value(geo.get("longitude") if geo else None, geo.get("lng") if geo else None)
+        ),
         "rating": parse_float(aggregate_rating.get("ratingValue") if aggregate_rating else None),
-        "review_count": parse_int(aggregate_rating.get("reviewCount") if aggregate_rating else None),
-        "cuisine_type": normalize_list_value(first_value(restaurant_node.get("servesCuisine"), restaurant_node.get("cuisine"))),
-        "price_range": normalize_price(first_value(restaurant_node.get("priceRange"), restaurant_node.get("price"))),
-        "website": normalize_external_url(first_value(restaurant_node.get("url"), first_list_value(restaurant_node.get("sameAs")))),
+        "review_count": parse_int(
+            aggregate_rating.get("reviewCount") if aggregate_rating else None
+        ),
+        "cuisine_type": normalize_list_value(
+            first_value(restaurant_node.get("servesCuisine"), restaurant_node.get("cuisine"))
+        ),
+        "price_range": normalize_price(
+            first_value(restaurant_node.get("priceRange"), restaurant_node.get("price"))
+        ),
+        "website": normalize_external_url(
+            first_value(restaurant_node.get("url"), first_list_value(restaurant_node.get("sameAs")))
+        ),
         "phone_number": clean_optional(restaurant_node.get("telephone")),
         "email": clean_optional(restaurant_node.get("email")),
-        "working_days_hours": normalize_hours(first_value(restaurant_node.get("openingHoursSpecification"), restaurant_node.get("openingHours"))),
+        "working_days_hours": normalize_hours(
+            first_value(
+                restaurant_node.get("openingHoursSpecification"),
+                restaurant_node.get("openingHours"),
+            )
+        ),
         "photo_count": count_images(image_value),
         "reviews": extract_reviews(restaurant_node.get("review")),
     }
 
 
-def extract_embedded_data(json_documents: list[Any], body_text: str, links: list[dict[str, str]]) -> dict[str, Any]:
+def extract_embedded_data(
+    json_documents: list[Any], body_text: str, links: list[dict[str, str]]
+) -> dict[str, Any]:
     nodes = list(iter_json_nodes(json_documents))
-    scripts_text = "\n".join(json.dumps(document, ensure_ascii=False)[:MAX_SCRIPT_CHARS] for document in json_documents)
+    scripts_text = "\n".join(
+        json.dumps(document, ensure_ascii=False)[:MAX_SCRIPT_CHARS] for document in json_documents
+    )
     latitude, longitude = extract_coordinates_from_text(scripts_text + "\n" + body_text)
 
     return {
@@ -238,15 +325,30 @@ def extract_embedded_data(json_documents: list[Any], body_text: str, links: list
         "latitude": latitude or parse_float(first_json_value(nodes, {"latitude", "lat"})),
         "longitude": longitude or parse_float(first_json_value(nodes, {"longitude", "lng"})),
         "rating": parse_float(first_json_value(nodes, {"ratingValue", "rating"})),
-        "review_count": parse_int(first_json_value(nodes, {"reviewCount", "reviewsCount", "numberOfReviews"})),
-        "cuisine_type": normalize_list_value(first_json_value(nodes, {"servesCuisine", "cuisine", "category", "categories"})),
-        "price_range": normalize_price(first_json_value(nodes, {"priceRange", "averagePrice", "price"})),
+        "review_count": parse_int(
+            first_json_value(nodes, {"reviewCount", "reviewsCount", "numberOfReviews"})
+        ),
+        "cuisine_type": normalize_list_value(
+            first_json_value(nodes, {"servesCuisine", "cuisine", "category", "categories"})
+        ),
+        "price_range": normalize_price(
+            first_json_value(nodes, {"priceRange", "averagePrice", "price"})
+        ),
         "discount": extract_discount_from_text(scripts_text + "\n" + body_text),
-        "photo_count": first_value(count_images(first_json_value(nodes, {"image", "images", "photos", "photo"})), count_visible_images_from_links(links)),
-        "website": normalize_external_url(first_json_value(nodes, {"website", "officialWebsite", "url"})),
-        "phone_number": clean_optional(first_json_value(nodes, {"telephone", "phone", "phoneNumber"})),
+        "photo_count": first_value(
+            count_images(first_json_value(nodes, {"image", "images", "photos", "photo"})),
+            count_visible_images_from_links(links),
+        ),
+        "website": normalize_external_url(
+            first_json_value(nodes, {"website", "officialWebsite", "url"})
+        ),
+        "phone_number": clean_optional(
+            first_json_value(nodes, {"telephone", "phone", "phoneNumber"})
+        ),
         "email": clean_optional(first_json_value(nodes, {"email"})),
-        "working_days_hours": normalize_hours(first_json_value(nodes, {"openingHoursSpecification", "openingHours", "hours"})),
+        "working_days_hours": normalize_hours(
+            first_json_value(nodes, {"openingHoursSpecification", "openingHours", "hours"})
+        ),
         "review_snippets": extract_review_snippets_from_text(body_text),
         "reviews": extract_reviews_from_nodes(nodes),
     }
@@ -451,12 +553,15 @@ def count_visible_images_from_links(links: list[dict[str, str]]) -> int | None:
     urls = {
         link.get("href", "")
         for link in links
-        if isinstance(link.get("href"), str) and re.search(r"\.(?:jpg|jpeg|png|webp)(?:[?#]|$)", link.get("href", ""), re.IGNORECASE)
+        if isinstance(link.get("href"), str)
+        and re.search(r"\.(?:jpg|jpeg|png|webp)(?:[?#]|$)", link.get("href", ""), re.IGNORECASE)
     }
     return len(urls) or None
 
 
-def extract_coordinates_from_links(links: list[dict[str, str]]) -> tuple[float | None, float | None]:
+def extract_coordinates_from_links(
+    links: list[dict[str, str]],
+) -> tuple[float | None, float | None]:
     return extract_coordinates_from_text("\n".join(link.get("href", "") for link in links))
 
 
@@ -467,14 +572,19 @@ def extract_coordinates_from_text(text: str) -> tuple[float | None, float | None
             return parse_float(match.group(1)), parse_float(match.group(2))
 
     lat_match = re.search(r'"(?:latitude|lat)"\s*:\s*(-?\d{1,2}\.\d+)', text or "", re.IGNORECASE)
-    lng_match = re.search(r'"(?:longitude|lng|lon)"\s*:\s*(-?\d{1,3}\.\d+)', text or "", re.IGNORECASE)
+    lng_match = re.search(
+        r'"(?:longitude|lng|lon)"\s*:\s*(-?\d{1,3}\.\d+)', text or "", re.IGNORECASE
+    )
     if lat_match and lng_match:
         return parse_float(lat_match.group(1)), parse_float(lng_match.group(1))
     return None, None
 
 
 def extract_address_from_lines(lines: list[str]) -> str | None:
-    street_pattern = re.compile(r"\b(?:via|viale|piazza|corso|largo|vicolo|alzaia|foro|ripa|strada|bastioni)\b", re.IGNORECASE)
+    street_pattern = re.compile(
+        r"\b(?:via|viale|piazza|corso|largo|vicolo|alzaia|foro|ripa|strada|bastioni)\b",
+        re.IGNORECASE,
+    )
     for line in lines:
         if "Milano" in line and street_pattern.search(line):
             return line
@@ -505,7 +615,10 @@ def extract_visible_cuisine(lines: list[str]) -> str | None:
         lowered = line.lower()
         if any(token in lowered for token in bad_tokens):
             continue
-        if len(line) <= 80 and re.search(r"\b(?:italian[ao]?|mediterrane[ao]?|pizza|pesce|sushi|japanese|asian|europe[ao]?|lombard[ao]?)\b", lowered):
+        if len(line) <= 80 and re.search(
+            r"\b(?:italian[ao]?|mediterrane[ao]?|pizza|pesce|sushi|japanese|asian|europe[ao]?|lombard[ao]?)\b",
+            lowered,
+        ):
             return line
     return None
 
@@ -586,7 +699,9 @@ def extract_review_snippets_from_text(body_text: str) -> list[str]:
     for line in split_visible_lines(body_text):
         if re.search(r"\b(?:sconto|discount|off|prezzo|average price)\b", line, re.IGNORECASE):
             continue
-        if 40 <= len(line) <= 260 and re.search(r"\b(?:ottim|excellent|servizio|cibo|food|locale|restaurant)\b", line, re.IGNORECASE):
+        if 40 <= len(line) <= 260 and re.search(
+            r"\b(?:ottim|excellent|servizio|cibo|food|locale|restaurant)\b", line, re.IGNORECASE
+        ):
             snippets.append(line)
         if len(snippets) >= 5:
             break
@@ -604,10 +719,16 @@ def extract_reviews(value: Any) -> list[dict[str, Any]]:
         author = item.get("author")
         rating = item.get("reviewRating") or item.get("rating")
         review = {
-            "author_name": clean_optional(author.get("name") if isinstance(author, dict) else author),
-            "rating": parse_float(rating.get("ratingValue") if isinstance(rating, dict) else rating),
+            "author_name": clean_optional(
+                author.get("name") if isinstance(author, dict) else author
+            ),
+            "rating": parse_float(
+                rating.get("ratingValue") if isinstance(rating, dict) else rating
+            ),
             "title": clean_optional(item.get("name") or item.get("headline")),
-            "text": clean_optional(item.get("reviewBody") or item.get("text") or item.get("description")),
+            "text": clean_optional(
+                item.get("reviewBody") or item.get("text") or item.get("description")
+            ),
             "date": clean_optional(item.get("datePublished") or item.get("date")),
         }
         if review["text"] or review["title"]:
@@ -629,7 +750,10 @@ def merge_reviews(*review_lists: list[dict[str, Any]], max_reviews: int) -> list
     merged: list[dict[str, Any]] = []
     for review_list in review_lists:
         for review in review_list:
-            key = clean_spaces(f"{review.get('author_name') or ''}|{review.get('date') or ''}|{review.get('text') or ''}").casefold()
+            key = clean_spaces(
+                f"{review.get('author_name') or ''}|{review.get('date') or ''}|"
+                f"{review.get('text') or ''}"
+            ).casefold()
             if not key or key in seen:
                 continue
             seen.add(key)

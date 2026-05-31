@@ -10,8 +10,8 @@ from typing import Any
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
 
 from playwright.sync_api import Error as PlaywrightError
-from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 from . import config
 from .detail_scraper import TheForkDetailScraper
@@ -19,7 +19,6 @@ from .models import RestaurantRecord
 from .parser import deduplication_key, parse_restaurant_card
 from .storage import JsonStorage
 from .validators import build_validation_report
-
 
 START_URL = config.START_URL
 RESTAURANT_LINK_SELECTOR = 'a[href*="/ristorante/"]'
@@ -86,9 +85,13 @@ class TheForkScraper:
         self.save_final_incomplete = save_final_incomplete
         self.detail_stopped_early = False
 
-    def scrape(self, max_pages: int | None = None, max_restaurants: int | None = None) -> list[RestaurantRecord]:
+    def scrape(
+        self, max_pages: int | None = None, max_restaurants: int | None = None
+    ) -> list[RestaurantRecord]:
         if self.auto_detail_until_complete:
-            return self._auto_detail_until_complete(max_pages=max_pages, max_restaurants=max_restaurants)
+            return self._auto_detail_until_complete(
+                max_pages=max_pages, max_restaurants=max_restaurants
+            )
 
         channels = self._candidate_channels()
         last_error: Exception | None = None
@@ -100,12 +103,16 @@ class TheForkScraper:
                 return self._scrape_with_channel(channel, max_pages, max_restaurants)
             except AccessBlockedError as error:
                 last_error = error
-                logging.warning("%s was blocked or returned no listing content: %s", channel_name, error)
+                logging.warning(
+                    "%s was blocked or returned no listing content: %s", channel_name, error
+                )
             except PlaywrightError as error:
                 last_error = error
                 logging.warning("Could not use browser channel %s: %s", channel_name, error)
 
-        raise RuntimeError("The scraper could not load TheFork with any configured browser channel.") from last_error
+        raise RuntimeError(
+            "The scraper could not load TheFork with any configured browser channel."
+        ) from last_error
 
     def _candidate_channels(self) -> list[str | None]:
         if self.browser_channel is not None:
@@ -122,7 +129,9 @@ class TheForkScraper:
         records_by_key: dict[str, RestaurantRecord] = {}
         detected_max_page: int | None = None
         consecutive_empty_pages = 0
-        scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        scraped_at = (
+            datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        )
 
         with sync_playwright() as playwright:
             launch_options: dict[str, Any] = {
@@ -150,13 +159,19 @@ class TheForkScraper:
                     if max_restaurants is not None:
                         records = records[:max_restaurants]
                     if not records:
-                        raise RuntimeError("Cannot resume detail scraping because the partial output is missing or empty.")
+                        raise RuntimeError(
+                            "Cannot resume detail scraping because the partial output is "
+                            "missing or empty."
+                        )
                     records = self._scrape_detail_pages(page, records)
                     self.storage.save_partial(records)
                     if save_final and (not self.detail_stopped_early or self.save_final_incomplete):
                         self.storage.save_final(records)
                     elif self.detail_stopped_early:
-                        logging.warning("Final output was not overwritten because detail scraping stopped early.")
+                        logging.warning(
+                            "Final output was not overwritten because detail scraping "
+                            "stopped early."
+                        )
                     self.storage.save_validation_report(build_validation_report(records))
                     return records
 
@@ -183,16 +198,21 @@ class TheForkScraper:
 
                     card_payloads = self._extract_card_payloads(page)
                     if page_number == 1 and not card_payloads:
-                        raise AccessBlockedError("No restaurant links were found on the first listing page")
+                        raise AccessBlockedError(
+                            "No restaurant links were found on the first listing page"
+                        )
 
                     page_records = self._parse_page_records(card_payloads, scraped_at, page_number)
                     new_count = self._merge_records(records_by_key, page_records)
                     processed_pages += 1
 
-                    detected_max_page = detected_max_page or self._detect_max_page(page, len(card_payloads))
+                    detected_max_page = detected_max_page or self._detect_max_page(
+                        page, len(card_payloads)
+                    )
                     total_records = len(records_by_key)
                     logging.info(
-                        "Page %s parsed: %s cards, %s valid records, %s new records, %s total records",
+                        "Page %s parsed: %s cards, %s valid records, %s new records, "
+                        "%s total records",
                         page_number,
                         len(card_payloads),
                         len(page_records),
@@ -215,7 +235,9 @@ class TheForkScraper:
                         consecutive_empty_pages = 0
 
                     if consecutive_empty_pages >= self.max_empty_pages:
-                        logging.warning("Stopping after too many consecutive pages without new restaurants.")
+                        logging.warning(
+                            "Stopping after too many consecutive pages without new restaurants."
+                        )
                         break
 
                     if max_restaurants is not None and total_records >= max_restaurants:
@@ -237,7 +259,9 @@ class TheForkScraper:
                 if save_final and (not self.detail_stopped_early or self.save_final_incomplete):
                     self.storage.save_final(records)
                 elif self.detail_stopped_early:
-                    logging.warning("Final output was not overwritten because detail scraping stopped early.")
+                    logging.warning(
+                        "Final output was not overwritten because detail scraping stopped early."
+                    )
                 self.storage.save_validation_report(build_validation_report(records))
                 return records
             finally:
@@ -246,7 +270,9 @@ class TheForkScraper:
 
     def _load_page(self, page: Page, page_url: str) -> int | None:
         try:
-            response = page.goto(page_url, wait_until="domcontentloaded", timeout=self.navigation_timeout_ms)
+            response = page.goto(
+                page_url, wait_until="domcontentloaded", timeout=self.navigation_timeout_ms
+            )
             return response.status if response else None
         except PlaywrightTimeoutError:
             logging.warning("Timed out while loading %s", page_url)
@@ -263,7 +289,9 @@ class TheForkScraper:
         ]
         for button_name in button_names:
             try:
-                button = page.get_by_role("button", name=re.compile(button_name, re.IGNORECASE)).first
+                button = page.get_by_role(
+                    "button", name=re.compile(button_name, re.IGNORECASE)
+                ).first
                 if button.count() and button.is_visible(timeout=1_000):
                     button.click(timeout=3_000)
                     logging.info("Accepted or dismissed the cookie popup.")
@@ -345,7 +373,9 @@ class TheForkScraper:
 
               const seen = new Set();
               return Array.from(document.querySelectorAll(linkSelector))
-                .filter((anchor) => restaurantPattern.test(anchor.getAttribute('href') || anchor.href || ''))
+                .filter((anchor) =>
+                  restaurantPattern.test(anchor.getAttribute('href') || anchor.href || '')
+                )
                 .map((anchor) => ({
                   href: anchor.href || anchor.getAttribute('href'),
                   aria_label: anchor.getAttribute('aria-label'),
@@ -406,7 +436,9 @@ class TheForkScraper:
             records = records[:max_restaurants]
 
         if not records:
-            logging.info("No partial output found. Collecting listing data before detail auto-resume.")
+            logging.info(
+                "No partial output found. Collecting listing data before detail auto-resume."
+            )
             original_scrape_detail_pages = self.scrape_detail_pages
             original_resume_detail = self.resume_detail
             try:
@@ -504,7 +536,9 @@ class TheForkScraper:
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
             try:
-                return self._scrape_detail_pages(page, records, max_detail_records=self.detail_batch_size)
+                return self._scrape_detail_pages(
+                    page, records, max_detail_records=self.detail_batch_size
+                )
             finally:
                 context.close()
                 browser.close()
@@ -520,7 +554,9 @@ class TheForkScraper:
             navigation_timeout_ms=self.navigation_timeout_ms,
             detail_timeout_ms=self.card_timeout_ms,
         )
-        detail_scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        detail_scraped_at = (
+            datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        )
         total_records = len(records)
         consecutive_failures = 0
         processed_missing_records = 0
@@ -533,7 +569,12 @@ class TheForkScraper:
                 logging.info("Reached configured detail batch size: %s", max_detail_records)
                 break
 
-            logging.info("Scraping TheFork detail page %s/%s: %s", index, total_records, record.restaurant_url)
+            logging.info(
+                "Scraping TheFork detail page %s/%s: %s",
+                index,
+                total_records,
+                record.restaurant_url,
+            )
             enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
             records[index - 1] = enriched_record
             processed_missing_records += 1
@@ -607,7 +648,9 @@ class TheForkScraper:
                           localNumbers.push(Number(match[1]));
                         }
                       }
-                      const pageNumbers = localNumbers.filter((number) => number > 0 && number <= 500);
+                      const pageNumbers = localNumbers.filter(
+                        (number) => number > 0 && number <= 500
+                      );
                       if (pageNumbers.length >= 2) {
                         numbers.push(...pageNumbers);
                       }
@@ -627,7 +670,9 @@ class TheForkScraper:
             page_texts = page.evaluate(
                 """
                 () => [
-                  ((document.querySelector('main') || document.body).innerText || '').slice(0, 2500),
+                  (
+                    (document.querySelector('main') || document.body).innerText || ''
+                  ).slice(0, 2500),
                   (document.body.innerText || '').slice(0, 3500),
                 ]
                 """

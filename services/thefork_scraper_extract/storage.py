@@ -24,7 +24,9 @@ class JsonStorage:
 
     def save_validation_report(self, report: dict) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        temporary_path = self.validation_report_path.with_suffix(self.validation_report_path.suffix + ".tmp")
+        temporary_path = self.validation_report_path.with_suffix(
+            self.validation_report_path.suffix + ".tmp"
+        )
         with temporary_path.open("w", encoding="utf-8") as output_file:
             json.dump(report, output_file, ensure_ascii=False, indent=2)
             output_file.write("\n")

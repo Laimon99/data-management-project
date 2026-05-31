@@ -5,7 +5,6 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 
 from .models import RestaurantRecord
 
-
 THEFORK_BASE_URL = "https://www.thefork.it"
 RESTAURANT_PATH_PATTERN = re.compile(r"/ristorante/[^/?#]+-r\d+", re.IGNORECASE)
 SOURCE_ID_PATTERN = re.compile(r"/ristorante/([^/?#]+)", re.IGNORECASE)
@@ -233,7 +232,7 @@ def extract_review_snippets(lines: list[str]) -> list[str]:
     snippets: list[str] = []
     for line in lines:
         if line.startswith(("\u201c", '"')) and 20 <= len(line) <= 260:
-            snippets.append(line.strip("\u201c\u201d\" "))
+            snippets.append(line.strip('\u201c\u201d" '))
     return snippets[:3]
 
 

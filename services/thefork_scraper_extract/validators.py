@@ -4,7 +4,6 @@ from typing import Any
 
 from .models import RestaurantRecord
 
-
 DETAIL_FIELDS = [
     "restaurant_name",
     "address",
@@ -52,7 +51,8 @@ def build_validation_report(
     notes = list(debug_notes or [])
     if always_empty_fields:
         notes.append(
-            "Always-empty fields were checked through JSON-LD, embedded JSON, visible text, links, and attributes. "
+            "Always-empty fields were checked through JSON-LD, embedded JSON, "
+            "visible text, links, and attributes. "
             "They are reported for manual review before any schema pruning."
         )
 

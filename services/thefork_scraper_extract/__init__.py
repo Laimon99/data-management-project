@@ -1,2 +1,1 @@
 """TheFork Milan scraper package."""
-
