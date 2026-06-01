@@ -1,0 +1,22 @@
+# Normalize line endings: store all text files with LF in the repository,
+# regardless of the contributor's OS. Prevents Windows (CRLF) vs Unix (LF)
+# churn — especially in the large generated data dumps under data/raw/.
+* text=auto eol=lf
+
+# Be explicit for the file types we generate / commit as data.
+*.py    text eol=lf
+*.md    text eol=lf
+*.json  text eol=lf
+*.jsonl text eol=lf
+*.txt   text eol=lf
+*.toml  text eol=lf
+*.yaml  text eol=lf
+*.yml   text eol=lf
+
+# Binary assets: never touch.
+*.png binary
+*.jpg binary
+*.pdf binary
+
+# Raw data dumps committed with CRLF — keep bytes as-is, no conversion.
+data/raw/** -text
