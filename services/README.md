@@ -34,11 +34,24 @@ See `tripadvisor_scraper_extract/tripadvisor-scraper-extract.md` for implementat
 
 ---
 
+### `thefork_scraper_extract` — Stage 2: TheFork Collection
+Playwright-based scraper that collects Milan restaurant listings from TheFork, then optionally enriches each record from its detail page.
+
+- Writes the normalized dataset to `data/raw/thefork/thefork_milan_restaurants_normalized.json` (plus partial-progress and validation-report files).
+- Listing data is reliable; detail enrichment can be rate-limited (see `docs/antibot-comparison.md`).
+
+```bash
+uv run thefork-scraper-extract
+```
+
+See `thefork_scraper_extract/README.md` for the full CLI reference and `SCRAPER_SPEC.md` for the extraction spec.
+
+---
+
 ## Planned services (not yet implemented)
 
 | Service | Stage | Description |
 |---|---|---|
-| `thefork_scraper_extract` | 2 | TheFork rating/review collector |
 | `entity_resolution` | 3 | Record linkage: proximity blocking + name/address similarity → match/no-match/uncertain |
 | `unified_dataset` | 4 | Joins resolved platform records into a single ratings table |
 | `quality_assessment` | 5 | Completeness, consistency, uniqueness, and timeliness metrics; before/after improvement |

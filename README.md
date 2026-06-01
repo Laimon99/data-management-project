@@ -145,9 +145,9 @@ deprecated alias.)
 
 ---
 
-### Source C — TheFork (planned)
+### Source C — TheFork
 
-* **Type**: Web scraping or another reproducible acquisition path
+* **Type**: Web scraping via Playwright
 * **Data**:
 
   * Scraped restaurant name
@@ -159,6 +159,19 @@ deprecated alias.)
 
   * Restaurant-specific platform
   * Useful comparison against review-heavy general platforms
+
+#### Running the TheFork scraper
+
+The scraper is packaged as `services/thefork_scraper_extract`. It collects Milan
+listings, then optionally enriches each restaurant from its detail page, writing
+the normalized dataset under `data/raw/thefork/`. It tries the installed Chrome
+channel, then Edge, then Playwright's bundled Chromium. See
+`services/thefork_scraper_extract/README.md` for the full CLI reference and
+`docs/antibot-comparison.md` for detail-page anti-bot behaviour.
+
+```bash
+uv run thefork-scraper-extract
+```
 
 ---
 

@@ -39,6 +39,11 @@ data/raw/google_places/restaurants_seed.jsonl
 data/raw/tripadvisor/browser_automation_profile/
 data/raw/tripadvisor/brave_automation_profile/
 
+# TheFork scraper runtime artifacts — keep only the final normalized JSON.
+data/raw/thefork/*_partial.json
+data/raw/thefork/thefork_milan_validation_report.json
+data/raw/thefork/browser_profile/
+
 # Keep test fixtures tracked
 !tests/**/*.json
 !tests/**/*.jsonl
