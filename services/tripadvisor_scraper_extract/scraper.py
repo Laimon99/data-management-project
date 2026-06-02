@@ -22,6 +22,7 @@ from datetime import datetime
 from pathlib import Path
 
 from playwright.async_api import async_playwright
+from tqdm import tqdm
 
 # ============================================================================
 # CONFIGURAZIONE COSTANTI
@@ -864,7 +865,8 @@ async def main(scrape_order="top", browser_path_override=None, data_dir=None, ur
                 except json.JSONDecodeError:
                     results = []
 
-            for idx, url in enumerate(urls_to_scrape, 1):
+            progress = tqdm(urls_to_scrape, desc="Scraping", unit="rist.")
+            for idx, url in enumerate(progress, 1):
                 print(f"\n[{idx}/{len(urls_to_scrape)}] Processing: {url}")
 
                 # Pausa casuale lunga (5-10s) prima dell'apertura del nuovo ristorante
@@ -882,15 +884,19 @@ async def main(scrape_order="top", browser_path_override=None, data_dir=None, ur
                         mark_url_processed(checkpoint, url)
                         rest_name = restaurant_data.get("restaurant_name", "Unknown")
                         print(f"   [✓] '{rest_name}' salvato. (Tot: {len(results)})")
+                        progress.set_postfix_str(f"ok={len(results)} last={rest_name[:25]}")
                     else:
                         mark_url_failed(checkpoint, url)
                         print("   [!] Estrazione fallita per URL.")
+                        progress.set_postfix_str(f"failed={len(checkpoint['failed_urls'])}")
 
                 except Exception as e:
                     print(f"   [!] Errore critico durante lo scraping: {str(e)}")
                     mark_url_failed(checkpoint, url)
                     print("   [!] URL segnato come fallito nel checkpoint.")
                     continue
+
+            progress.close()
 
             print("\n" + "=" * 80)
             print("[✓] SECONDO LOOP COMPLETATO")

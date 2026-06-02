@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.3",
     "pymongo>=4.8",
     "playwright>=1.60.0",
+    "tqdm>=4.66",
 ]
 
 [project.optional-dependencies]
