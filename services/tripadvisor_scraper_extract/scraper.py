@@ -15,6 +15,7 @@ import json
 import os
 import platform
 import random
+import re
 import shutil
 import sys
 from datetime import datetime
@@ -27,6 +28,11 @@ from playwright.async_api import async_playwright
 # ============================================================================
 
 BASE_URL = "https://www.tripadvisor.it/Restaurants-g187849-Milan_Lombardy.html"
+
+# A valid Tripadvisor price band is only € glyphs and dashes (e.g. "€", "€€-€€€",
+# "€€€€"). The price anchor selector can also match a sponsored banner
+# ("Hotel di Charme a Milano"), so extracted text is validated against this.
+PRICE_RANGE_RE = re.compile(r"^€+(?:\s*-\s*€+)*$")
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 
@@ -598,6 +604,7 @@ async def extract_restaurant_features(page, url):
     await micro_reading_pause(page)
 
     data = {
+        "source_url": url,
         "restaurant_name": "NaN",
         "rating": "NaN",
         "total_review": "NaN",
@@ -647,7 +654,19 @@ async def extract_restaurant_features(page, url):
     await micro_reading_pause(page)
 
     # === FEATURE 5: price_range ===
-    data["price_range"] = await safe_text(page.locator('a[href*="-zfp"] span'))
+    # The "-zfp" anchor can also match a sponsored banner ("Hotel di Charme a
+    # Milano"), so scan all candidates and accept only a real € price band.
+    try:
+        price_spans = page.locator('a[href*="-zfp"] span')
+        price_count = await price_spans.count()
+        for i in range(price_count):
+            raw = await price_spans.nth(i).text_content(timeout=1000)
+            candidate = raw.strip() if raw else ""
+            if candidate and PRICE_RANGE_RE.match(candidate):
+                data["price_range"] = candidate
+                break
+    except Exception:
+        pass
     await micro_reading_pause(page)
 
     # === FEATURE 6: number_photo_uploaded ===
