@@ -19,5 +19,19 @@ env/
 
 output/*_partial.json
 output/browser_profile/
+output/browser_profiles/
+output/detail_sample/
+output/runs/
+output/calibration/
+output/thefork_proxy_state.json
+output/thefork_proxy_progress_report.json
 **/output/*_partial.json
 **/output/browser_profile/
+**/output/browser_profiles/
+**/output/detail_sample/
+**/output/runs/
+**/output/calibration/
+
+proxy_list*.txt
+proxies.txt
+*.proxy

@@ -62,6 +62,8 @@ class TheForkScraper:
         max_consecutive_detail_failures: int = 10,
         auto_detail_until_complete: bool = False,
         detail_batch_size: int = config.DETAIL_BATCH_SIZE,
+        detail_shard_count: int = 1,
+        detail_shard_index: int = 1,
         cooldown_seconds: int = config.COOLDOWN_SECONDS,
         max_cooldown_seconds: int = config.MAX_COOLDOWN_SECONDS,
         cooldown_multiplier: float = config.COOLDOWN_MULTIPLIER,
@@ -98,6 +100,8 @@ class TheForkScraper:
         self.max_consecutive_detail_failures = max(1, max_consecutive_detail_failures)
         self.auto_detail_until_complete = auto_detail_until_complete
         self.detail_batch_size = max(1, detail_batch_size)
+        self.detail_shard_count = max(1, detail_shard_count)
+        self.detail_shard_index = min(max(1, detail_shard_index), self.detail_shard_count)
         self.cooldown_seconds = max(0, cooldown_seconds)
         self.max_cooldown_seconds = max(self.cooldown_seconds, max_cooldown_seconds)
         self.cooldown_multiplier = max(1.0, cooldown_multiplier)
@@ -458,7 +462,6 @@ class TheForkScraper:
     ) -> list[RestaurantRecord]:
         channel = self._candidate_channels()[0]
         records = self.storage.load_partial()
-        record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
 
         if not records:
             logging.info("No partial output found. Collecting listing data before detail auto-resume.")
@@ -1116,6 +1119,8 @@ class TheForkScraper:
         for index, record in enumerate(records, start=1):
             if record.detail_scraped:
                 continue
+            if not self._detail_record_belongs_to_shard(index):
+                continue
 
             if max_detail_records is not None and processed_missing_records >= max_detail_records:
                 logging.info("Reached configured detail batch size: %s", max_detail_records)
@@ -1153,6 +1158,9 @@ class TheForkScraper:
                 self._wait_between_detail_pages(page)
 
         return records
+
+    def _detail_record_belongs_to_shard(self, record_index: int) -> bool:
+        return ((record_index - 1) % self.detail_shard_count) + 1 == self.detail_shard_index
 
     def _create_detail_scraper(self) -> TheForkDetailScraper:
         return TheForkDetailScraper(
@@ -1310,10 +1318,19 @@ def profile_dir_for_proxy(base_dir: Path, proxy: ProxyConfig | None) -> Path:
     return base_dir.parent / "browser_profiles" / proxy.safe_label()
 
 
-def create_default_storage(project_root: Path, output_dir: str | None = None) -> JsonStorage:
+def create_default_storage(
+    project_root: Path,
+    output_dir: str | None = None,
+    input_partial_path: str | None = None,
+) -> JsonStorage:
+    input_path = None
+    if input_partial_path is not None:
+        input_path = Path(input_partial_path)
+        if not input_path.is_absolute():
+            input_path = project_root / input_path
     if output_dir is None:
-        return JsonStorage(project_root / "output")
+        return JsonStorage(project_root / "output", input_path)
     output_path = Path(output_dir)
     if output_path.is_absolute():
-        return JsonStorage(output_path)
-    return JsonStorage(project_root / output_path)
+        return JsonStorage(output_path, input_path)
+    return JsonStorage(project_root / output_path, input_path)

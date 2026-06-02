@@ -123,6 +123,18 @@ def parse_args() -> argparse.Namespace:
         help="Maximum number of missing detail pages to process before reopening the browser.",
     )
     parser.add_argument(
+        "--detail-shard-count",
+        type=int,
+        default=1,
+        help="Split missing detail pages across this many teammate runs.",
+    )
+    parser.add_argument(
+        "--detail-shard-index",
+        type=int,
+        default=1,
+        help="One-based shard number for this run, between 1 and --detail-shard-count.",
+    )
+    parser.add_argument(
         "--cooldown-seconds",
         type=int,
         default=config.COOLDOWN_SECONDS,
@@ -155,6 +167,11 @@ def parse_args() -> argparse.Namespace:
         "--output-dir",
         default="output",
         help="Directory for final, partial, and validation JSON files.",
+    )
+    parser.add_argument(
+        "--input-partial",
+        default=None,
+        help="Optional existing partial JSON used as the starting point for a separate output dir.",
     )
     parser.add_argument(
         "--browser-channel",
@@ -229,6 +246,10 @@ def configure_logging(log_level: str) -> None:
 def main() -> None:
     args = parse_args()
     configure_logging(args.log_level)
+    if args.detail_shard_count < 1:
+        raise SystemExit("--detail-shard-count must be at least 1.")
+    if args.detail_shard_index < 1 or args.detail_shard_index > args.detail_shard_count:
+        raise SystemExit("--detail-shard-index must be between 1 and --detail-shard-count.")
 
     project_root = Path(__file__).resolve().parents[1]
     user_data_dir = resolve_user_data_dir(project_root, args.user_data_dir, bool(args.proxy_list or args.proxy_server))
@@ -238,7 +259,7 @@ def main() -> None:
         proxy_username=args.proxy_username,
         proxy_password=args.proxy_password,
     )
-    storage = create_default_storage(project_root, args.output_dir)
+    storage = create_default_storage(project_root, args.output_dir, args.input_partial)
 
     if args.calibrate_detail_blocks:
         calibration_options = CalibrationOptions(
@@ -276,6 +297,8 @@ def main() -> None:
         max_consecutive_detail_failures=args.max_consecutive_detail_failures,
         auto_detail_until_complete=args.auto_detail_until_complete,
         detail_batch_size=args.detail_batch_size,
+        detail_shard_count=args.detail_shard_count,
+        detail_shard_index=args.detail_shard_index,
         cooldown_seconds=args.cooldown_seconds,
         max_cooldown_seconds=args.max_cooldown_seconds,
         cooldown_multiplier=args.cooldown_multiplier,

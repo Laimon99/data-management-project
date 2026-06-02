@@ -2,8 +2,7 @@ from __future__ import annotations
 
 START_URL = (
     "https://www.thefork.it/ristoranti/milano-c348156"
-    "?cc=17176-c38&gad_source=1&gad_campaignid=8361461667"
-    "&gclid=CjwKCAjw8uTQBhAdEiwAVvtJyuytSBG4Ly5PzeXRIz0hmBsi4Y0osJXr09YduTdbXMVxXZl2PldaIRoC-AoQAvD_BwE"
+    "?cc=17176-c38"
 )
 SCRAPE_DETAIL_PAGES = True
 HEADLESS = True
