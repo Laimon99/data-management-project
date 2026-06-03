@@ -63,7 +63,7 @@ uv run pre-commit install    # (optional) install git hooks
 uv run pytest                # run the test suite
 ```
 
-> New to `uv` or `pre-commit`? See the [Developer Guide](docs/dev-guide.md).
+> New to `uv`, `pre-commit`, or **Docker**? See the [Developer Guide](docs/dev-guide.md).
 
 ### Configure API keys
 
@@ -200,9 +200,27 @@ Downloaded/acquired data is treated as raw acquisition output and kept under
   to delete this folder; the scraper just recreates a fresh profile on the next
   run. Only delete it while the scraper is **not** running.
 
-Database/storage implementation for later stages is intentionally deferred. The
-candidate DBMS architecture is documented in `docs/storage-design.md`, but it is
-not part of the current Stage 1 scope.
+### Storage infrastructure
+
+The project's stateful databases now run as reproducible **Docker** infrastructure,
+defined in [`docker-compose.yml`](docker-compose.yml) so they behave identically on
+macOS, Windows, and Linux:
+
+* **MongoDB** (`mongo:7`) — the document **system of records** for the raw nested seed
+  and, later, per-platform records. Starts on a plain `docker compose up`.
+* **ClickHouse** (`clickhouse/clickhouse-server:26.3`, LTS) — the columnar engine for
+  the future integrated ratings table and analytical queries. Scaffolded behind the
+  opt-in `analytics` profile, so a plain `up` runs Mongo only.
+
+Both services persist their data in **named volumes**, so it survives
+`docker compose down` and is removed only by an explicit `docker compose down -v`.
+Health checks and host-port overrides (for when `27017`/`8123` are already taken) are
+configured, and [`.env.example`](.env.example) works out-of-the-box for local dev
+(no auth, localhost-only).
+
+The **loading/ETL layer** that moves raw data into these databases is deliberately
+deferred to the next step and designed in [`docs/etl-design.md`](docs/etl-design.md);
+the candidate DBMS evaluation remains in [`docs/storage-design.md`](docs/storage-design.md).
 
 ### Future storage shape
 

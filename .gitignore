@@ -62,6 +62,8 @@ geckodriver
 
 # Proxy / credentials
 .env.*
+# Keep the tracked template (no secrets) — teammates copy it to .env
+!.env.example
 secrets.yaml
 secrets.json
 config/secrets.*

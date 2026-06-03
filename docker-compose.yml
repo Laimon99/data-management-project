@@ -1,12 +1,53 @@
+# Storage layer for the project's stateful services.
+#
+#   docker compose up -d                      # MongoDB only (system of record)
+#   docker compose --profile analytics up -d  # also start ClickHouse (analytics)
+#
+# Data lives in named volumes and survives `docker compose down`.
+# Only `docker compose down -v` deletes it. See docs/dev-guide.md.
 services:
   mongo:
     image: mongo:7
     container_name: dataman-mongo
     ports:
-      - "27017:27017"
+      - "${MONGO_PORT:-27017}:27017"
     volumes:
       - mongo_data:/data/db
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3
+    container_name: dataman-clickhouse
+    profiles: ["analytics"]
+    environment:
+      # Dev-only: allow the password-less `default` user to connect from other hosts
+      # (host tools on localhost:8123 and, later, the in-container ETL over the compose
+      # network). Without this, recent images restrict `default` to localhost only.
+      # Do NOT use this as-is in production — set a real user/password there.
+      CLICKHOUSE_SKIP_USER_SETUP: "1"
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-8123}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-9000}:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    restart: unless-stopped
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
 
 volumes:
   mongo_data:
+  clickhouse_data:
