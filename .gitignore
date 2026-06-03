@@ -43,6 +43,12 @@ data/raw/tripadvisor/brave_automation_profile/
 data/raw/thefork/*_partial.json
 data/raw/thefork/thefork_milan_validation_report.json
 data/raw/thefork/browser_profile/
+data/raw/thefork/browser_profiles/
+data/raw/thefork/detail_sample/
+data/raw/thefork/runs/
+data/raw/thefork/calibration/
+data/raw/thefork/thefork_proxy_state.json
+data/raw/thefork/thefork_proxy_progress_report.json
 
 # Keep test fixtures tracked
 !tests/**/*.json
@@ -67,6 +73,10 @@ geckodriver
 secrets.yaml
 secrets.json
 config/secrets.*
+# Proxy lists may embed user:pass credentials — never commit
+proxy_list*.txt
+proxies.txt
+*.proxy
 
 # OS
 .DS_Store
