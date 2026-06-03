@@ -59,8 +59,10 @@ class TheForkDetailScraper:
         self.human_scroll_enabled = human_scroll_enabled
         self.human_scroll_min_steps = max(1, human_scroll_min_steps)
         self.human_scroll_max_steps = max(self.human_scroll_min_steps, human_scroll_max_steps)
+        self.last_status: int | None = None
 
     def enrich_record(self, page: Page, record: RestaurantRecord, scraped_at: str) -> RestaurantRecord:
+        self.last_status = None
         if not record.restaurant_url:
             record.detail_scraped = False
             record.scraped_at = scraped_at
@@ -68,6 +70,7 @@ class TheForkDetailScraper:
 
         try:
             status = self._load_detail_page_with_retries(page, record.restaurant_url)
+            self.last_status = status
             if status and status >= 400:
                 logging.warning("Detail page returned HTTP %s: %s", status, record.restaurant_url)
                 record.detail_scraped = False

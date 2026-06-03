@@ -74,6 +74,47 @@ Run automatic detail retries until every restaurant is complete:
 python -m src.main --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 24 --max-consecutive-detail-failures 5
 ```
 
+Recommended conservative no-proxy anti-bot profile for continuing only missing detail pages:
+
+```bash
+env PYTHONUNBUFFERED=1 .venv/bin/python -m src.main \
+  --resume-detail \
+  --auto-detail-until-complete \
+  --headed \
+  --pause-on-antibot \
+  --human-detail-scroll \
+  --user-data-dir output/browser_profile_direct \
+  --micro-pause-min-ms 1200 \
+  --micro-pause-max-ms 2500 \
+  --detail-delay-min-seconds 120 \
+  --detail-delay-max-seconds 240 \
+  --detail-batch-size 6 \
+  --max-consecutive-detail-failures 2 \
+  --cooldown-seconds 3600 \
+  --max-cooldown-seconds 14400 \
+  --cooldown-multiplier 2 \
+  --save-final-incomplete \
+  --log-level INFO
+```
+
+This profile uses the existing `output/thefork_milan_restaurants_normalized_partial.json`,
+skips records where `detail_scraped=true`, and enriches only records where
+`detail_scraped=false`. It keeps the browser visible so a captcha or anti-bot
+page can be solved manually; after solving it, press Enter in the terminal to
+retry the same restaurant. Do not add proxy options unless a proxy run is
+explicitly needed.
+
+Observed timing with a faster direct no-proxy profile
+(`45-90` seconds delay, batch size `12`) was about 60 completed detail pages in
+75 minutes, but the direct IP later hit consecutive HTTP 403 responses. Treat
+that faster profile as opportunistic rather than stable. The conservative
+profile above averages about 3 minutes between detail pages, so expect roughly
+`18-22` restaurants/hour and about `29-36` hours for `635` remaining restaurants
+when there are no repeated blocks. Cooldowns or manual captcha pauses add extra
+time. If the direct IP gets consecutive HTTP 403 responses, stop the run and
+wait several hours, preferably overnight, before retrying; in one observed test,
+retrying about 25 minutes after a 403 block still returned an immediate 403.
+
 Run detail enrichment across multiple teammates' PCs without proxies:
 
 ```bash
@@ -118,6 +159,9 @@ Useful options:
 --detail-delay-min-seconds N     Minimum random delay between detail pages.
 --detail-delay-max-seconds N     Maximum random delay between detail pages.
 --human-detail-scroll            Lightly scroll detail pages before extraction.
+--pause-on-antibot               Wait for manual captcha/anti-bot solving before retrying.
+--micro-pause-min-ms N           Minimum short random pause before each detail attempt.
+--micro-pause-max-ms N           Maximum short random pause before each detail attempt.
 --partial-every-pages N          Save partial progress every N listing pages.
 --partial-every-restaurants N    Save partial progress every N enriched restaurants.
 --browser-channel NAME           Use chrome, msedge, or chromium.

@@ -57,6 +57,9 @@ class TheForkScraper:
         detail_delay_min_seconds: float | None = None,
         detail_delay_max_seconds: float | None = None,
         human_scroll_enabled: bool = False,
+        pause_on_antibot: bool = False,
+        micro_pause_min_ms: int = 0,
+        micro_pause_max_ms: int = 0,
         max_reviews_per_restaurant: int = config.MAX_REVIEWS_PER_RESTAURANT,
         resume_detail: bool = False,
         max_consecutive_detail_failures: int = 10,
@@ -95,6 +98,9 @@ class TheForkScraper:
         self.detail_delay_min_seconds = detail_delay_min_seconds
         self.detail_delay_max_seconds = detail_delay_max_seconds
         self.human_scroll_enabled = human_scroll_enabled
+        self.pause_on_antibot = pause_on_antibot
+        self.micro_pause_min_ms = max(0, micro_pause_min_ms)
+        self.micro_pause_max_ms = max(self.micro_pause_min_ms, micro_pause_max_ms)
         self.max_reviews_per_restaurant = max_reviews_per_restaurant
         self.resume_detail = resume_detail
         self.max_consecutive_detail_failures = max(1, max_consecutive_detail_failures)
@@ -1126,9 +1132,21 @@ class TheForkScraper:
                 logging.info("Reached configured detail batch size: %s", max_detail_records)
                 break
 
-            logging.info("Scraping TheFork detail page %s/%s: %s", index, total_records, record.restaurant_url)
-            enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
-            records[index - 1] = enriched_record
+            manual_retry_used = False
+            while True:
+                self._wait_micro_pause(page)
+                logging.info("Scraping TheFork detail page %s/%s: %s", index, total_records, record.restaurant_url)
+                enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
+                records[index - 1] = enriched_record
+
+                if enriched_record.detail_scraped:
+                    break
+                if not self.pause_on_antibot or manual_retry_used or not self._detail_attempt_looks_blocked(page, detail_scraper):
+                    break
+
+                manual_retry_used = True
+                self.storage.save_partial(records)
+                self._pause_for_manual_antibot(page, record.restaurant_url or "")
             processed_missing_records += 1
 
             if enriched_record.detail_scraped:
@@ -1190,6 +1208,68 @@ class TheForkScraper:
         if delay_seconds <= 0:
             return
         page.wait_for_timeout(int(delay_seconds * 1000))
+
+    def _wait_micro_pause(self, page: Page) -> None:
+        if self.micro_pause_max_ms <= 0:
+            return
+        delay_ms = random.randint(self.micro_pause_min_ms, self.micro_pause_max_ms)
+        if delay_ms > 0:
+            page.wait_for_timeout(delay_ms)
+
+    def _pause_for_manual_antibot(self, page: Page, restaurant_url: str) -> None:
+        try:
+            current_url = page.url
+        except PlaywrightError:
+            current_url = restaurant_url
+        logging.warning(
+            "Possible TheFork anti-bot/captcha/403 page detected for %s. "
+            "Solve it in the headed browser, then press Enter in this terminal to retry. Current page: %s",
+            restaurant_url,
+            current_url,
+        )
+        input("Anti-bot/captcha rilevato. Risolvilo nel browser, poi premi Enter qui per riprovare: ")
+
+    def _page_looks_like_antibot(self, page: Page) -> bool:
+        try:
+            page_text = page.evaluate(
+                """
+                () => {
+                  const body = document.body || document.documentElement;
+                  return [
+                    location.href || '',
+                    document.title || '',
+                    body ? (body.innerText || '').slice(0, 8000) : ''
+                  ].join('\\n');
+                }
+                """
+            )
+        except PlaywrightError:
+            return False
+
+        haystack = (page_text or "").lower()
+        markers = (
+            "captcha",
+            "403",
+            "forbidden",
+            "access denied",
+            "blocked",
+            "cloudflare",
+            "challenge",
+            "are you human",
+            "unusual traffic",
+            "rate limit",
+            "robot",
+            "non sei un robot",
+            "verifica",
+            "controllo di sicurezza",
+            "accesso negato",
+        )
+        return any(marker in haystack for marker in markers)
+
+    def _detail_attempt_looks_blocked(self, page: Page, detail_scraper: TheForkDetailScraper) -> bool:
+        if detail_scraper.last_status in {403, 429}:
+            return True
+        return self._page_looks_like_antibot(page)
 
     def _detect_max_page(self, page: Page, page_card_count: int) -> int | None:
         pagination_max_page = self._detect_pagination_max_page(page)

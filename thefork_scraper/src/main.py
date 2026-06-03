@@ -45,6 +45,23 @@ def parse_args() -> argparse.Namespace:
         help="Perform a light human-like scroll before extracting detail page fields.",
     )
     parser.add_argument(
+        "--pause-on-antibot",
+        action="store_true",
+        help="Pause for manual captcha/anti-bot solving before retrying a blocked detail page.",
+    )
+    parser.add_argument(
+        "--micro-pause-min-ms",
+        type=int,
+        default=0,
+        help="Minimum short random pause before each detail page attempt, in milliseconds.",
+    )
+    parser.add_argument(
+        "--micro-pause-max-ms",
+        type=int,
+        default=0,
+        help="Maximum short random pause before each detail page attempt, in milliseconds.",
+    )
+    parser.add_argument(
         "--partial-every-pages",
         type=int,
         default=5,
@@ -290,6 +307,9 @@ def main() -> None:
         detail_delay_min_seconds=args.detail_delay_min_seconds,
         detail_delay_max_seconds=args.detail_delay_max_seconds,
         human_scroll_enabled=args.human_detail_scroll,
+        pause_on_antibot=args.pause_on_antibot,
+        micro_pause_min_ms=args.micro_pause_min_ms,
+        micro_pause_max_ms=args.micro_pause_max_ms,
         partial_every_pages=args.partial_every_pages,
         partial_every_restaurants=args.partial_every_restaurants,
         scrape_detail_pages=not args.no_detail_pages,
