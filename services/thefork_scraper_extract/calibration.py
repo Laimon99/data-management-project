@@ -14,7 +14,12 @@ from playwright.sync_api import sync_playwright
 from .detail_scraper import TheForkDetailScraper
 from .models import RestaurantRecord
 from .proxy_utils import ProxyConfig
-from .scraper import DEFAULT_BROWSER_CHANNELS, DEFAULT_USER_AGENT, normalize_browser_channel
+from .scraper import (
+    DEFAULT_BROWSER_CHANNELS,
+    DEFAULT_USER_AGENT,
+    START_URL,
+    normalize_browser_channel,
+)
 from .storage import JsonStorage
 
 
@@ -22,6 +27,7 @@ from .storage import JsonStorage
 class CalibrationOptions:
     output_dir: Path
     browser_channel: str | None
+    browser_executable_path: str | None
     headless: bool
     delay_values: list[float]
     max_records: int
@@ -34,6 +40,9 @@ class CalibrationOptions:
     user_data_dir: Path | None = None
     navigation_timeout_ms: int = 60_000
     detail_timeout_ms: int = 30_000
+    browser_warmup_url: str | None = None
+    browser_warmup_seconds: float = 0.0
+    connect_over_cdp_url: str | None = None
 
 
 def run_detail_block_calibration(
@@ -75,6 +84,9 @@ def run_detail_block_calibration(
             "batch_size": options.batch_size,
             "delay_values_seconds": options.delay_values,
             "max_consecutive_failures": options.max_consecutive_failures,
+            "browser_warmup_url": options.browser_warmup_url,
+            "browser_warmup_seconds": options.browser_warmup_seconds,
+            "connect_over_cdp_url": options.connect_over_cdp_url,
         },
         "test_runs": [],
         "sample_record_files": [],
@@ -85,8 +97,8 @@ def run_detail_block_calibration(
 
     if completed_count and pending_records:
         report["notes"].append(
-            "The current partial already contains completed detail records and "
-            "remaining records, so it is evidence of an earlier block or interruption."
+            "The current partial already contains completed detail records and remaining "
+            "records, so it is evidence of an earlier block or interruption."
         )
 
     if options.max_records <= 0:
@@ -205,11 +217,23 @@ def run_detail_attempts(
         navigation_timeout_ms=options.navigation_timeout_ms,
         detail_timeout_ms=options.detail_timeout_ms,
     )
-    channels = (
-        [normalize_browser_channel(options.browser_channel)]
-        if options.browser_channel
-        else list(DEFAULT_BROWSER_CHANNELS)
-    )
+    if options.connect_over_cdp_url:
+        run_detail_attempts_with_existing_browser(
+            detail_scraper,
+            sample_records,
+            options,
+            delay_seconds,
+            proxy,
+            result,
+        )
+        return
+
+    if options.browser_executable_path:
+        channels = [None]
+    elif options.browser_channel:
+        channels = [normalize_browser_channel(options.browser_channel)]
+    else:
+        channels = list(DEFAULT_BROWSER_CHANNELS)
     last_error: Exception | None = None
 
     for channel in channels:
@@ -217,9 +241,14 @@ def run_detail_attempts(
             with sync_playwright() as playwright:
                 launch_options: dict[str, Any] = {
                     "headless": options.headless,
-                    "args": ["--disable-blink-features=AutomationControlled"],
+                    "chromium_sandbox": True,
+                    "args": []
+                    if options.browser_executable_path
+                    else ["--disable-blink-features=AutomationControlled"],
                 }
-                if channel is not None:
+                if options.browser_executable_path:
+                    launch_options["executable_path"] = options.browser_executable_path
+                elif channel is not None:
                     launch_options["channel"] = channel
                 if proxy is not None:
                     launch_options["proxy"] = proxy.to_playwright()
@@ -250,6 +279,7 @@ def run_detail_attempts(
                 page.set_default_timeout(options.detail_timeout_ms)
                 page.set_default_navigation_timeout(options.navigation_timeout_ms)
                 try:
+                    warm_up_browser_profile(page, options)
                     execute_record_attempts(
                         detail_scraper, page, sample_records, delay_seconds, options, result
                     )
@@ -271,6 +301,69 @@ def run_detail_attempts(
         raise RuntimeError(
             f"No browser channel could run the calibration: {last_error}"
         ) from last_error
+
+
+def run_detail_attempts_with_existing_browser(
+    detail_scraper: TheForkDetailScraper,
+    sample_records: list[RestaurantRecord],
+    options: CalibrationOptions,
+    delay_seconds: float,
+    proxy: ProxyConfig | None,
+    result: dict[str, Any],
+) -> None:
+    if proxy is not None:
+        logging.warning(
+            "Ignoring proxy %s because --connect-over-cdp-url uses the already-open "
+            "browser network.",
+            proxy.safe_label(),
+        )
+
+    with sync_playwright() as playwright:
+        try:
+            browser = playwright.chromium.connect_over_cdp(options.connect_over_cdp_url)
+        except PlaywrightError as error:
+            raise RuntimeError(
+                f"Could not connect to existing browser at {options.connect_over_cdp_url}: {error}"
+            ) from error
+
+        if not browser.contexts:
+            raise RuntimeError("The connected browser has no available browser context.")
+
+        context = browser.contexts[0]
+        page = context.new_page()
+        page.set_default_timeout(options.detail_timeout_ms)
+        page.set_default_navigation_timeout(options.navigation_timeout_ms)
+        try:
+            warm_up_browser_profile(page, options)
+            execute_record_attempts(
+                detail_scraper, page, sample_records, delay_seconds, options, result
+            )
+            result["browser_channel"] = "connected_cdp"
+        finally:
+            try:
+                page.close()
+            except PlaywrightError:
+                pass
+
+
+def warm_up_browser_profile(page: Any, options: CalibrationOptions) -> None:
+    warmup_url = options.browser_warmup_url
+    warmup_seconds = max(0.0, options.browser_warmup_seconds)
+    if not warmup_url and warmup_seconds <= 0:
+        return
+
+    target_url = warmup_url or START_URL
+    logging.info("Warming up browser profile on %s for %.1f seconds.", target_url, warmup_seconds)
+    try:
+        page.goto(target_url, wait_until="domcontentloaded", timeout=options.navigation_timeout_ms)
+        page.wait_for_timeout(2500)
+        page.mouse.wheel(0, 420)
+        page.wait_for_timeout(1200)
+        page.mouse.wheel(0, 360)
+        if warmup_seconds > 0:
+            page.wait_for_timeout(int(warmup_seconds * 1000))
+    except PlaywrightError as error:
+        logging.warning("Browser warm-up failed, continuing with detail calibration: %s", error)
 
 
 def execute_record_attempts(
@@ -393,13 +486,13 @@ def choose_recommended_strategy(
         "rotation_mode": "alternating_batches",
         "parallelism_mode": "staggered_parallel_only_after_each_proxy_passes_calibration",
         "why": (
-            "Use one browser session per proxy, rotate proxies between batches, "
-            "and start parallel workers only after "
-            "each proxy completes a small calibration batch without blocks."
+            "Use one browser session per proxy, rotate proxies between batches, and start "
+            "parallel workers only after each proxy completes a small calibration batch "
+            "without blocks."
         ),
         "proxy_gap": (
-            "No real proxy list was supplied, so direct-IP data and estimates "
-            "are saved but proxy validation is still pending."
+            "No real proxy list was supplied, so direct-IP data and estimates are saved "
+            "but proxy validation is still pending."
             if report["proxy_state"]["configured_proxy_count"] == 0
             else None
         ),
