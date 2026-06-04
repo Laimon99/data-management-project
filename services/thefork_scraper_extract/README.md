@@ -110,7 +110,7 @@ Merge several output JSON files (for example shards from teammate runs),
 preferring completed detail records:
 
 ```bash
-uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_normalized.json
+uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_enriched.json
 ```
 
 ### Brave automation profile
