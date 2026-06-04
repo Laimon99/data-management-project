@@ -2,7 +2,7 @@
 name = "data-management-project"
 version = "0.1.0"
 description = "Restaurant ratings consistency analysis across Google Maps, Tripadvisor, and TheFork (Milan)"
-requires-python = ">=3.11"
+requires-python = "~=3.13.0"
 readme = "README.md"
 dependencies = [
     "typer>=0.12",
