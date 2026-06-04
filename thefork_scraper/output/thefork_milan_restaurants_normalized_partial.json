@@ -25525,26 +25525,67 @@
     "source": "thefork",
     "source_id": "i-capatosta-viale-umbria-perugino-r840490",
     "restaurant_name": "I Capatosta Viale Umbria/Perugino",
-    "address": "Via Perugino, 32, Milano",
+    "address": "Via Perugino, 32, Milano, 20135, Italia",
     "city": "Milan",
-    "latitude": null,
-    "longitude": null,
-    "rating": 8.7,
-    "review_count": 181,
-    "cuisine_type": "Campano",
+    "latitude": 45.4570285,
+    "longitude": 9.2165723,
+    "rating": 8.8,
+    "review_count": 182,
+    "cuisine_type": "Piatti vegetariani, Campano, Pizzeria, Europeo, Italiano",
     "price_range": "20 €",
-    "discount": "Sconti fino al 30%",
-    "photo_count": null,
+    "discount": "sconto -30%",
+    "photo_count": 16,
     "website": null,
     "phone_number": null,
     "email": null,
     "working_days_hours": null,
     "restaurant_url": "https://www.thefork.it/ristorante/i-capatosta-viale-umbria-perugino-r840490",
-    "review_snippets": [],
-    "reviews": [],
-    "scraped_at": "2026-06-03T21:45:27Z",
+    "review_snippets": [
+      "pizza ottima, posto piccolino ma molto carino e accogliente. Servizio veloce e personale gentile e simpatico",
+      "Prima esperienza e devo dire di essere soddisfatto. Ottima qualità del cibo a prezzi contenuti. Servizio gentile e attento, da riprovare.",
+      "Amato dai clienti per servizio e ospitalità",
+      "In questo locale puoi vedere il Calcio e lo Sport Live di Sky."
+    ],
+    "reviews": [
+      {
+        "author_name": "ida M.",
+        "rating": 9.5,
+        "title": null,
+        "text": "Una semplice cena in famiglia. Ci siamo trovati benissimo, in alcuni momenti abbiamo chiacchierato e scambiato quache battuta con il cameriere.",
+        "date": "2026-05-27"
+      },
+      {
+        "author_name": "Massimo R.",
+        "rating": 8.0,
+        "title": null,
+        "text": "tutto Bene",
+        "date": "2026-05-23"
+      },
+      {
+        "author_name": "Marta p.",
+        "rating": 10.0,
+        "title": null,
+        "text": "Pizza margherita deliziosa",
+        "date": "2026-05-18"
+      },
+      {
+        "author_name": "Vito d.",
+        "rating": 10.0,
+        "title": null,
+        "text": "Ottima pizzeria ristorante mi trovo sempre bene in questo posto personale attento e professionale pizza buonissima specialmente le gourmand ci ritorno sempre con molto piacere, consiglio di aggiornare il menu prezzi sul sito thefork.",
+        "date": "2026-05-16"
+      },
+      {
+        "author_name": "Fabio D.",
+        "rating": 10.0,
+        "title": null,
+        "text": "Tutto OK!",
+        "date": "2026-05-13"
+      }
+    ],
+    "scraped_at": "2026-06-04T10:05:31Z",
     "source_page_number": 16,
-    "detail_scraped": false
+    "detail_scraped": true
   },
   {
     "source": "thefork",
@@ -25617,51 +25658,99 @@
     "source": "thefork",
     "source_id": "qb-qanto-basta-restaurant-pizzeria-r828288",
     "restaurant_name": "QB Qanto Basta Restaurant Pizzeria",
-    "address": "Via Bressanone, 4, Milano",
+    "address": "Via Bressanone, 4, Milano, 20151, Italia",
     "city": "Milan",
-    "latitude": null,
-    "longitude": null,
+    "latitude": 45.4994181,
+    "longitude": 9.129871099999999,
     "rating": 8.7,
-    "review_count": 143,
-    "cuisine_type": "Pizzeria",
+    "review_count": 145,
+    "cuisine_type": "Piatti vegetariani, Pizzeria, Europeo, Italiano",
     "price_range": "21 €",
-    "discount": "Sconti fino al 30%",
-    "photo_count": null,
+    "discount": "sconto -30%",
+    "photo_count": 13,
     "website": null,
     "phone_number": null,
     "email": null,
-    "working_days_hours": null,
+    "working_days_hours": "[{\"@type\": \"OpeningHoursSpecification\", \"closes\": \"22:00\", \"dayOfWeek\": [\"martedì\"], \"opens\": \"19:00\"}, {\"@type\": \"OpeningHoursSpecification\", \"closes\": \"22:00\", \"dayOfWeek\": [\"mercoledì\"], \"opens\": \"19:00\"}, {\"@type\": \"OpeningHoursSpecification\", \"closes\": \"22:00\", \"dayOfWeek\": [\"giovedì\"], \"opens\": \"19:00\"}, {\"@type\": \"OpeningHoursSpecification\", \"closes\": \"22:30\", \"dayOfWeek\": [\"venerdì\"], \"opens\": \"19:00\"}, {\"@type\": \"OpeningHoursSpecification\", \"closes\": \"22:30\", \"dayOfWeek\": [\"sabato\"], \"opens\": \"19:00\"}]",
     "restaurant_url": "https://www.thefork.it/ristorante/qb-qanto-basta-restaurant-pizzeria-r828288",
-    "review_snippets": [],
-    "reviews": [],
-    "scraped_at": "2026-06-03T21:09:11Z",
+    "review_snippets": [
+      "Ristorante QB Qanto Basta Restaurant Pizzeria a Milano",
+      "Pizze molto buone, servizio cortese, rapido e disponibile ! Da provare !",
+      "Pizza ottima, servizio eccellente, da provare!",
+      "Una vera pizza napoletana fatta con eccellenti prodotti. Il servizio educato ed impeccabile. Tornerò sicuramente.",
+      "Ottime pizze,abbiamo provato la gourmet con zucca veramente squisita! Il servizio impeccabile ed i ragazzi in sala ed in cucina favolosi bravi!! Posto vera..."
+    ],
+    "reviews": [
+      {
+        "author_name": "Antonio d.",
+        "rating": 6.0,
+        "title": null,
+        "text": "Rispetto alle altre volte, gli ingredienti non avevano la stessa qualità, in particolare il prosciutto.",
+        "date": "2026-05-23"
+      },
+      {
+        "author_name": "Silvia b.",
+        "rating": 10.0,
+        "title": null,
+        "text": "pizza ottima , complimenti al pizzaiolo inoltre ingredienti di qualità, personale attento e gentile",
+        "date": "2026-05-29"
+      },
+      {
+        "author_name": "Maria M.",
+        "rating": 9.5,
+        "title": null,
+        "text": "Pizze molto buone, servizio cortese, rapido e disponibile ! Da provare !",
+        "date": "2026-05-22"
+      },
+      {
+        "author_name": "Luisa C.",
+        "rating": 9.0,
+        "title": null,
+        "text": "le pizze sono molto buone e il tiramisu' fatto in casa anche",
+        "date": "2026-05-16"
+      },
+      {
+        "author_name": "Giuseppe B.",
+        "rating": 10.0,
+        "title": null,
+        "text": "Pizza ottima, servizio eccellente, da provare!",
+        "date": "2026-05-08"
+      }
+    ],
+    "scraped_at": "2026-06-04T10:05:31Z",
     "source_page_number": 16,
-    "detail_scraped": false
+    "detail_scraped": true
   },
   {
     "source": "thefork",
     "source_id": "al-andalus-r806103",
     "restaurant_name": "Al Andalus",
-    "address": "Via Carlo Imbonati, 33, Milano",
+    "address": "Via Carlo Imbonati, 33, Milano, 20158, Italia",
     "city": "Milan",
-    "latitude": null,
-    "longitude": null,
-    "rating": null,
-    "review_count": null,
-    "cuisine_type": "Marocchino",
+    "latitude": 45.50090850000001,
+    "longitude": 9.1824864,
+    "rating": 9.0,
+    "review_count": 6,
+    "cuisine_type": "Marocchino, Orientale",
     "price_range": "14 €",
-    "discount": null,
-    "photo_count": null,
+    "discount": "Sconti fino al 20%",
+    "photo_count": 16,
     "website": null,
     "phone_number": null,
     "email": null,
     "working_days_hours": null,
     "restaurant_url": "https://www.thefork.it/ristorante/al-andalus-r806103",
-    "review_snippets": [],
+    "review_snippets": [
+      "Cibo squisito con ottime alternative anche per i vegetariani/vegani, soprattutto nella sezione antipasti (che possono facilmente diventare pasti principali....",
+      "Cibo buono e la famiglia che lo gestisce sono adorabile, posti che non esistono più a Mila o",
+      "Ambiente molto spartano. Tantissima gentilezza, cibo ottimo e prezzi contenuti. Lo consiglio.",
+      "Quarta volta che vado e ogni volta è stata una bellissima esperienza. Il cibo ottimo! Camerieri e in particolare il gestore persone squisite, genuine! Prezz...",
+      "Cibo ottimo e grande cortesia. Torneremo"
+    ],
     "reviews": [],
-    "scraped_at": "2026-06-03T21:09:11Z",
+    "scraped_at": "2026-06-04T10:05:31Z",
     "source_page_number": 16,
-    "detail_scraped": false
+    "detail_scraped": true
   },
   {
     "source": "thefork",
@@ -25751,7 +25840,7 @@
     "restaurant_url": "https://www.thefork.it/ristorante/trattoria-pizzeria-fresco-sempione-r735293",
     "review_snippets": [],
     "reviews": [],
-    "scraped_at": "2026-05-29T18:20:32Z",
+    "scraped_at": "2026-06-04T10:05:31Z",
     "source_page_number": 16,
     "detail_scraped": false
   },
