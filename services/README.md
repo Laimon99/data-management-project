@@ -38,13 +38,15 @@ See `tripadvisor_scraper_extract/tripadvisor-scraper-extract.md` for implementat
 Playwright-based scraper that collects Milan restaurant listings from TheFork, then optionally enriches each record from its detail page.
 
 - Writes the normalized dataset to `data/raw/thefork/thefork_milan_restaurants_normalized.json` (plus partial-progress and validation-report files).
-- Listing data is reliable; detail enrichment can be rate-limited (see `docs/antibot-comparison.md`).
+- Listing data is reliable; detail enrichment can be rate-limited (see `docs/antibot-comparison.md`). Supports resume, proxy rotation (burn-through / round-robin), and a calibration mode to size proxy needs.
 
 ```bash
-uv run thefork-scraper-extract
+uv run thefork-scraper-extract                       # full listing + detail scrape
+uv run thefork-scraper-extract --resume-detail --proxy-list proxies.txt --proxy-round-robin
+uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_normalized.json
 ```
 
-See `thefork_scraper_extract/README.md` for the full CLI reference and `SCRAPER_SPEC.md` for the extraction spec.
+See `thefork_scraper_extract/README.md` for the full CLI reference (proxy, calibration, merge) and `SCRAPER_SPEC.md` for the extraction spec.
 
 ---
 

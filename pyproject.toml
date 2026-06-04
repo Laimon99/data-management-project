@@ -31,6 +31,7 @@ pipeline-stage1 = "google_places_api_extract.cli:app"
 tripadvisor-scraper-extract = "tripadvisor_scraper_extract.scraper:run_cli"
 tripadvisor-merge-results = "tripadvisor_scraper_extract.merge_results:main"
 thefork-scraper-extract = "thefork_scraper_extract.main:main"
+thefork-merge-outputs = "thefork_scraper_extract.merge_outputs:main"
 
 [build-system]
 requires = ["hatchling"]

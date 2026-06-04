@@ -73,6 +73,46 @@ Run automatic detail retries until every restaurant is complete:
 uv run thefork-scraper-extract --auto-detail-until-complete --detail-delay-seconds 10 --detail-batch-size 25 --max-consecutive-detail-failures 5
 ```
 
+### Proxy rotation (anti-block)
+
+When TheFork returns repeated HTTP 403 on detail pages, route detail scraping
+through proxies. Provide proxies via a list file (one `http://host:port` or
+`http://user:pass@host:port` per line) or a single server, then pick a rotation
+strategy:
+
+```bash
+# Burn through each proxy until it stops producing detail records, then rotate.
+uv run thefork-scraper-extract --resume-detail --proxy-list proxies.txt --proxy-burn-through
+
+# Rotate proxies every few detail pages and rest each one before reuse.
+uv run thefork-scraper-extract --resume-detail --proxy-list proxies.txt --proxy-round-robin \
+    --restaurants-per-proxy-turn 3 --proxy-min-rest-seconds 90
+```
+
+> Proxy list files (`proxy_list*.txt`, `proxies.txt`, `*.proxy`) may embed
+> credentials and are gitignored — never commit them.
+
+### Calibration
+
+Measure detail-page blocking limits and estimate how many proxies are needed,
+without touching the main partial JSON:
+
+```bash
+uv run thefork-scraper-extract --calibrate-detail-blocks --proxy-list proxies.txt \
+    --calibration-delay-seconds 5,10,20 --calibration-max-records 10
+```
+
+Reports and sample records are written under `data/raw/thefork/calibration/`.
+
+### Merging outputs
+
+Merge several output JSON files (for example shards from teammate runs),
+preferring completed detail records:
+
+```bash
+uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_normalized.json
+```
+
 Useful options:
 
 ```text
@@ -96,6 +136,22 @@ Useful options:
 --save-final-incomplete          Write final JSON even if some detail pages are missing.
 --max-consecutive-detail-failures N
                                  Stop detail scraping after repeated detail failures.
+--input-partial PATH             Seed a separate run from an existing partial JSON.
+--user-data-dir PATH             Persistent browser profile directory.
+--proxy-list PATH                Text file with one proxy URL per line.
+--proxy-server URL               Single proxy server, e.g. http://host:port.
+--proxy-username NAME            Username for --proxy-server.
+--proxy-password PASS            Password for --proxy-server.
+--proxy-burn-through             Use each proxy until it stops producing records, then rotate.
+--proxy-round-robin              Rotate proxies every few detail pages and rest each one.
+--restaurants-per-proxy-turn N   Detail pages per proxy before rotating (round-robin).
+--proxy-min-rest-seconds N       Minimum rest before reusing a proxy (round-robin).
+--proxy-max-failed-turns N       Retire a proxy after N failed round-robin turns.
+--proxy-turn-jitter-seconds N    Random delay added between round-robin turns.
+--include-direct-ip-after-proxies
+                                 Continue with the direct IP after all proxies retire.
+--calibrate-detail-blocks        Run detail-block calibration without changing the partial JSON.
+--calibration-output-dir PATH    Where calibration reports are saved.
 --log-level LEVEL                Use INFO, DEBUG, WARNING, or ERROR.
 ```
 
@@ -119,6 +175,17 @@ Validation report:
 
 ```text
 data/raw/thefork/thefork_milan_validation_report.json
+```
+
+Runtime artifacts from proxy/calibration runs (all gitignored, not tracked):
+
+```text
+data/raw/thefork/thefork_proxy_state.json
+data/raw/thefork/thefork_proxy_progress_report.json
+data/raw/thefork/calibration/
+data/raw/thefork/runs/
+data/raw/thefork/browser_profile/        # single persistent profile
+data/raw/thefork/browser_profiles/       # per-proxy profiles
 ```
 
 ## Notes
