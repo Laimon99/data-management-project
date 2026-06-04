@@ -37,6 +37,17 @@ PRICE_TEXT_PATTERN = re.compile(
 )
 DISCOUNT_TEXT_PATTERN = re.compile(r"\b(?:Scont[io]|discount|off)\b[^\n]{0,80}\d+\s*%", re.IGNORECASE)
 SLIDE_COUNT_PATTERN = re.compile(r"Slide\s+\d+\s+di\s+(\d+)", re.IGNORECASE)
+BLOCK_MARKERS = (
+    "403 forbidden",
+    "access denied",
+    "forbidden",
+    "accesso \u00e8 temporaneamente limitato",
+    "captcha",
+    "recaptcha",
+    "please verify you are a human",
+    "datadome",
+    "geo.captcha-delivery.com",
+)
 
 
 class TheForkDetailScraper:
@@ -50,6 +61,9 @@ class TheForkDetailScraper:
         human_scroll_enabled: bool = False,
         human_scroll_min_steps: int = 2,
         human_scroll_max_steps: int = 4,
+        pause_on_block: bool = False,
+        micro_pause_min_ms: int = 0,
+        micro_pause_max_ms: int = 0,
     ) -> None:
         self.max_reviews_per_restaurant = max(0, max_reviews_per_restaurant)
         self.navigation_timeout_ms = navigation_timeout_ms
@@ -59,30 +73,68 @@ class TheForkDetailScraper:
         self.human_scroll_enabled = human_scroll_enabled
         self.human_scroll_min_steps = max(1, human_scroll_min_steps)
         self.human_scroll_max_steps = max(self.human_scroll_min_steps, human_scroll_max_steps)
-        self.last_status: int | None = None
+        self.pause_on_block = pause_on_block
+        self.micro_pause_min_ms = max(0, micro_pause_min_ms)
+        self.micro_pause_max_ms = max(self.micro_pause_min_ms, micro_pause_max_ms)
+        self.last_http_status: int | None = None
+        self.last_failure_reason: str | None = None
+        self.last_block_marker: str | None = None
 
     def enrich_record(self, page: Page, record: RestaurantRecord, scraped_at: str) -> RestaurantRecord:
-        self.last_status = None
+        self.last_http_status = None
+        self.last_failure_reason = None
+        self.last_block_marker = None
+
         if not record.restaurant_url:
             record.detail_scraped = False
             record.scraped_at = scraped_at
+            self.last_failure_reason = "missing_restaurant_url"
             return record
 
         try:
             status = self._load_detail_page_with_retries(page, record.restaurant_url)
-            self.last_status = status
             if status and status >= 400:
-                logging.warning("Detail page returned HTTP %s: %s", status, record.restaurant_url)
-                record.detail_scraped = False
-                record.scraped_at = scraped_at
-                return record
+                if status in {403, 429} and self._wait_for_manual_unblock(page, f"HTTP {status}"):
+                    status = self._load_detail_page_with_retries(page, record.restaurant_url)
+                    if not status or status < 400:
+                        logging.info("Manual unblock completed for detail page: %s", record.restaurant_url)
+                    else:
+                        logging.warning("Detail page is still blocked after manual unblock: HTTP %s", status)
+
+                if not status or status < 400:
+                    pass
+                else:
+                    logging.warning("Detail page returned HTTP %s: %s", status, record.restaurant_url)
+                    record.detail_scraped = False
+                    record.scraped_at = scraped_at
+                    self.last_http_status = status
+                    self.last_failure_reason = f"http_{status}"
+                    return record
+
+            block_marker = self._detect_block_marker(page)
+            if block_marker is not None:
+                if self._wait_for_manual_unblock(page, f"block marker {block_marker!r}"):
+                    block_marker = self._detect_block_marker(page)
+                    if block_marker is None:
+                        logging.info("Manual unblock cleared block marker for detail page: %s", record.restaurant_url)
+
+                if block_marker is not None:
+                    logging.warning("Detail page contained block marker %r: %s", block_marker, record.restaurant_url)
+                    record.detail_scraped = False
+                    record.scraped_at = scraped_at
+                    self.last_http_status = status
+                    self.last_failure_reason = "blocked_page"
+                    self.last_block_marker = block_marker
+                    return record
 
             try:
                 page.wait_for_load_state("networkidle", timeout=self.detail_timeout_ms)
             except PlaywrightTimeoutError:
                 logging.debug("Detail page did not reach network idle: %s", record.restaurant_url)
 
+            self._micro_reading_pause(page)
             self._light_human_scroll(page)
+            self._micro_reading_pause(page)
             payload = self._extract_page_payload(page)
             detail_data = self._parse_detail_payload(payload, record)
             self._merge_detail_data(record, detail_data, scraped_at)
@@ -92,7 +144,26 @@ class TheForkDetailScraper:
             logging.warning("Could not scrape detail page %s: %s", record.restaurant_url, error)
             record.detail_scraped = False
             record.scraped_at = scraped_at
+            self.last_failure_reason = type(error).__name__
             return record
+
+    def _wait_for_manual_unblock(self, page: Page, reason: str) -> bool:
+        if not self.pause_on_block:
+            return False
+
+        print("\a")
+        logging.warning(
+            "TheFork anti-bot block detected (%s). Resolve it in the browser, then press Enter here.",
+            reason,
+        )
+        input("TheFork block detected. Resolve the browser page, then press Enter to retry...")
+        page.wait_for_timeout(int(random.uniform(1500, 2500)))
+        return True
+
+    def _micro_reading_pause(self, page: Page) -> None:
+        if self.micro_pause_max_ms <= 0:
+            return
+        page.wait_for_timeout(int(random.uniform(self.micro_pause_min_ms, self.micro_pause_max_ms)))
 
     def _load_detail_page_with_retries(self, page: Page, url: str) -> int | None:
         status: int | None = None
@@ -110,6 +181,26 @@ class TheForkDetailScraper:
             if self.block_retry_delay_ms > 0:
                 page.wait_for_timeout(self.block_retry_delay_ms)
         return status
+
+    def _detect_block_marker(self, page: Page) -> str | None:
+        try:
+            page_text = page.evaluate(
+                """
+                () => [
+                  document.title || '',
+                  (document.body && document.body.innerText) || '',
+                  document.documentElement.outerHTML || '',
+                ].join('\\n').slice(0, 50000)
+                """
+            )
+        except PlaywrightError:
+            return None
+
+        normalized_text = (page_text or "").lower()
+        for marker in BLOCK_MARKERS:
+            if marker in normalized_text:
+                return marker
+        return None
 
     def _light_human_scroll(self, page: Page) -> None:
         if not self.human_scroll_enabled:

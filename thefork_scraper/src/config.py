@@ -18,6 +18,6 @@ COOLDOWN_SECONDS = 900
 MAX_COOLDOWN_SECONDS = 3600
 COOLDOWN_MULTIPLIER = 1.5
 MAX_AUTO_DETAIL_CYCLES = 300
-OUTPUT_FILE = "output/thefork_milan_restaurants_normalized.json"
+OUTPUT_FILE = "output/thefork_milan_restaurants_enriched.json"
 PARTIAL_OUTPUT_FILE = "output/thefork_milan_restaurants_normalized_partial.json"
 VALIDATION_REPORT_FILE = "output/thefork_milan_validation_report.json"
