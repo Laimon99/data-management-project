@@ -111,32 +111,47 @@ Both runs are idempotent. See [`services/google_places_api_extract/README.md`](s
 ### Source B — Tripadvisor
 
 * **Type**: Web scraping via Playwright
-* **Data**:
+* **Data**: see [`dataset-schema.md`](services/tripadvisor_scraper_extract/dataset-schema.md)
+* **Why**: different user base from Google; Tripadvisor is the dominant international restaurant-review platform, making it essential for cross-platform rating consistency analysis
+* **Tools**: Python + Playwright (Chromium), restaurant-page scraper, raw JSON output in `data/raw/tripadvisor/`
 
-  * Scraped restaurant name
-  * Address
-  * Rating
-  * Review count
-  * Optional review text / recency fields
-* **Why**:
+#### How the current dataset was collected
 
-  * Different user base from Google
-  * Useful for cross-platform rating consistency analysis
+The scraper iterates over a pre-built list of 7,539 Tripadvisor restaurant URLs for
+the Milan area (`tripadvisor_list_restaurant.txt`) and visits each page to extract
+the full venue profile.
+
+<!-- TODO: ask Edoardo how the original tripadvisor_list_restaurant.txt was obtained
+     (search/listing pages crawled? export? third-party source?) -->
+
+| Field | Coverage |
+|---|---|
+| Venues scraped | **7,539** |
+| Rating | 99.8% |
+| Review count | 100% |
+| Address | 99.1% |
+| Phone number | 90.1% |
+| Cuisine type | 77.7% |
+| Price range | 67.7% |
+| Opening hours | 67.6% |
+| Email | 46.9% |
+
+All values are stored as strings exactly as rendered on the page (Italian locale):
+comma decimal separators, parenthesised review counts, euro-glyph price bands.
+Parsing is deferred to the integration stage.
 
 #### Running the Tripadvisor scraper
 
 The scraper is packaged as `services/tripadvisor_scraper_extract`. Runtime files are
-written under `data/raw/tripadvisor/`; the bundled restaurant URL list is copied
-there on first run if no URL file exists yet. See
-`docs/tripadvisor_scraper_extractor/tripadvisor-scraper-extract.md` for runtime
-paths and browser setup details.
+written under `data/raw/tripadvisor/`. The scraper is checkpoint-aware — interrupted
+runs resume from where they left off.
 
 ```bash
 uv run tripadvisor-scraper-extract --order bottom
 ```
 
-Use `--order bottom` when another teammate is scraping from the top of the URL
-list. The default is `--order top`. The scraper auto-detects an installed
+Use `--order bottom` when another teammate is already scraping from the top of the
+URL list (default is `--order top`). The scraper auto-detects an installed
 Chromium-based browser on macOS, Windows, and Linux, trying Brave, Chrome, Edge,
 Vivaldi, Opera, and Chromium in that order; if none is found it falls back to
 Playwright's bundled Chromium. Pass `--browser-path <path>` if your browser is
