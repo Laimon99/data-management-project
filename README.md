@@ -233,40 +233,70 @@ Health checks and host-port overrides (for when `27017`/`8123` are already taken
 configured, and [`.env.example`](.env.example) works out-of-the-box for local dev
 (no auth, localhost-only).
 
-The **loading/ETL layer** that moves raw data into these databases is deliberately
-deferred to the next step and designed in [`docs/etl-design.md`](docs/etl-design.md);
-the candidate DBMS evaluation remains in [`docs/storage-design.md`](docs/storage-design.md).
+### Loading raw data into MongoDB
 
-### Future storage shape
+The **Load** layer of the ELT pipeline is implemented as
+`services/mongo_load`. It moves the raw extractor files from `data/raw/` into the MongoDB
+collections below as a **pure raw passthrough** (no transformation), keyed on each
+source's natural identifier (`place_id`, `source_url`, `source_id`) so loads are
+**idempotent** — re-running never creates duplicates.
 
-**restaurants_raw_google**
+```bash
+docker compose up -d mongo          # start MongoDB (localhost:27017)
+uv run dataman-load all             # load Google, Tripadvisor, and TheFork
+```
+
+Each source is also loadable on its own (`uv run dataman-load google|tripadvisor|thefork`),
+and `--reset` clears a collection before loading. See
+[`services/mongo_load/README.md`](services/mongo_load/README.md) for the source registry,
+load metadata, flags, and edge-case behaviour. The wider pipeline design lives in
+[`docs/etl-design.md`](docs/etl-design.md) and the candidate DBMS evaluation in
+[`docs/storage-design.md`](docs/storage-design.md).
+
+### Storage shape
+
+The `restaurants_raw_*` collections are populated by the load step above as a **raw
+passthrough**: each document holds the source's fields **exactly as the extractor wrote
+them** (field names differ per source), plus three reserved load-metadata keys (`_id`,
+`_loaded_at`, `_source_file`). The `_id` is the source's natural key — `place_id`
+(Google), `source_url` (Tripadvisor), `source_id` (TheFork). There is no normalization at
+this stage; that is the job of the upcoming Transform step. Values are stored exactly as
+the scraper wrote them, so they still look raw — e.g. Tripadvisor ratings are text like
+`"5,0"` (Italian comma) and missing fields show up as the text `"NaN"`, while TheFork uses
+real numbers and empty (`null`) values.
+
+The indicative fields below show what each source carries — see
+[`services/mongo_load/README.md`](services/mongo_load/README.md) for the exact keys.
+
+**restaurants_raw_google** — keyed on `place_id`
 
 * place_id
 * name
-* address
-* lat, lon
-* rating
-* review_count
+* formatted_address, city
+* latitude, longitude
+* rating, user_rating_count
 * types / primary_type
-* raw details document
+* details (raw Places details document)
 
-**restaurants_raw_tripadvisor**
+**restaurants_raw_tripadvisor** — keyed on `source_url`
 
-* tripadvisor_id
-* name
+* source_url
+* restaurant_name
 * address
-* rating
-* review_count
-* raw scraped payload
+* rating, total_review
+* cuisine_type, price_range
+* review (raw scraped payload)
 
-**restaurants_raw_thefork**
+**restaurants_raw_thefork** — keyed on `source_id`
 
-* thefork_id
-* name
-* address
-* rating
-* review_count
-* raw scraped payload
+* source_id
+* restaurant_name
+* address, city, latitude, longitude
+* rating, review_count
+* cuisine_type, price_range
+* reviews (raw scraped payload)
+
+`restaurants_integrated` is the upcoming integration target.
 
 **restaurants_integrated**
 
