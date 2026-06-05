@@ -5,7 +5,7 @@ import math
 import random
 import re
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlsplit, urlunsplit
@@ -77,9 +77,18 @@ class TheForkScraper:
         include_direct_ip_after_proxies: bool = False,
         proxy_round_robin: bool = False,
         restaurants_per_proxy_turn: int = 1,
-        proxy_min_rest_seconds: float = 90.0,
+        proxy_min_rest_seconds: float = 900.0,
+        proxy_403_cooldown_seconds: float = 10800.0,
+        pool_403_threshold: int = 3,
+        pool_403_window_seconds: float = 900.0,
+        pool_403_cooldown_seconds: float = 21600.0,
+        stop_on_pool_block: bool = True,
         proxy_max_failed_turns: int = 3,
-        proxy_turn_jitter_seconds: float = 5.0,
+        proxy_turn_jitter_seconds: float = 30.0,
+        max_url_failures_before_deferral: int = 1,
+        deferred_url_retry_cycles: int = 300,
+        browser_warmup_url: str | None = None,
+        browser_warmup_seconds: float = 0.0,
     ) -> None:
         self.storage = storage
         self.start_url = start_url
@@ -119,8 +128,17 @@ class TheForkScraper:
         self.proxy_round_robin = proxy_round_robin
         self.restaurants_per_proxy_turn = max(1, restaurants_per_proxy_turn)
         self.proxy_min_rest_seconds = max(0.0, proxy_min_rest_seconds)
+        self.proxy_403_cooldown_seconds = max(0.0, proxy_403_cooldown_seconds)
+        self.pool_403_threshold = max(1, pool_403_threshold)
+        self.pool_403_window_seconds = max(1.0, pool_403_window_seconds)
+        self.pool_403_cooldown_seconds = max(0.0, pool_403_cooldown_seconds)
+        self.stop_on_pool_block = stop_on_pool_block
         self.proxy_max_failed_turns = max(1, proxy_max_failed_turns)
         self.proxy_turn_jitter_seconds = max(0.0, proxy_turn_jitter_seconds)
+        self.max_url_failures_before_deferral = max(1, max_url_failures_before_deferral)
+        self.deferred_url_retry_cycles = max(1, deferred_url_retry_cycles)
+        self.browser_warmup_url = browser_warmup_url
+        self.browser_warmup_seconds = max(0.0, browser_warmup_seconds)
         self.detail_batch_counter = 0
         self.detail_stopped_early = False
 
@@ -187,7 +205,10 @@ class TheForkScraper:
         with sync_playwright() as playwright:
             launch_options: dict[str, Any] = {
                 "headless": self.headless,
-                "args": ["--disable-blink-features=AutomationControlled"],
+                "chromium_sandbox": True,
+                "args": []
+                if self.browser_executable_path
+                else ["--disable-blink-features=AutomationControlled"],
             }
             if self.browser_executable_path:
                 launch_options["executable_path"] = self.browser_executable_path
@@ -224,13 +245,14 @@ class TheForkScraper:
 
             try:
                 if self.resume_detail:
+                    self._warm_up_browser_profile(page)
                     records = self.storage.load_partial()
                     if max_restaurants is not None:
                         records = records[:max_restaurants]
                     if not records:
                         raise RuntimeError(
-                            "Cannot resume detail scraping because the partial "
-                            "output is missing or empty."
+                            "Cannot resume detail scraping because the partial output "
+                            "is missing or empty."
                         )
                     records = self._scrape_detail_pages(page, records)
                     self.storage.save_partial(records)
@@ -238,8 +260,8 @@ class TheForkScraper:
                         self.storage.save_final(records)
                     elif self.detail_stopped_early:
                         logging.warning(
-                            "Final output was not overwritten because detail "
-                            "scraping stopped early."
+                            "Final output was not overwritten because detail scraping "
+                            "stopped early."
                         )
                     self.storage.save_validation_report(build_validation_report(records))
                     return records
@@ -322,6 +344,7 @@ class TheForkScraper:
                     records = records[:max_restaurants]
 
                 if self.scrape_detail_pages:
+                    self._warm_up_browser_profile(page)
                     records = self._scrape_detail_pages(page, records)
 
                 self.storage.save_partial(records)
@@ -347,6 +370,28 @@ class TheForkScraper:
         except PlaywrightTimeoutError:
             logging.warning("Timed out while loading %s", page_url)
             return None
+
+    def _warm_up_browser_profile(self, page: Page) -> None:
+        if not self.browser_warmup_url and self.browser_warmup_seconds <= 0:
+            return
+
+        target_url = self.browser_warmup_url or self.start_url
+        logging.info(
+            "Warming up browser profile on %s for %.1f seconds.",
+            target_url,
+            self.browser_warmup_seconds,
+        )
+        try:
+            self._load_page(page, target_url)
+            self._handle_cookie_popup(page)
+            page.wait_for_timeout(2500)
+            page.mouse.wheel(0, random.randint(320, 620))
+            page.wait_for_timeout(random.randint(900, 1600))
+            page.mouse.wheel(0, random.randint(240, 520))
+            if self.browser_warmup_seconds > 0:
+                page.wait_for_timeout(int(self.browser_warmup_seconds * 1000))
+        except PlaywrightError as error:
+            logging.warning("Browser warm-up failed, continuing with detail scraping: %s", error)
 
     def _handle_cookie_popup(self, page: Page) -> None:
         button_names = [
@@ -606,8 +651,8 @@ class TheForkScraper:
 
         if not records:
             logging.info(
-                "No partial output found. Collecting listing data before "
-                "proxy burn-through detail scraping."
+                "No partial output found. Collecting listing data "
+                "before proxy burn-through detail scraping."
             )
             original_scrape_detail_pages = self.scrape_detail_pages
             original_resume_detail = self.resume_detail
@@ -729,7 +774,10 @@ class TheForkScraper:
         with sync_playwright() as playwright:
             launch_options: dict[str, Any] = {
                 "headless": self.headless,
-                "args": ["--disable-blink-features=AutomationControlled"],
+                "chromium_sandbox": True,
+                "args": []
+                if self.browser_executable_path
+                else ["--disable-blink-features=AutomationControlled"],
             }
             if self.browser_executable_path:
                 launch_options["executable_path"] = self.browser_executable_path
@@ -764,6 +812,7 @@ class TheForkScraper:
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
             try:
+                self._warm_up_browser_profile(page)
                 detail_scraper = self._create_detail_scraper()
                 detail_scraped_at = (
                     datetime.now(timezone.utc)
@@ -826,11 +875,26 @@ class TheForkScraper:
         record_limit = (
             min(max_restaurants, len(records)) if max_restaurants is not None and records else None
         )
+        deferrals = self.storage.load_detail_deferrals()
+        proxy_state = normalize_proxy_state(self.storage.load_proxy_state())
+        proxy_state["recent_403_events"] = prune_recent_403_events(
+            proxy_state.get("recent_403_events", []),
+            self.pool_403_window_seconds,
+        )
+        restored_deferrals = restore_deferred_urls(
+            deferrals,
+            max_failures=self.max_url_failures_before_deferral,
+            retry_cycles=self.deferred_url_retry_cycles,
+        )
+        if restored_deferrals:
+            logging.info(
+                "Restored %s previously failed detail URLs to deferred state.", restored_deferrals
+            )
 
         if not records:
             logging.info(
-                "No partial output found. Collecting listing data before "
-                "round-robin detail scraping."
+                "No partial output found. Collecting listing data "
+                "before round-robin detail scraping."
             )
             original_scrape_detail_pages = self.scrape_detail_pages
             original_resume_detail = self.resume_detail
@@ -855,14 +919,23 @@ class TheForkScraper:
         proxy_sequence: list[ProxyConfig | None] = list(self.proxy_configs)
         if self.include_direct_ip_after_proxies or not proxy_sequence:
             proxy_sequence.append(None)
+        if self.proxy_configs and self.user_data_dir is None:
+            logging.warning(
+                "Round-robin mode is running without a persistent user data directory. "
+                "Use --user-data-dir data/raw/thefork/browser_profile to isolate "
+                "browser profiles per proxy."
+            )
 
         states: list[dict[str, Any]] = []
         for proxy_index, proxy in enumerate(proxy_sequence, start=1):
+            proxy_label = proxy.safe_label() if proxy else "direct_ip"
+            stored_proxy_state = proxy_state["proxies"].get(proxy_label) or {}
+            blocked_until = future_timestamp_or_none(stored_proxy_state.get("blocked_until"))
             states.append(
                 {
                     "proxy": proxy,
                     "proxy_index": proxy_index,
-                    "proxy_label": proxy.safe_label() if proxy else "direct_ip",
+                    "proxy_label": proxy_label,
                     "turns": 0,
                     "attempted": 0,
                     "succeeded": 0,
@@ -873,6 +946,14 @@ class TheForkScraper:
                     "retire_reason": None,
                     "last_used_monotonic": 0.0,
                     "last_used_at": None,
+                    "blocked_until_monotonic": monotonic_deadline_for_timestamp(blocked_until),
+                    "blocked_until": blocked_until,
+                    "http_403_count": int(stored_proxy_state.get("http_403_count") or 0),
+                    "last_success_at": stored_proxy_state.get("last_success_at"),
+                    "last_success_url": stored_proxy_state.get("last_success_url"),
+                    "last_failure_at": stored_proxy_state.get("last_failure_at"),
+                    "last_failure_url": stored_proxy_state.get("last_failure_url"),
+                    "last_failure_reason": stored_proxy_state.get("last_failure_reason"),
                 }
             )
 
@@ -887,15 +968,42 @@ class TheForkScraper:
             "strategy": {
                 "restaurants_per_proxy_turn": self.restaurants_per_proxy_turn,
                 "proxy_min_rest_seconds": self.proxy_min_rest_seconds,
+                "proxy_403_cooldown_seconds": self.proxy_403_cooldown_seconds,
+                "pool_403_threshold": self.pool_403_threshold,
+                "pool_403_window_seconds": self.pool_403_window_seconds,
+                "pool_403_cooldown_seconds": self.pool_403_cooldown_seconds,
+                "stop_on_pool_block": self.stop_on_pool_block,
                 "proxy_max_failed_turns": self.proxy_max_failed_turns,
                 "proxy_turn_jitter_seconds": self.proxy_turn_jitter_seconds,
                 "detail_delay_seconds": self.detail_delay_seconds,
                 "include_direct_ip_after_proxies": self.include_direct_ip_after_proxies,
+                "max_url_failures_before_deferral": self.max_url_failures_before_deferral,
+                "deferred_url_retry_cycles": self.deferred_url_retry_cycles,
             },
             "proxy_results": [serializable_proxy_state(state) for state in states],
+            "deferred_url_count": count_deferred_urls(deferrals),
+            "global_blocked_until": proxy_state.get("global_blocked_until"),
+            "recent_403_events": summarize_recent_403_events(proxy_state),
             "events": [],
         }
         self.storage.save_proxy_progress_report(report)
+        self.storage.save_detail_deferrals(deferrals)
+        self.storage.save_proxy_state(proxy_state)
+
+        if is_future_timestamp(proxy_state.get("global_blocked_until")):
+            logging.warning(
+                "The proxy pool is in global cooldown until %s. "
+                "Stopping before making new requests.",
+                proxy_state.get("global_blocked_until"),
+            )
+            report["updated_at"] = utc_timestamp()
+            report["latest_pending_details"] = count_pending_details(records, record_limit)
+            report["pool_block_active"] = True
+            report["global_blocked_until"] = proxy_state.get("global_blocked_until")
+            self.storage.save_partial(records)
+            self.storage.save_validation_report(build_validation_report(records))
+            self.storage.save_proxy_progress_report(report)
+            return records
 
         for cycle in range(1, self.max_auto_detail_cycles + 1):
             pending_before = count_pending_details(records, record_limit)
@@ -938,7 +1046,9 @@ class TheForkScraper:
                 pending_before,
             )
             started_at = time.monotonic()
-            result = self._scrape_proxy_turn(channel, records, state["proxy"], record_limit)
+            result = self._scrape_proxy_turn(
+                channel, records, state["proxy"], record_limit, deferrals, cycle
+            )
             records = result.pop("records")
             duration_seconds = round(time.monotonic() - started_at, 3)
             pending_after = count_pending_details(records, record_limit)
@@ -949,6 +1059,87 @@ class TheForkScraper:
             state["failed"] += result.get("failed", 0)
             state["last_used_monotonic"] = time.monotonic()
             state["last_used_at"] = utc_timestamp()
+
+            last_attempted_url = last_item(result.get("attempted_urls", []))
+            last_succeeded_url = last_item(result.get("succeeded_urls", []))
+            last_failed_url = last_item(result.get("failed_urls", []))
+            if last_succeeded_url:
+                record_proxy_success(proxy_state, state["proxy_label"], last_succeeded_url)
+                state["last_success_at"] = proxy_state["proxies"][state["proxy_label"]].get(
+                    "last_success_at"
+                )
+                state["last_success_url"] = last_succeeded_url
+            elif result.get("failed", 0) > 0:
+                record_proxy_failure(
+                    proxy_state,
+                    proxy_label=state["proxy_label"],
+                    url=last_failed_url or last_attempted_url,
+                    reason=result.get("last_failure_reason"),
+                    http_status=result.get("last_failure_http_status"),
+                )
+                state["last_failure_at"] = proxy_state["proxies"][state["proxy_label"]].get(
+                    "last_failure_at"
+                )
+                state["last_failure_url"] = last_failed_url or last_attempted_url
+                state["last_failure_reason"] = result.get("last_failure_reason")
+
+            http_403_failures = [
+                failure
+                for failure in result.get("failure_http_statuses", [])
+                if failure.get("status") == 403
+            ]
+            block_failure = is_detail_block_failure(
+                result.get("last_failure_http_status"),
+                result.get("last_failure_reason"),
+            )
+            pool_block_triggered = False
+            if block_failure:
+                if not http_403_failures and last_failed_url:
+                    logging.warning(
+                        "Block marker detected with %s. Treating this proxy as cooling down.",
+                        state["proxy_label"],
+                    )
+                state["http_403_count"] += len(http_403_failures)
+                if self.proxy_403_cooldown_seconds > 0:
+                    blocked_until_monotonic = time.monotonic() + self.proxy_403_cooldown_seconds
+                    state["blocked_until_monotonic"] = max(
+                        float(state.get("blocked_until_monotonic") or 0.0),
+                        blocked_until_monotonic,
+                    )
+                    state["blocked_until"] = utc_timestamp_after(self.proxy_403_cooldown_seconds)
+                    set_proxy_blocked_until(
+                        proxy_state, state["proxy_label"], state["blocked_until"]
+                    )
+                    logging.warning(
+                        "HTTP block with %s. Pausing this proxy until %s.",
+                        state["proxy_label"],
+                        state["blocked_until"],
+                    )
+
+            block_events = http_403_failures or (
+                [
+                    {
+                        "url": last_failed_url or last_attempted_url,
+                        "status": result.get("last_failure_http_status"),
+                    }
+                ]
+                if block_failure
+                else []
+            )
+            for failure in block_events:
+                pool_block_triggered = (
+                    record_proxy_403_event(
+                        proxy_state,
+                        proxy_label=state["proxy_label"],
+                        url=failure.get("url"),
+                        reason=result.get("last_failure_reason"),
+                        http_status=failure.get("status"),
+                        window_seconds=self.pool_403_window_seconds,
+                        threshold=self.pool_403_threshold,
+                        cooldown_seconds=self.pool_403_cooldown_seconds,
+                    )
+                    or pool_block_triggered
+                )
 
             if result.get("succeeded", 0) > 0:
                 state["failed_turns"] = 0
@@ -978,6 +1169,13 @@ class TheForkScraper:
                 "duration_seconds": duration_seconds,
                 "error": result.get("error"),
                 "blocked_or_failed_turn": result.get("blocked_or_failed_turn", False),
+                "attempted_urls": result.get("attempted_urls", []),
+                "succeeded_urls": result.get("succeeded_urls", []),
+                "failed_urls": result.get("failed_urls", []),
+                "failure_http_statuses": result.get("failure_http_statuses", []),
+                "failure_reasons": result.get("failure_reasons", []),
+                "failure_block_markers": result.get("failure_block_markers", []),
+                "blocked_until": state.get("blocked_until"),
                 "created_at": utc_timestamp(),
             }
             report["events"].append(event)
@@ -988,9 +1186,18 @@ class TheForkScraper:
             report["proxy_results"] = [
                 serializable_proxy_state(current_state) for current_state in states
             ]
+            report["deferred_url_count"] = count_deferred_urls(deferrals)
+            report["deferred_urls"] = summarize_deferrals(deferrals)
+            report["global_blocked_until"] = proxy_state.get("global_blocked_until")
+            report["recent_403_events"] = summarize_recent_403_events(proxy_state)
+            report["pool_block_active"] = is_future_timestamp(
+                proxy_state.get("global_blocked_until")
+            )
             self.storage.save_partial(records)
             self.storage.save_validation_report(build_validation_report(records))
             self.storage.save_proxy_progress_report(report)
+            self.storage.save_detail_deferrals(deferrals)
+            self.storage.save_proxy_state(proxy_state)
 
             logging.info(
                 "Round-robin turn completed for %s: %s attempted, %s succeeded, %s pending.",
@@ -1010,6 +1217,14 @@ class TheForkScraper:
                     )
                 return records
 
+            if pool_block_triggered and self.stop_on_pool_block:
+                logging.warning(
+                    "Stopping round-robin mode because the proxy pool reached the "
+                    "HTTP 403 threshold. Global cooldown until %s.",
+                    proxy_state.get("global_blocked_until"),
+                )
+                return records
+
             if self.proxy_turn_jitter_seconds > 0:
                 time.sleep(random.uniform(0, self.proxy_turn_jitter_seconds))
 
@@ -1022,7 +1237,14 @@ class TheForkScraper:
         report["updated_at"] = utc_timestamp()
         report["latest_pending_details"] = remaining
         report["proxy_results"] = [serializable_proxy_state(state) for state in states]
+        report["deferred_url_count"] = count_deferred_urls(deferrals)
+        report["deferred_urls"] = summarize_deferrals(deferrals)
+        report["global_blocked_until"] = proxy_state.get("global_blocked_until")
+        report["recent_403_events"] = summarize_recent_403_events(proxy_state)
+        report["pool_block_active"] = is_future_timestamp(proxy_state.get("global_blocked_until"))
         self.storage.save_proxy_progress_report(report)
+        self.storage.save_detail_deferrals(deferrals)
+        self.storage.save_proxy_state(proxy_state)
         if (remaining == 0 and record_limit is None) or self.save_final_incomplete:
             self.storage.save_final(records)
         return records
@@ -1030,14 +1252,47 @@ class TheForkScraper:
     def _next_round_robin_proxy_state(self, active_states: list[dict[str, Any]]) -> dict[str, Any]:
         return min(
             active_states,
-            key=lambda state: (state["last_used_monotonic"], state["turns"], state["proxy_index"]),
+            key=lambda state: (
+                self._proxy_available_monotonic(state),
+                state["turns"],
+                state["proxy_index"],
+            ),
         )
 
     def _proxy_wait_seconds(self, state: dict[str, Any]) -> float:
-        if state["last_used_monotonic"] <= 0 or self.proxy_min_rest_seconds <= 0:
-            return 0.0
-        elapsed_seconds = time.monotonic() - state["last_used_monotonic"]
-        return max(0.0, self.proxy_min_rest_seconds - elapsed_seconds)
+        return max(0.0, self._proxy_available_monotonic(state) - time.monotonic())
+
+    def _proxy_available_monotonic(self, state: dict[str, Any]) -> float:
+        available_at = 0.0
+        if state["last_used_monotonic"] > 0 and self.proxy_min_rest_seconds > 0:
+            available_at = state["last_used_monotonic"] + self.proxy_min_rest_seconds
+        blocked_until = float(state.get("blocked_until_monotonic") or 0.0)
+        return max(available_at, blocked_until)
+
+    def _next_round_robin_record(
+        self,
+        records: list[RestaurantRecord],
+        record_limit: int | None,
+        deferrals: dict[str, Any],
+        cycle: int,
+    ) -> tuple[int, RestaurantRecord] | None:
+        first_deferred: tuple[int, RestaurantRecord] | None = None
+        for index, record in enumerate(records, start=1):
+            if record_limit is not None and index > record_limit:
+                break
+            if record.detail_scraped:
+                continue
+
+            url = record.restaurant_url or f"{record.restaurant_name}|{record.address}|{index}"
+            deferral = deferrals.get(url) or {}
+            deferred_until = int(deferral.get("deferred_until_cycle") or 0)
+            if deferred_until > cycle:
+                if first_deferred is None:
+                    first_deferred = (index, record)
+                continue
+            return index, record
+
+        return first_deferred
 
     def _scrape_proxy_turn(
         self,
@@ -1045,6 +1300,8 @@ class TheForkScraper:
         records: list[RestaurantRecord],
         proxy: ProxyConfig | None,
         record_limit: int | None = None,
+        deferrals: dict[str, Any] | None = None,
+        cycle: int = 0,
     ) -> dict[str, Any]:
         result: dict[str, Any] = {
             "attempted": 0,
@@ -1053,12 +1310,25 @@ class TheForkScraper:
             "blocked_or_failed_turn": False,
             "records": records,
             "error": None,
+            "attempted_urls": [],
+            "succeeded_urls": [],
+            "failed_urls": [],
+            "failure_http_statuses": [],
+            "failure_reasons": [],
+            "failure_block_markers": [],
+            "last_failure_http_status": None,
+            "last_failure_reason": None,
         }
+        if deferrals is None:
+            deferrals = {}
         try:
             with sync_playwright() as playwright:
                 launch_options: dict[str, Any] = {
                     "headless": self.headless,
-                    "args": ["--disable-blink-features=AutomationControlled"],
+                    "chromium_sandbox": True,
+                    "args": []
+                    if self.browser_executable_path
+                    else ["--disable-blink-features=AutomationControlled"],
                 }
                 if self.browser_executable_path:
                     launch_options["executable_path"] = self.browser_executable_path
@@ -1095,15 +1365,18 @@ class TheForkScraper:
                 page.set_default_timeout(self.card_timeout_ms)
                 page.set_default_navigation_timeout(self.navigation_timeout_ms)
                 try:
+                    self._warm_up_browser_profile(page)
                     detail_scraper = self._create_detail_scraper()
                     detail_scraped_at = utc_timestamp()
                     processed_in_turn = 0
 
-                    for index, record in enumerate(records, start=1):
-                        if record_limit is not None and index > record_limit:
+                    while processed_in_turn < self.restaurants_per_proxy_turn:
+                        next_record = self._next_round_robin_record(
+                            records, record_limit, deferrals, cycle
+                        )
+                        if next_record is None:
                             break
-                        if record.detail_scraped:
-                            continue
+                        index, record = next_record
                         if processed_in_turn >= self.restaurants_per_proxy_turn:
                             break
 
@@ -1119,13 +1392,54 @@ class TheForkScraper:
                         )
                         records[index - 1] = enriched_record
                         result["attempted"] += 1
+                        result["attempted_urls"].append(record.restaurant_url)
                         processed_in_turn += 1
 
                         if enriched_record.detail_scraped:
                             result["succeeded"] += 1
+                            result["succeeded_urls"].append(enriched_record.restaurant_url)
+                            clear_detail_deferral(deferrals, enriched_record.restaurant_url)
                         else:
                             result["failed"] += 1
+                            result["failed_urls"].append(record.restaurant_url)
                             result["blocked_or_failed_turn"] = True
+                            result["last_failure_http_status"] = detail_scraper.last_http_status
+                            result["last_failure_reason"] = detail_scraper.last_failure_reason
+                            if detail_scraper.last_http_status is not None:
+                                result["failure_http_statuses"].append(
+                                    {
+                                        "url": record.restaurant_url,
+                                        "status": detail_scraper.last_http_status,
+                                    }
+                                )
+                            if detail_scraper.last_failure_reason:
+                                reason_payload = {
+                                    "url": record.restaurant_url,
+                                    "reason": detail_scraper.last_failure_reason,
+                                }
+                                if detail_scraper.last_block_marker:
+                                    reason_payload["marker"] = detail_scraper.last_block_marker
+                                    result["failure_block_markers"].append(
+                                        {
+                                            "url": record.restaurant_url,
+                                            "marker": detail_scraper.last_block_marker,
+                                        }
+                                    )
+                                result["failure_reasons"].append(reason_payload)
+                            register_detail_deferral(
+                                deferrals=deferrals,
+                                record=record,
+                                record_index=index,
+                                cycle=cycle,
+                                max_failures=self.max_url_failures_before_deferral,
+                                retry_cycles=self.deferred_url_retry_cycles,
+                                http_status=detail_scraper.last_http_status,
+                                reason=detail_scraper.last_failure_reason,
+                                force_defer=is_detail_block_failure(
+                                    detail_scraper.last_http_status,
+                                    detail_scraper.last_failure_reason,
+                                ),
+                            )
                             break
 
                         if processed_in_turn < self.restaurants_per_proxy_turn:
@@ -1143,6 +1457,7 @@ class TheForkScraper:
             result["failed"] += 1
             result["blocked_or_failed_turn"] = True
             result["error"] = str(error)
+            result["last_failure_reason"] = type(error).__name__
             logging.warning(
                 "Round-robin proxy turn failed before completing a detail record with %s: %s",
                 proxy.safe_label() if proxy else "direct_ip",
@@ -1158,7 +1473,10 @@ class TheForkScraper:
         with sync_playwright() as playwright:
             launch_options: dict[str, Any] = {
                 "headless": self.headless,
-                "args": ["--disable-blink-features=AutomationControlled"],
+                "chromium_sandbox": True,
+                "args": []
+                if self.browser_executable_path
+                else ["--disable-blink-features=AutomationControlled"],
             }
             if self.browser_executable_path:
                 launch_options["executable_path"] = self.browser_executable_path
@@ -1198,6 +1516,7 @@ class TheForkScraper:
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
             try:
+                self._warm_up_browser_profile(page)
                 return self._scrape_detail_pages(
                     page, records, max_detail_records=self.detail_batch_size
                 )
@@ -1219,41 +1538,29 @@ class TheForkScraper:
         total_records = len(records)
         consecutive_failures = 0
         processed_missing_records = 0
+        pending_indexes = [
+            index for index, record in enumerate(records, start=1) if not record.detail_scraped
+        ]
+        shard_pending_indexes = [
+            record_index
+            for pending_position, record_index in enumerate(pending_indexes, start=1)
+            if self._pending_position_belongs_to_shard(pending_position)
+        ]
 
-        for index, record in enumerate(records, start=1):
-            if record.detail_scraped:
-                continue
-            if not self._detail_record_belongs_to_shard(index):
-                continue
-
+        for index in shard_pending_indexes:
+            record = records[index - 1]
             if max_detail_records is not None and processed_missing_records >= max_detail_records:
                 logging.info("Reached configured detail batch size: %s", max_detail_records)
                 break
 
-            manual_retry_used = False
-            while True:
-                self._wait_micro_pause(page)
-                logging.info(
-                    "Scraping TheFork detail page %s/%s: %s",
-                    index,
-                    total_records,
-                    record.restaurant_url,
-                )
-                enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
-                records[index - 1] = enriched_record
-
-                if enriched_record.detail_scraped:
-                    break
-                if (
-                    not self.pause_on_antibot
-                    or manual_retry_used
-                    or not self._detail_attempt_looks_blocked(page, detail_scraper)
-                ):
-                    break
-
-                manual_retry_used = True
-                self.storage.save_partial(records)
-                self._pause_for_manual_antibot(page, record.restaurant_url or "")
+            logging.info(
+                "Scraping TheFork detail page %s/%s: %s",
+                index,
+                total_records,
+                record.restaurant_url,
+            )
+            enriched_record = detail_scraper.enrich_record(page, record, detail_scraped_at)
+            records[index - 1] = enriched_record
             processed_missing_records += 1
 
             if enriched_record.detail_scraped:
@@ -1284,8 +1591,8 @@ class TheForkScraper:
 
         return records
 
-    def _detail_record_belongs_to_shard(self, record_index: int) -> bool:
-        return ((record_index - 1) % self.detail_shard_count) + 1 == self.detail_shard_index
+    def _pending_position_belongs_to_shard(self, pending_position: int) -> bool:
+        return ((pending_position - 1) % self.detail_shard_count) + 1 == self.detail_shard_index
 
     def _create_detail_scraper(self) -> TheForkDetailScraper:
         return TheForkDetailScraper(
@@ -1293,6 +1600,9 @@ class TheForkScraper:
             navigation_timeout_ms=self.navigation_timeout_ms,
             detail_timeout_ms=self.card_timeout_ms,
             human_scroll_enabled=self.human_scroll_enabled,
+            pause_on_block=self.pause_on_antibot,
+            micro_pause_min_ms=self.micro_pause_min_ms,
+            micro_pause_max_ms=self.micro_pause_max_ms,
         )
 
     def _detail_delay_for_next_page(self) -> float:
@@ -1315,73 +1625,6 @@ class TheForkScraper:
         if delay_seconds <= 0:
             return
         page.wait_for_timeout(int(delay_seconds * 1000))
-
-    def _wait_micro_pause(self, page: Page) -> None:
-        if self.micro_pause_max_ms <= 0:
-            return
-        delay_ms = random.randint(self.micro_pause_min_ms, self.micro_pause_max_ms)
-        if delay_ms > 0:
-            page.wait_for_timeout(delay_ms)
-
-    def _pause_for_manual_antibot(self, page: Page, restaurant_url: str) -> None:
-        try:
-            current_url = page.url
-        except PlaywrightError:
-            current_url = restaurant_url
-        logging.warning(
-            "Possible TheFork anti-bot/captcha/403 page detected for %s. "
-            "Solve it in the headed browser, then press Enter in this terminal "
-            "to retry. Current page: %s",
-            restaurant_url,
-            current_url,
-        )
-        input(
-            "Anti-bot/captcha rilevato. Risolvilo nel browser, poi premi Enter qui per riprovare: "
-        )
-
-    def _page_looks_like_antibot(self, page: Page) -> bool:
-        try:
-            page_text = page.evaluate(
-                """
-                () => {
-                  const body = document.body || document.documentElement;
-                  return [
-                    location.href || '',
-                    document.title || '',
-                    body ? (body.innerText || '').slice(0, 8000) : ''
-                  ].join('\\n');
-                }
-                """
-            )
-        except PlaywrightError:
-            return False
-
-        haystack = (page_text or "").lower()
-        markers = (
-            "captcha",
-            "403",
-            "forbidden",
-            "access denied",
-            "blocked",
-            "cloudflare",
-            "challenge",
-            "are you human",
-            "unusual traffic",
-            "rate limit",
-            "robot",
-            "non sei un robot",
-            "verifica",
-            "controllo di sicurezza",
-            "accesso negato",
-        )
-        return any(marker in haystack for marker in markers)
-
-    def _detail_attempt_looks_blocked(
-        self, page: Page, detail_scraper: TheForkDetailScraper
-    ) -> bool:
-        if detail_scraper.last_status in {403, 429}:
-            return True
-        return self._page_looks_like_antibot(page)
 
     def _detect_max_page(self, page: Page, page_card_count: int) -> int | None:
         pagination_max_page = self._detect_pagination_max_page(page)
@@ -1446,9 +1689,8 @@ class TheForkScraper:
             page_texts = page.evaluate(
                 """
                 () => [
-                  (
-                    (document.querySelector('main') || document.body).innerText || ''
-                  ).slice(0, 2500),
+                  ((document.querySelector('main') || document.body).innerText || '')
+                    .slice(0, 2500),
                   (document.body.innerText || '').slice(0, 3500),
                 ]
                 """
@@ -1498,12 +1740,299 @@ def count_pending_details(records: list[RestaurantRecord], record_limit: int | N
 
 def serializable_proxy_state(state: dict[str, Any]) -> dict[str, Any]:
     return {
-        key: value for key, value in state.items() if key not in {"proxy", "last_used_monotonic"}
+        key: value
+        for key, value in state.items()
+        if key not in {"proxy", "last_used_monotonic", "blocked_until_monotonic"}
     }
 
 
 def utc_timestamp() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def utc_timestamp_after(seconds: float) -> str:
+    return (
+        (datetime.now(timezone.utc).replace(microsecond=0) + timedelta(seconds=max(0.0, seconds)))
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def normalize_proxy_state(payload: dict[str, Any]) -> dict[str, Any]:
+    state = payload if isinstance(payload, dict) else {}
+    proxies = state.get("proxies")
+    recent_403_events = state.get("recent_403_events")
+    return {
+        "updated_at": state.get("updated_at") or utc_timestamp(),
+        "global_blocked_until": future_timestamp_or_none(state.get("global_blocked_until")),
+        "global_blocked_reason": state.get("global_blocked_reason"),
+        "recent_403_events": recent_403_events if isinstance(recent_403_events, list) else [],
+        "proxies": proxies if isinstance(proxies, dict) else {},
+    }
+
+
+def parse_utc_timestamp(value: Any) -> datetime | None:
+    if not isinstance(value, str) or not value.strip():
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def is_future_timestamp(value: Any) -> bool:
+    parsed = parse_utc_timestamp(value)
+    return parsed is not None and parsed > datetime.now(timezone.utc)
+
+
+def future_timestamp_or_none(value: Any) -> str | None:
+    return value if is_future_timestamp(value) else None
+
+
+def monotonic_deadline_for_timestamp(value: Any) -> float:
+    parsed = parse_utc_timestamp(value)
+    if parsed is None:
+        return 0.0
+    seconds = (parsed - datetime.now(timezone.utc)).total_seconds()
+    if seconds <= 0:
+        return 0.0
+    return time.monotonic() + seconds
+
+
+def last_item(items: Any) -> Any:
+    if isinstance(items, list) and items:
+        return items[-1]
+    return None
+
+
+def proxy_state_entry(proxy_state: dict[str, Any], proxy_label: str) -> dict[str, Any]:
+    proxies = proxy_state.setdefault("proxies", {})
+    entry = proxies.get(proxy_label)
+    if not isinstance(entry, dict):
+        entry = {"proxy_label": proxy_label}
+        proxies[proxy_label] = entry
+    return entry
+
+
+def record_proxy_success(proxy_state: dict[str, Any], proxy_label: str, url: str | None) -> None:
+    entry = proxy_state_entry(proxy_state, proxy_label)
+    entry["last_success_at"] = utc_timestamp()
+    entry["last_success_url"] = url
+    proxy_state["updated_at"] = utc_timestamp()
+
+
+def record_proxy_failure(
+    proxy_state: dict[str, Any],
+    proxy_label: str,
+    url: str | None,
+    reason: str | None,
+    http_status: int | None,
+) -> None:
+    entry = proxy_state_entry(proxy_state, proxy_label)
+    entry["last_failure_at"] = utc_timestamp()
+    entry["last_failure_url"] = url
+    entry["last_failure_reason"] = reason
+    entry["last_http_status"] = http_status
+    proxy_state["updated_at"] = utc_timestamp()
+
+
+def set_proxy_blocked_until(
+    proxy_state: dict[str, Any], proxy_label: str, blocked_until: str | None
+) -> None:
+    if not blocked_until:
+        return
+    entry = proxy_state_entry(proxy_state, proxy_label)
+    current_until = parse_utc_timestamp(entry.get("blocked_until"))
+    next_until = parse_utc_timestamp(blocked_until)
+    if next_until is not None and (current_until is None or next_until > current_until):
+        entry["blocked_until"] = blocked_until
+    proxy_state["updated_at"] = utc_timestamp()
+
+
+def is_detail_block_failure(http_status: int | None, reason: str | None) -> bool:
+    return http_status == 403 or reason == "blocked_page"
+
+
+def record_proxy_403_event(
+    proxy_state: dict[str, Any],
+    proxy_label: str,
+    url: str | None,
+    reason: str | None,
+    http_status: int | None,
+    window_seconds: float,
+    threshold: int,
+    cooldown_seconds: float,
+) -> bool:
+    entry = proxy_state_entry(proxy_state, proxy_label)
+    if http_status == 403:
+        entry["http_403_count"] = int(entry.get("http_403_count") or 0) + 1
+        entry["last_http_403_at"] = utc_timestamp()
+        entry["last_http_403_url"] = url
+    entry["block_count"] = int(entry.get("block_count") or 0) + 1
+    entry["last_block_at"] = utc_timestamp()
+    entry["last_block_url"] = url
+    entry["last_block_reason"] = reason
+
+    event = {
+        "proxy_label": proxy_label,
+        "url": url,
+        "reason": reason,
+        "http_status": http_status,
+        "created_at": utc_timestamp(),
+    }
+    recent_events = prune_recent_403_events(
+        [*proxy_state.get("recent_403_events", []), event], window_seconds
+    )
+    proxy_state["recent_403_events"] = recent_events
+    proxy_state["updated_at"] = utc_timestamp()
+
+    distinct_proxy_labels = {
+        item.get("proxy_label") for item in recent_events if item.get("proxy_label")
+    }
+    if len(distinct_proxy_labels) < threshold:
+        return False
+
+    blocked_until = utc_timestamp_after(cooldown_seconds)
+    existing_until = parse_utc_timestamp(proxy_state.get("global_blocked_until"))
+    next_until = parse_utc_timestamp(blocked_until)
+    if next_until is not None and (existing_until is None or next_until > existing_until):
+        proxy_state["global_blocked_until"] = blocked_until
+        proxy_state["global_blocked_reason"] = (
+            f"{len(distinct_proxy_labels)} distinct proxies returned HTTP 403 or a block page "
+            f"within {int(window_seconds)} seconds"
+        )
+        proxy_state["updated_at"] = utc_timestamp()
+    return True
+
+
+def prune_recent_403_events(events: list[Any], window_seconds: float) -> list[dict[str, Any]]:
+    cutoff = datetime.now(timezone.utc) - timedelta(seconds=max(1.0, window_seconds))
+    kept: list[dict[str, Any]] = []
+    for event in events:
+        if not isinstance(event, dict):
+            continue
+        created_at = parse_utc_timestamp(event.get("created_at"))
+        if created_at is None or created_at < cutoff:
+            continue
+        kept.append(
+            {
+                "proxy_label": event.get("proxy_label"),
+                "url": event.get("url"),
+                "reason": event.get("reason"),
+                "http_status": event.get("http_status"),
+                "created_at": event.get("created_at"),
+            }
+        )
+    return kept[-100:]
+
+
+def summarize_recent_403_events(
+    proxy_state: dict[str, Any], limit: int = 30
+) -> list[dict[str, Any]]:
+    events = proxy_state.get("recent_403_events")
+    if not isinstance(events, list):
+        return []
+    return [
+        {
+            "proxy_label": event.get("proxy_label"),
+            "url": event.get("url"),
+            "reason": event.get("reason"),
+            "http_status": event.get("http_status"),
+            "created_at": event.get("created_at"),
+        }
+        for event in events[-limit:]
+        if isinstance(event, dict)
+    ]
+
+
+def register_detail_deferral(
+    deferrals: dict[str, Any],
+    record: RestaurantRecord,
+    record_index: int,
+    cycle: int,
+    max_failures: int,
+    retry_cycles: int,
+    http_status: int | None = None,
+    reason: str | None = None,
+    force_defer: bool = False,
+) -> None:
+    url = record.restaurant_url or f"{record.restaurant_name}|{record.address}|{record_index}"
+    if not url:
+        return
+
+    item = deferrals.get(url, {})
+    failures = int(item.get("failures") or 0) + 1
+    item.update(
+        {
+            "url": url,
+            "restaurant_name": record.restaurant_name,
+            "record_index": record_index,
+            "failures": failures,
+            "last_failed_at": utc_timestamp(),
+            "last_failed_cycle": cycle,
+            "last_http_status": http_status,
+            "last_reason": reason,
+        }
+    )
+    if force_defer or failures >= max_failures:
+        item["deferred_until_cycle"] = cycle + retry_cycles
+        item["deferred"] = True
+        logging.warning(
+            "Deferring detail URL after %s failed attempts until round-robin cycle %s: %s",
+            failures,
+            item["deferred_until_cycle"],
+            url,
+        )
+    deferrals[url] = item
+
+
+def clear_detail_deferral(deferrals: dict[str, Any], url: str | None) -> None:
+    if not url:
+        return
+    if url in deferrals:
+        del deferrals[url]
+
+
+def restore_deferred_urls(deferrals: dict[str, Any], max_failures: int, retry_cycles: int) -> int:
+    restored = 0
+    for item in deferrals.values():
+        failures = int(item.get("failures") or 0)
+        deferred_until = int(item.get("deferred_until_cycle") or 0)
+        if failures >= max_failures and deferred_until <= 0:
+            item["deferred_until_cycle"] = retry_cycles
+            item["deferred"] = True
+            restored += 1
+    return restored
+
+
+def count_deferred_urls(deferrals: dict[str, Any]) -> int:
+    return sum(1 for item in deferrals.values() if item.get("deferred"))
+
+
+def summarize_deferrals(deferrals: dict[str, Any], limit: int = 30) -> list[dict[str, Any]]:
+    items = sorted(
+        deferrals.values(),
+        key=lambda item: (
+            int(item.get("deferred_until_cycle") or 0),
+            -(int(item.get("failures") or 0)),
+        ),
+    )
+    return [
+        {
+            "url": item.get("url"),
+            "restaurant_name": item.get("restaurant_name"),
+            "record_index": item.get("record_index"),
+            "failures": item.get("failures"),
+            "deferred_until_cycle": item.get("deferred_until_cycle"),
+            "last_failed_at": item.get("last_failed_at"),
+            "last_http_status": item.get("last_http_status"),
+            "last_reason": item.get("last_reason"),
+        }
+        for item in items[:limit]
+    ]
 
 
 def profile_dir_for_proxy(base_dir: Path, proxy: ProxyConfig | None) -> Path:

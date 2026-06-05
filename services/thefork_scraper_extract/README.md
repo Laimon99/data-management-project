@@ -110,8 +110,66 @@ Merge several output JSON files (for example shards from teammate runs),
 preferring completed detail records:
 
 ```bash
-uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_normalized.json
+uv run thefork-merge-outputs run_a.json run_b.json --output data/raw/thefork/thefork_milan_restaurants_enriched.json
 ```
+
+### Brave automation profile
+
+For long anti-block runs, use a headed Brave profile that is warmed up on
+TheFork before detail scraping:
+
+```bash
+uv run thefork-scraper-extract --resume-detail --auto-detail-until-complete \
+    --brave-automation-profile --pause-on-antibot --human-detail-scroll \
+    --detail-delay-min-seconds 120 --detail-delay-max-seconds 240 \
+    --detail-batch-size 6 --save-final-incomplete
+```
+
+This preset uses the installed Brave executable and opens the browser visibly.
+On Windows it defaults to `C:\tmp\thefork_brave_automation_profile`; on
+macOS/Linux it defaults to `data/raw/thefork/brave_automation_profile`. Before a
+long run, open Brave with this profile, browse TheFork for a few minutes, accept
+cookies, and leave it reusable for the scraper.
+
+### GraphQL detail enrichment over CDP
+
+When Playwright detail navigation is blocked, enrich missing records through
+TheFork's GraphQL API executed inside an already-open Brave/Chromium tab. Start
+the browser with a remote debugging port, open TheFork manually (solve
+cookies/captcha), then run:
+
+```bash
+uv run thefork-scraper-extract --graphql-detail-from-cdp \
+    --connect-over-cdp-url http://127.0.0.1:9222 \
+    --partial-every-restaurants 10 \
+    --detail-delay-min-seconds 8 --detail-delay-max-seconds 20
+```
+
+This mode never navigates detail pages; it reuses the open tab only to run
+GraphQL requests for records where `detail_scraped=false`, then saves progress
+to the partial JSON. Use `--graphql-review-size N` to cap reviews per restaurant.
+
+### Parallel proxy workers
+
+Launch one Brave proxy profile per worker and run GraphQL/CDP enrichment in
+parallel:
+
+```bash
+uv run thefork-scraper-extract --graphql-cdp-parallel-proxies \
+    --proxy-list proxies.txt --parallel-workers 2 --parallel-base-port 9330 \
+    --partial-every-restaurants 10
+```
+
+Each execution creates a fresh run directory under
+`data/raw/thefork/runs/graphql_cdp_parallel/run_YYYYMMDD_HHMMSS/`. The launcher
+pauses so you can check TheFork in each Brave window, then press Enter to start
+the workers. When they finish, it backs up the input partial, merges the fresh
+worker partials back into it, and — if no records still miss detail data —
+writes the shareable `thefork_milan_restaurants_enriched.json`. Preview the plan
+first with `--parallel-dry-run`; disable the automatic merge with
+`--parallel-no-auto-merge`. Each active Brave profile uses roughly 700–900 MB of
+RAM, so start with 2 profiles, watch RAM and the block rate, then add one at a
+time.
 
 Useful options:
 
@@ -146,10 +204,37 @@ Useful options:
 --proxy-round-robin              Rotate proxies every few detail pages and rest each one.
 --restaurants-per-proxy-turn N   Detail pages per proxy before rotating (round-robin).
 --proxy-min-rest-seconds N       Minimum rest before reusing a proxy (round-robin).
+--proxy-403-cooldown-seconds N   Cooldown for a proxy after an HTTP 403 (round-robin).
+--pool-403-threshold N           Stop after this many distinct proxies return HTTP 403.
+--pool-403-window-seconds N      Time window for the pool-wide HTTP 403 threshold.
+--pool-403-cooldown-seconds N    Global cooldown stored after the pool hits the threshold.
+--stop-on-pool-block / --no-stop-on-pool-block
+                                 Stop the run when the pool-wide HTTP 403 threshold is reached.
+--max-url-failures-before-deferral N
+                                 Skip a detail URL after this many failed attempts.
+--deferred-url-retry-cycles N    Round-robin cycles before retrying a deferred URL.
 --proxy-max-failed-turns N       Retire a proxy after N failed round-robin turns.
 --proxy-turn-jitter-seconds N    Random delay added between round-robin turns.
 --include-direct-ip-after-proxies
                                  Continue with the direct IP after all proxies retire.
+--brave-automation-profile       Use a headed Brave profile warmed up on TheFork.
+--browser-executable-path PATH   Use an explicit browser executable, e.g. Brave.
+--browser-warmup-url URL         Open this URL before detail scraping to warm a profile.
+--browser-warmup-seconds N       Seconds to wait on the warm-up URL.
+--connect-over-cdp-url URL       Connect to an already-open Chromium/Brave debug endpoint.
+--graphql-detail-from-cdp        Enrich missing details via in-page TheFork GraphQL requests.
+--graphql-review-size N          Reviews requested per restaurant in GraphQL/CDP mode.
+--graphql-cdp-parallel-proxies   Launch Brave proxy profiles and parallel GraphQL/CDP workers.
+--parallel-workers N             Number of parallel Brave proxy profiles/workers.
+--parallel-base-port N           First local CDP port for parallel profiles.
+--parallel-profile-root PATH     Root directory for parallel Brave profile folders.
+--parallel-output-root PATH      Base directory; each run creates a fresh run_* child.
+--parallel-prepare-only          Launch profiles and print commands without starting workers.
+--parallel-dry-run               Print the parallel plan without launching browsers.
+--parallel-no-manual-wait        Start workers immediately after CDP ports are ready.
+--parallel-no-auto-merge         Leave worker partials separate after parallel workers finish.
+--detail-shard-count N           Split missing detail pages across N parallel/teammate runs.
+--detail-shard-index N           One-based shard number for this run.
 --calibrate-detail-blocks        Run detail-block calibration without changing the partial JSON.
 --calibration-output-dir PATH    Where calibration reports are saved.
 --log-level LEVEL                Use INFO, DEBUG, WARNING, or ERROR.
@@ -159,17 +244,23 @@ Useful options:
 
 Files are written to `data/raw/thefork/` by default (override with `--output-dir`).
 
-Final JSON:
+Final / shareable enriched JSON (written when all detail records are complete):
 
 ```text
-data/raw/thefork/thefork_milan_restaurants_normalized.json
+data/raw/thefork/thefork_milan_restaurants_enriched.json
 ```
 
-Partial progress JSON:
+Working / resume partial JSON (the scraper checkpoint; may still contain records
+waiting for detail enrichment):
 
 ```text
 data/raw/thefork/thefork_milan_restaurants_normalized_partial.json
 ```
+
+The `partial` file is the checkpoint and can be resumed with `--resume-detail`.
+The `enriched` file is the clean dataset to share once every record has
+`detail_scraped=true`; with `--save-final-incomplete` it may be written early, so
+check for `detail_scraped=false` rows before treating it as complete.
 
 Validation report:
 
@@ -195,5 +286,7 @@ data/raw/thefork/browser_profiles/       # per-proxy profiles
 - If a detail page fails, listing data is kept and `detail_scraped` is set to `false`.
 - If repeated detail pages return errors such as HTTP 403, the scraper stops early, keeps the partial JSON, and can be resumed later with `--resume-detail`.
 - In `--auto-detail-until-complete` mode, repeated HTTP 403 responses trigger a cooldown and automatic retry from the next missing detail.
+- In `--proxy-round-robin` mode, HTTP 403 events are persisted in `data/raw/thefork/thefork_proxy_state.json`; if the pool threshold is reached, the next run stops before making requests until the stored global cooldown expires.
+- `--graphql-detail-from-cdp` and `--graphql-cdp-parallel-proxies` reuse an already-open Brave/Chromium tab over CDP and never navigate detail pages with Playwright.
 - The fixed normalized city value is `Milan`.
 - TheFork card and detail text may remain in Italian because it is source data.

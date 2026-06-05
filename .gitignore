@@ -44,11 +44,20 @@ data/raw/thefork/*_partial.json
 data/raw/thefork/thefork_milan_validation_report.json
 data/raw/thefork/browser_profile/
 data/raw/thefork/browser_profiles/
+data/raw/thefork/brave_automation_profile/
+data/raw/thefork/cdp_proxy_profiles/
 data/raw/thefork/detail_sample/
+data/raw/thefork/graphql_cdp_test*/
 data/raw/thefork/runs/
 data/raw/thefork/calibration/
+data/raw/thefork/proxy_runtime/
+data/raw/thefork/merge_reports/
+data/raw/thefork/_archive/
 data/raw/thefork/thefork_proxy_state.json
 data/raw/thefork/thefork_proxy_progress_report.json
+data/raw/thefork/thefork_detail_deferrals.json
+data/raw/thefork/*merge_report*.json
+data/raw/thefork/*_before_*merge*.json
 
 # Keep test fixtures tracked
 !tests/**/*.json
