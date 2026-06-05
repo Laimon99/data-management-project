@@ -142,23 +142,28 @@ def geocode_dataset(
                 max_retries=settings.max_retries,
                 delay_seconds=settings.delay_seconds,
             )
-            status = "OK" if lat != NAN_VALUE else "NOT FOUND"
+            status = "OK" if not is_nan(lat) and not is_nan(lon) else "NOT FOUND"
             logger.info("[%d/%d] %s %r -> lat=%s lon=%s", idx, total, status, name, lat, lon)
             # Respect the Nominatim rate limit (1 req/s).
             time.sleep(settings.delay_seconds)
 
         enriched.append(reorder_with_coords(restaurant, lat, lon))
 
+    # Write atomically: a crash mid-dump must not leave a truncated final file.
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with output_path.open("w", encoding="utf-8") as fh:
+    tmp_path = output_path.with_suffix(output_path.suffix + ".tmp")
+    with tmp_path.open("w", encoding="utf-8") as fh:
         json.dump(enriched, fh, ensure_ascii=False, indent=4)
+    tmp_path.replace(output_path)
 
+    # Buckets are mutually exclusive: a skipped (NaN-address) record always has
+    # NaN coords, so it never also counts as found/not_found.
     report = GeocodeReport(total=total)
     for record in enriched:
-        if not is_nan(record.get("address", NAN_VALUE)) and record.get("latitude") != NAN_VALUE:
-            report.found += 1
-        elif is_nan(record.get("address", NAN_VALUE)):
+        if is_nan(record.get("address", NAN_VALUE)):
             report.skipped += 1
+        elif not is_nan(record.get("latitude")) and not is_nan(record.get("longitude")):
+            report.found += 1
         else:
             report.not_found += 1
 

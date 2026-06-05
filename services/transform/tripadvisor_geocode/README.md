@@ -57,3 +57,7 @@ acceptable for mapping, clustering, and spatial joins.
   a descriptive `user_agent` is sent (configurable via `DATAMAN_GEOCODE_USER_AGENT`).
 - Settings (`delay_seconds`, `timeout`, `max_retries`, `user_agent`) are
   overridable via `DATAMAN_GEOCODE_*` env vars — see `config.py`.
+- `--delay` is validated to be `>= 1s`; sub-second values are rejected.
+- The output is written atomically (temp file + `os.replace`), so a crash can't
+  leave a truncated file. There is **no mid-run resume/checkpoint**, though: the
+  full input is processed in one pass, so a crash means re-running from the start.

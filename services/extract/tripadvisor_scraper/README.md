@@ -587,13 +587,16 @@ Geocoded data is written to `tripadvisor_scraper_results_geocoded.json`:
 
 ### Running Geocoding
 
-```bash
-python -m extract.tripadvisor_scraper --geocode
+Geocoding is no longer part of this scraper — it lives in the **transform** stage
+(`services/transform/tripadvisor_geocode`). After scraping:
 
-# OR standalone:
-cd services/extract/tripadvisor_scraper
-python geocoding_restaurant.py tripadvisor_scraper_results.json
+```bash
+uv run tripadvisor-geocode-enrich            # reads/writes under data/raw/tripadvisor/
+uv run tripadvisor-geocode-enrich --limit 20 # quick test slice
 ```
+
+See `services/transform/tripadvisor_geocode/README.md` for `--input`, `--output`,
+`--limit`, `--delay`, and `--timeout`.
 
 ### Performance Metrics
 
@@ -674,11 +677,11 @@ python -m extract.tripadvisor_scraper
 #### Option 4: Geocoding Enrichment
 
 ```bash
-# After scraping is complete:
-python -m extract.tripadvisor_scraper --geocode
+# After scraping is complete (handled by the transform stage):
+uv run tripadvisor-geocode-enrich
 
-# This reads tripadvisor_scraper_results.json and outputs:
-# tripadvisor_scraper_results_geocoded.json
+# This reads data/raw/tripadvisor/tripadvisor_scraper_results.json and outputs:
+# data/raw/tripadvisor/tripadvisor_scraper_results_geocoded.json
 ```
 
 ### Runtime Interaction

@@ -70,7 +70,9 @@ def test_geocode_dataset_classifies_records(tmp_path, monkeypatch):
         return _Loc() if address == "Piazza Duomo, Milano" else None
 
     monkeypatch.setattr("transform.tripadvisor_geocode.geocode.Nominatim.geocode", fake_geocode)
-    settings = GeocodeSettings(delay_seconds=0.0)
+    # Don't actually sleep between requests; keep the production-valid default delay.
+    monkeypatch.setattr("transform.tripadvisor_geocode.geocode.time.sleep", lambda _s: None)
+    settings = GeocodeSettings()
 
     report = geocode_dataset(in_path, out_path, settings)
 
@@ -84,3 +86,39 @@ def test_geocode_dataset_classifies_records(tmp_path, monkeypatch):
 def test_geocode_dataset_missing_input(tmp_path):
     with pytest.raises(FileNotFoundError):
         geocode_dataset(tmp_path / "nope.json", tmp_path / "o.json", GeocodeSettings())
+
+
+def test_cli_missing_input_exits_1(tmp_path):
+    from typer.testing import CliRunner
+
+    from transform.tripadvisor_geocode.cli import app
+
+    result = CliRunner().invoke(
+        app, ["-i", str(tmp_path / "nope.json"), "-o", str(tmp_path / "o.json")]
+    )
+    assert result.exit_code == 1
+
+
+def test_cli_non_list_json_exits_2(tmp_path):
+    from typer.testing import CliRunner
+
+    from transform.tripadvisor_geocode.cli import app
+
+    in_path = tmp_path / "bad.json"
+    in_path.write_text(json.dumps({"not": "a list"}), encoding="utf-8")
+    result = CliRunner().invoke(app, ["-i", str(in_path), "-o", str(tmp_path / "o.json")])
+    assert result.exit_code == 2
+
+
+def test_cli_rejects_sub_second_delay(tmp_path):
+    from typer.testing import CliRunner
+
+    from transform.tripadvisor_geocode.cli import app
+
+    in_path = tmp_path / "in.json"
+    in_path.write_text(json.dumps([{"restaurant_name": "X", "address": "NaN"}]), encoding="utf-8")
+    result = CliRunner().invoke(
+        app, ["-i", str(in_path), "-o", str(tmp_path / "o.json"), "--delay", "0.1"]
+    )
+    assert result.exit_code != 0
+    assert "Nominatim" in result.output

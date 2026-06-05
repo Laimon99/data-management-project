@@ -40,6 +40,12 @@ def enrich(
 
     _configure_logging()
 
+    if delay is not None and delay < 1.0:
+        raise typer.BadParameter(
+            "--delay must be >= 1s to respect the Nominatim usage policy.",
+            param_hint="--delay",
+        )
+
     settings = GeocodeSettings()
     if delay is not None:
         settings.delay_seconds = delay
