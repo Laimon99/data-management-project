@@ -36,6 +36,8 @@ class ParallelCDPOptions:
     partial_every_restaurants: int
     max_consecutive_detail_failures: int
     log_level: str
+    distributed_slot_count: int | None = None
+    distributed_slot_start: int = 0
     wait_for_manual_ready: bool = True
     prepare_only: bool = False
     dry_run: bool = False
@@ -252,6 +254,15 @@ def build_worker_specs(options: ParallelCDPOptions) -> list[dict]:
     if not options.proxy_configs:
         raise RuntimeError("--graphql-cdp-parallel-proxies requires at least one proxy.")
     worker_count = min(max(1, options.worker_count), len(options.proxy_configs))
+    shard_count = options.distributed_slot_count or worker_count
+    if shard_count < 1:
+        raise RuntimeError("--distributed-slot-count must be at least 1.")
+    if options.distributed_slot_start < 0:
+        raise RuntimeError("--distributed-slot-start must be zero or greater.")
+    if options.distributed_slot_count is not None and options.distributed_slot_start + worker_count > shard_count:
+        raise RuntimeError(
+            "--distributed-slot-start + actual worker count must be <= --distributed-slot-count."
+        )
     max_per_worker = None
     if options.max_restaurants_total is not None:
         max_per_worker = max(1, math.ceil(options.max_restaurants_total / worker_count))
@@ -263,10 +274,12 @@ def build_worker_specs(options: ParallelCDPOptions) -> list[dict]:
         profile_dir = options.profile_root / f"worker_{worker_number:02d}_{proxy_config.safe_label()}"
         extension_dir = profile_dir / "proxy_auth_extension"
         output_dir = options.output_root / f"worker_{worker_number:02d}_{proxy_config.safe_label()}"
+        shard_index = options.distributed_slot_start + zero_index + 1
         command = build_worker_command(
             options=options,
             worker_number=worker_number,
-            worker_count=worker_count,
+            shard_count=shard_count,
+            shard_index=shard_index,
             port=port,
             output_dir=output_dir,
             max_per_worker=max_per_worker,
@@ -275,6 +288,9 @@ def build_worker_specs(options: ParallelCDPOptions) -> list[dict]:
             {
                 "worker_number": worker_number,
                 "worker_count": worker_count,
+                "shard_count": shard_count,
+                "shard_index": shard_index,
+                "distributed_slot": shard_index - 1,
                 "proxy": proxy_config,
                 "port": port,
                 "cdp_url": f"http://127.0.0.1:{port}",
@@ -290,7 +306,8 @@ def build_worker_specs(options: ParallelCDPOptions) -> list[dict]:
 def build_worker_command(
     options: ParallelCDPOptions,
     worker_number: int,
-    worker_count: int,
+    shard_count: int,
+    shard_index: int,
     port: int,
     output_dir: Path,
     max_per_worker: int | None,
@@ -307,9 +324,9 @@ def build_worker_command(
         "--output-dir",
         str(output_dir),
         "--detail-shard-count",
-        str(worker_count),
+        str(shard_count),
         "--detail-shard-index",
-        str(worker_number),
+        str(shard_index),
         "--graphql-review-size",
         str(options.graphql_review_size),
         "--partial-every-restaurants",
@@ -437,12 +454,19 @@ def wait_for_cdp(port: int, timeout_seconds: float = 20.0) -> None:
 def print_plan(workers: list[dict], options: ParallelCDPOptions) -> None:
     print("Parallel GraphQL/CDP plan:")
     print(f"- workers: {len(workers)}")
+    if options.distributed_slot_count is not None:
+        slot_end = options.distributed_slot_start + len(workers) - 1
+        print(
+            f"- distributed slots: total={options.distributed_slot_count} "
+            f"local_zero_based={options.distributed_slot_start}-{slot_end}"
+        )
     print(f"- input partial: {options.input_partial_path}")
     print(f"- output root: {options.output_root}")
     print(f"- profile root: {options.profile_root}")
     for worker in workers:
         print(
             f"- worker {worker['worker_number']}/{worker['worker_count']}: "
+            f"slot={worker['distributed_slot']}/{worker['shard_count']} "
             f"{worker['proxy'].safe_label()} port={worker['port']} "
             f"profile={worker['profile_dir']} output={worker['output_dir']}"
         )

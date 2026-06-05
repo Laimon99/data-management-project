@@ -62,6 +62,34 @@ Run listing-only mode:
 python -m src.main --no-detail-pages
 ```
 
+Run the full recommended workflow from scratch:
+
+```bash
+python -m src.main --no-detail-pages --log-level INFO
+python -m src.main \
+  --graphql-cdp-parallel-proxies \
+  --proxy-list proxy_list_decodo_runtime.txt \
+  --parallel-workers 5 \
+  --parallel-base-port 9350 \
+  --detail-delay-min-seconds 8 \
+  --detail-delay-max-seconds 20 \
+  --partial-every-restaurants 5 \
+  --max-consecutive-detail-failures 3 \
+  --log-level INFO
+```
+
+The first command recreates the restaurant listing and writes
+`output/thefork_milan_restaurants_normalized_partial.json`. The second command
+uses that partial, splits only records with `detail_scraped=false` across
+parallel Brave proxy profiles, then automatically merges worker outputs back
+into the same partial.
+
+There is currently no single command that first recreates the listing and then
+starts parallel GraphQL/CDP detail workers. `--graphql-cdp-parallel-proxies`
+expects the partial JSON to already exist. If you want a fresh run, back up or
+remove the existing partial first, run listing-only mode, then run the parallel
+detail command.
+
 Resume detail scraping from the partial JSON after a block or interruption:
 
 ```bash
@@ -195,6 +223,50 @@ The merge audit is written next to the partial as
 `--parallel-no-auto-merge` only if you want to inspect and merge worker outputs
 manually.
 
+Distributed runs across multiple PCs use the same pending-first split, but with
+a global slot count. For example, if this Windows PC runs 5 profiles and a Mac
+Mini runs 3 profiles, use 8 total slots:
+
+Windows PC:
+
+```bash
+python -m src.main \
+  --graphql-cdp-parallel-proxies \
+  --proxy-list proxy_list_decodo_runtime.txt \
+  --parallel-workers 5 \
+  --distributed-slot-count 8 \
+  --distributed-slot-start 0 \
+  --parallel-base-port 9330 \
+  --detail-delay-min-seconds 8 \
+  --detail-delay-max-seconds 20 \
+  --partial-every-restaurants 10 \
+  --max-consecutive-detail-failures 3 \
+  --log-level INFO
+```
+
+Mac Mini:
+
+```bash
+python -m src.main \
+  --graphql-cdp-parallel-proxies \
+  --proxy-list proxy_list_decodo_runtime.txt \
+  --parallel-workers 3 \
+  --distributed-slot-count 8 \
+  --distributed-slot-start 5 \
+  --parallel-base-port 9330 \
+  --detail-delay-min-seconds 8 \
+  --detail-delay-max-seconds 20 \
+  --partial-every-restaurants 10 \
+  --max-consecutive-detail-failures 3 \
+  --log-level INFO
+```
+
+`--distributed-slot-start` is zero-based. In this example the Windows PC uses
+slots `0-4`, while the Mac Mini uses slots `5-7`. Both PCs must start from the
+same base partial/listing file. Each PC can auto-merge its own worker outputs
+locally; after that, merge the updated partials from the two PCs with
+`src.merge_outputs`.
+
 Memory sizing for parallel profiles:
 
 - Each active Brave profile usually uses about 700-900 MB of RAM on Windows.
@@ -326,6 +398,8 @@ Useful options:
 --parallel-dry-run               Print the parallel plan without launching browsers or workers.
 --parallel-no-manual-wait        Start workers immediately after CDP ports are ready.
 --parallel-no-auto-merge         Leave worker partials separate after parallel workers finish.
+--distributed-slot-count N       Total global slots shared across multiple PCs.
+--distributed-slot-start N       Zero-based first global slot handled by this PC.
 --browser-warmup-seconds N       Seconds to wait on the warm-up URL before detail scraping.
 --proxy-list PATH                Read one proxy URL per line and rotate it by browser batch.
 --proxy-server URL               Use one proxy server, for example http://host:port.
