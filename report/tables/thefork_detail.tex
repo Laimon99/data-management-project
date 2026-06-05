@@ -1,0 +1,63 @@
+\subsection{TheFork}
+
+TheFork is the smallest source but is highly restaurant-specific and already contains near-complete coordinates. Its ratings use a native 0-10 scale, so comparison with Google and Tripadvisor requires scale normalization.
+
+\paragraph{Key metrics}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Records assessed & 1344 \\
+Overall quality score & 97.48\% \\
+Average field completeness & 81.16\% \\
+Critical-field completeness & 99.04\% \\
+Validity score & 96.88\% \\
+Uniqueness score & 100.00\% \\
+Timeliness score & 100.00\% \\
+Reliability score & 89.21\% \\
+Native rating average & 8.85 \\
+Comparable rating average 0--5 & 4.42 \\
+Valid review counts & 1304 (97.02\%) \\
+Low-review records & 101 (7.75\%) \\
+Valid coordinate pairs & 1341 (99.78\%) \\
+Latest source timestamp & 2026-06-04T14:19:50+00:00 \\
+Data age in days & 0.95 \\
+Quality flags & 195 (14.5 per 100 records) \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Weakest field coverage}
+\begin{tabular}{lrrr}
+\toprule
+Field & Present & Missing & Coverage \\
+\midrule
+email & 0 & 1344 & 0.00\% \\
+phone\_number & 0 & 1344 & 0.00\% \\
+website & 25 & 1319 & 1.86\% \\
+opening\_hours & 853 & 491 & 63.47\% \\
+discount & 949 & 395 & 70.61\% \\
+reviews & 1280 & 64 & 95.24\% \\
+rating & 1300 & 44 & 96.73\% \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Most frequent quality flags}
+\begin{tabular}{lr}
+\toprule
+Issue type & Count \\
+\midrule
+low\_review\_count & 101 \\
+missing\_critical\_field & 90 \\
+zero\_reviews & 4 \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Interpretation}
+\begin{itemize}
+\item The weighted source quality score is 97.48\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weakest fields are email (0.00\%), phone\_number (0.00\%), website (1.86\%); downstream logic should avoid treating them as mandatory matching keys.
+\item The sparse-review threshold flags 101 records, so rating comparisons should account for review-count reliability.
+\item Timeliness coverage is 100.00\%; sources without record-level timestamps should be documented as stale-risk inputs.
+\item The source has 195 generated quality flags, equal to 14.51 flags per 100 records.
+\item TheFork is suitable for geospatial matching now, but its missing contact fields limit its usefulness for website or phone-based validation.
+\end{itemize}
