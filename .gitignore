@@ -39,6 +39,9 @@ data/raw/google_places/restaurants_seed.jsonl
 data/raw/tripadvisor/browser_automation_profile/
 data/raw/tripadvisor/brave_automation_profile/
 
+# Geocoding enrichment output (large, regenerable via tripadvisor-geocode-enrich)
+data/raw/tripadvisor/tripadvisor_scraper_results_geocoded.json
+
 # TheFork scraper runtime artifacts — keep only the final normalized JSON.
 data/raw/thefork/*_partial.json
 data/raw/thefork/thefork_milan_validation_report.json

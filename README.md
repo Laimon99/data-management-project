@@ -63,6 +63,10 @@ uv run pre-commit install    # (optional) install git hooks
 uv run pytest                # run the test suite
 ```
 
+> **Verifying via a `uv run <console-script>` after editing service code?** Run
+> `uv sync --reinstall-package data-management-project` first — console scripts run an
+> installed copy, not your live source. Tests (`uv run pytest`) always read source, so they need no resync.
+
 > New to `uv`, `pre-commit`, or **Docker**? See the [Developer Guide](docs/dev-guide.md).
 
 ### Configure API keys
@@ -88,7 +92,7 @@ Places API will not work.
 ### Source A — Google Maps / Google Places API
 
 * **Type**: Official API via Places API (New)
-* **Data**: see [`dataset-schema.md`](services/google_places_api_extract/dataset-schema.md)
+* **Data**: see [`dataset-schema.md`](services/extract/google_places_api/dataset-schema.md)
 * **Why**: high coverage in Milan, rich metadata, coordinates become the project geographic backbone
 * **Tools**: Python + `httpx`, Tiled Nearby Search + Place Details, raw JSONL output in `data/raw/google_places/`
 
@@ -109,14 +113,14 @@ uv run google-places-api-extract list          # collect seed venues
 uv run google-places-api-extract detail --all  # enrich every seed venue with full Place Details
 ```
 
-Both runs are idempotent. See [`services/google_places_api_extract/README.md`](services/google_places_api_extract/README.md) for flags, env vars, neighbourhood anchors, and examples.
+Both runs are idempotent. See [`services/extract/google_places_api/README.md`](services/extract/google_places_api/README.md) for flags, env vars, neighbourhood anchors, and examples.
 
 ---
 
 ### Source B — Tripadvisor
 
 * **Type**: Web scraping via Playwright
-* **Data**: see [`dataset-schema.md`](services/tripadvisor_scraper_extract/dataset-schema.md)
+* **Data**: see [`dataset-schema.md`](services/extract/tripadvisor_scraper/dataset-schema.md)
 * **Why**: different user base from Google; Tripadvisor is the dominant international restaurant-review platform, making it essential for cross-platform rating consistency analysis
 * **Tools**: Python + Playwright (Chromium), restaurant-page scraper, raw JSON output in `data/raw/tripadvisor/`
 
@@ -147,7 +151,7 @@ Parsing is deferred to the integration stage.
 
 #### Running the Tripadvisor scraper
 
-The scraper is packaged as `services/tripadvisor_scraper_extract`. Runtime files are
+The scraper is packaged as `services/extract/tripadvisor_scraper`. Runtime files are
 written under `data/raw/tripadvisor/`. The scraper is checkpoint-aware — interrupted
 runs resume from where they left off.
 
@@ -182,11 +186,11 @@ deprecated alias.)
 
 #### Running the TheFork scraper
 
-The scraper is packaged as `services/thefork_scraper_extract`. It collects Milan
+The scraper is packaged as `services/extract/thefork_scraper`. It collects Milan
 listings, then optionally enriches each restaurant from its detail page, writing
 the normalized dataset under `data/raw/thefork/`. It tries the installed Chrome
 channel, then Edge, then Playwright's bundled Chromium. See
-`services/thefork_scraper_extract/README.md` for the full CLI reference and
+`services/extract/thefork_scraper/README.md` for the full CLI reference and
 `docs/antibot-comparison.md` for detail-page anti-bot behaviour.
 
 ```bash
@@ -241,7 +245,7 @@ configured, and [`.env.example`](.env.example) works out-of-the-box for local de
 ### Loading raw data into MongoDB
 
 The **Load** layer of the ELT pipeline is implemented as
-`services/mongo_load`. It moves the raw extractor files from `data/raw/` into the MongoDB
+`services/load/mongo`. It moves the raw extractor files from `data/raw/` into the MongoDB
 collections below as a **pure raw passthrough** (no transformation), keyed on each
 source's natural identifier (`place_id`, `source_url`, `source_id`) so loads are
 **idempotent** — re-running never creates duplicates.
@@ -264,7 +268,7 @@ The `docker compose` and `uv run` commands above are identical on macOS, Windows
 
 Each source is also loadable on its own (`uv run dataman-load google|tripadvisor|thefork`),
 and `--reset` clears a collection before loading. See
-[`services/mongo_load/README.md`](services/mongo_load/README.md) for the source registry,
+[`services/load/mongo/README.md`](services/load/mongo/README.md) for the source registry,
 load metadata, flags, and edge-case behaviour. The wider pipeline design lives in
 [`docs/etl-design.md`](docs/etl-design.md) and the candidate DBMS evaluation in
 [`docs/storage-design.md`](docs/storage-design.md).
@@ -282,7 +286,7 @@ the scraper wrote them, so they still look raw — e.g. Tripadvisor ratings are 
 real numbers and empty (`null`) values.
 
 The indicative fields below show what each source carries — see
-[`services/mongo_load/README.md`](services/mongo_load/README.md) for the exact keys.
+[`services/load/mongo/README.md`](services/load/mongo/README.md) for the exact keys.
 
 **restaurants_raw_google** — keyed on `place_id`
 

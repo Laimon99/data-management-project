@@ -1,10 +1,10 @@
 # ETL & load-layer design
 
 > **Historical — pre-implementation design.** The Mongo load layer described here has
-> since shipped as `services/mongo_load` (`uv run dataman-load`). It was built as a
+> since shipped as `services/load/mongo` (`uv run dataman-load`). It was built as a
 > standalone package that reads the raw extractor files, not by relocating the old
 > in-extractor Mongo store (which has been removed). The **current source of truth** is
-> [`../services/mongo_load/README.md`](../services/mongo_load/README.md); the
+> [`../services/load/mongo/README.md`](../services/load/mongo/README.md); the
 > `mongo → clickhouse` ETL remains the next step. The original design notes are kept
 > below for context.
 
@@ -41,15 +41,15 @@ Keeping them separate avoids prematurely committing to a load design that should
 ## The core architectural decision: load code is its own layer
 
 Today, MongoDB persistence lives **inside an extractor**:
-`services/google_places_api_extract/storage.py` contains `MongoSeedStore` and a
+`services/extract/google_places_api/storage.py` contains `MongoSeedStore` and a
 `seed_store_backend = "mongo"` switch. That is a **load concern that leaked into an
 extract service**, and it creates an asymmetry:
 
 | Source       | Extractor                                | Mongo store today |
 |--------------|------------------------------------------|-------------------|
-| Google Places| `services/google_places_api_extract`     | yes (`MongoSeedStore`) |
-| Tripadvisor  | `services/tripadvisor_scraper_extract`   | none |
-| TheFork      | `services/thefork_scraper_extract`       | none |
+| Google Places| `services/extract/google_places_api`     | yes (`MongoSeedStore`) |
+| Tripadvisor  | `services/extract/tripadvisor_scraper`   | none |
+| TheFork      | `services/extract/thefork_scraper`       | none |
 
 **Decision:** the load/ETL layer is a **separate package** (e.g. `services/storage/` or
 `services/loaders/`). Extractors stay extraction-only and emit raw output; the load
@@ -57,7 +57,7 @@ layer is the single place that writes into MongoDB.
 
 - **Relocate** `MongoSeedStore` (and the `seed_store_backend=mongo` path) out of the
   Google Places extractor into that shared layer when it is built.
-- **`SeedDoc`** (`services/google_places_api_extract/schema.py`) is defensibly the
+- **`SeedDoc`** (`services/extract/google_places_api/schema.py`) is defensibly the
   *extractor's output contract* and can stay where it is; revisit if a canonical
   storage schema diverges from it.
 - Bring Tripadvisor and TheFork to parity: each source's raw output flows into its own

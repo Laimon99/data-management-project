@@ -25,7 +25,7 @@ Loading data into Mongo is done by a **single Python ETL/loader module with two 
 the **host path** (`uv run …`, the default everyday path, talks to `localhost`) and an
 optional **container path** (built from a Dockerfile, talks to services by name — used for an
 all-in-Docker bring-up and future CI). The loader reuses the existing `MongoSeedStore`,
-`SeedDoc`, and config in `services/google_places_api_extract/` rather than duplicating Mongo
+`SeedDoc`, and config in `services/extract/google_places_api/` rather than duplicating Mongo
 logic.
 
 **Web scrapers stay on the host** (Playwright + the antibot Chrome profile under
@@ -93,7 +93,7 @@ columnar pick as **ClickHouse**).
 - New package `services/storage/` (own pipeline-stage concern per repo conventions — no
   monolithic script), registered in `pyproject` (`[project.scripts]`,
   `[tool.hatch.build.targets.wheel].packages`, ruff `known-first-party`).
-- Exposes a CLI (Typer `app`, consistent with `google_places_api_extract`) with a console
+- Exposes a CLI (Typer `app`, consistent with `extract.google_places_api`) with a console
   script, e.g. **`storage-load-seed`**.
 - **`load-seed` command:** reads the existing
   `data/raw/google_places/restaurants_seed.jsonl`, validates each line with the existing

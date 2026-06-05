@@ -4,7 +4,7 @@ branch: feature/storage-load-layer
 ## Summary
 
 This feature builds the **Load layer** of an **ELT** (Extract → Load → Transform)
-pipeline: a standalone Python package, `services/mongo_load/`, whose single job is to move
+pipeline: a standalone Python package, `services/load/mongo/`, whose single job is to move
 the already-extracted raw files from `data/raw/` into **MongoDB**, with **no
 transformation**. The data is loaded as-is ("raw passthrough") so that all parsing,
 normalization, deduplication, spatial enrichment (e.g. geopy geocoding), entity
@@ -28,7 +28,7 @@ Query in Mongo, and an optional future `mongo → clickhouse` analytics sink).
   `mongo:7` on `localhost:27017`). It is the locked **document system of record** for
   raw data (see `docs/etl-design.md`, `docs/storage-design.md`).
 - Today, the only MongoDB write path (`MongoSeedStore` in
-  `services/google_places_api_extract/storage.py`) lives *inside* an extractor and only
+  `services/extract/google_places_api/storage.py`) lives *inside* an extractor and only
   serves Google. `docs/etl-design.md` already decided the load concern must become its
   own shared package so all three sources reach MongoDB symmetrically through one place.
 
@@ -45,7 +45,7 @@ These were agreed before writing this spec and constrain the implementation:
    MongoDB with Python. **ClickHouse is an optional, future downstream sink** (a
    `mongo → clickhouse` loader for analytics / research-question queries) and is
    explicitly **out of scope** for this feature.
-3. **The Load layer is its own package** (`services/mongo_load/`). Extractors remain
+3. **The Load layer is its own package** (`services/load/mongo/`). Extractors remain
    extraction-only. This package must **not** depend on any extractor package and must
    **not** require the Google Places API key that the extractor's `Settings` demands.
 4. **Generic, config-driven loader** — a single loader implementation parameterized by a
@@ -72,7 +72,7 @@ thefork `source_id`: 1,344 unique, 0 null).
 ## Functional Requirements
 
 ### Package & configuration
-- Create a new package `services/mongo_load/` (`__init__.py`, `config.py`, `sources.py`,
+- Create a new package `services/load/mongo/` (`__init__.py`, `config.py`, `sources.py`,
   `loader.py`, `cli.py`, `__main__.py`).
 - Provide a settings object (e.g. `LoaderSettings`) using the project's existing
   pydantic-settings convention with the **`DATAMAN_` env prefix**, exposing only:
@@ -181,7 +181,7 @@ thefork `source_id`: 1,344 unique, 0 null).
 - A containerized loader runtime (`docker/loader/Dockerfile`, `tools` compose profile).
 
 ## Feature Testing Guidelines
-Create test file(s) under `tests/mongo_load/` using `mongomock` (already a dev dependency).
+Create test file(s) under `tests/load/mongo/` using `mongomock` (already a dev dependency).
 Keep tests meaningful but lightweight; cover:
 - **Happy path** — loading a small fixture for each format (jsonl and json_array) creates
   the expected number of documents in the right collection, with `_id` set to the natural
