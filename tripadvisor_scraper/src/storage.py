@@ -8,12 +8,14 @@ from .models import RestaurantRecord
 
 
 class JsonStorage:
-    def __init__(self, output_dir: Path) -> None:
+    def __init__(self, output_dir: Path, input_partial_path: Path | None = None) -> None:
         self.output_dir = output_dir
-        self.final_path = output_dir / "tripadvisor_milan_restaurants_normalized.json"
+        self.final_path = output_dir / "tripadvisor_milan_restaurants_enriched.json"
+        self.legacy_normalized_path = output_dir / "tripadvisor_milan_restaurants_normalized.json"
         self.partial_path = output_dir / "tripadvisor_milan_restaurants_normalized_partial.json"
         self.validation_report_path = output_dir / "tripadvisor_milan_validation_report.json"
         self.proxy_progress_report_path = output_dir / "tripadvisor_proxy_progress_report.json"
+        self.input_partial_path = input_partial_path
 
     def save_partial(self, records: list[RestaurantRecord]) -> None:
         self._save(records, self.partial_path)
@@ -21,7 +23,16 @@ class JsonStorage:
 
     def save_final(self, records: list[RestaurantRecord]) -> None:
         self._save(records, self.final_path)
-        logging.info("Saved final output with %s records to %s", len(records), self.final_path)
+        pending_detail = sum(1 for record in records if not record.detail_scraped)
+        if pending_detail:
+            logging.warning(
+                "Saved final output with %s records to %s, but %s records still have detail_scraped=false.",
+                len(records),
+                self.final_path,
+                pending_detail,
+            )
+        else:
+            logging.info("Saved final output with %s records to %s", len(records), self.final_path)
 
     def save_validation_report(self, report: dict) -> None:
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -42,12 +53,17 @@ class JsonStorage:
         logging.info("Saved proxy progress report to %s", self.proxy_progress_report_path)
 
     def load_partial(self) -> list[RestaurantRecord]:
-        if not self.partial_path.exists():
+        partial_path = self.partial_path
+        if not partial_path.exists() and self.input_partial_path is not None:
+            partial_path = self.input_partial_path
+        if not partial_path.exists() and self.legacy_normalized_path.exists():
+            partial_path = self.legacy_normalized_path
+        if not partial_path.exists():
             return []
-        with self.partial_path.open("r", encoding="utf-8") as input_file:
+        with partial_path.open("r", encoding="utf-8") as input_file:
             payload = json.load(input_file)
         records = [RestaurantRecord(**item) for item in payload]
-        logging.info("Loaded %s records from partial output %s", len(records), self.partial_path)
+        logging.info("Loaded %s records from partial output %s", len(records), partial_path)
         return records
 
     def _save(self, records: list[RestaurantRecord], path: Path) -> None:

@@ -17,4 +17,11 @@ env/
 
 output/*_partial.json
 output/browser_profile/
+output/browser_profiles/
+output/brave_automation_profile/
+output/cdp_proxy_profiles/
+output/runs/
+output/*_before_parallel_merge_*.json
+output/*.parallel_merge_report.json
 output/detail_sample/
+proxy_list*.txt

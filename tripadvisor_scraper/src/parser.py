@@ -19,8 +19,9 @@ REVIEW_COUNT_PATTERN = re.compile(
     re.IGNORECASE,
 )
 PHOTO_COUNT_PATTERN = re.compile(r"\(?\s*([\d.,\s]+)\s+(?:photos?|foto)\s*\)?", re.IGNORECASE)
+EURO_TOKEN_PATTERN = r"(?:\u20ac|\u00e2\u201a\u00ac|\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac)"
 PRICE_RANGE_PATTERN = re.compile(
-    r"(\${1,4}(?:\s*-\s*\${1,4})?|€{1,4}(?:\s*-\s*€{1,4})?)"
+    rf"(\${{1,4}}(?:\s*-\s*\${{1,4}})?|{EURO_TOKEN_PATTERN}{{1,4}}(?:\s*-\s*{EURO_TOKEN_PATTERN}{{1,4}})?)"
 )
 ADDRESS_HINT_PATTERN = re.compile(
     r"\b(?:via|viale|piazza|corso|largo|vicolo|alzaia|foro|ripa|strada|bastioni)\b",
@@ -137,7 +138,25 @@ def split_compact_card_text(text: str) -> list[str]:
 
 
 def clean_spaces(text: str) -> str:
+    text = normalize_text_artifacts_ascii(text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def normalize_text_artifacts_ascii(text: str) -> str:
+    replacements = {
+        "\u00e2\u201a\u00ac": "\u20ac",
+        "\u00c3\u00a2\u00e2\u20ac\u0161\u00c2\u00ac": "\u20ac",
+        "\u00e2\u20ac\u00a2": " ",
+        "\u00e2\u20ac\u201c": "-",
+        "\u00e2\u20ac\u201d": "-",
+        "\u00e2\u20ac\u02dc": "'",
+        "\u00e2\u20ac\u2122": "'",
+        "\u00e2\u20ac\u0153": '"',
+        "\u00e2\u20ac\ufffd": '"',
+    }
+    for source, replacement in replacements.items():
+        text = text.replace(source, replacement)
+    return text
 
 
 def extract_restaurant_name(

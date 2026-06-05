@@ -111,6 +111,64 @@ Optional Brave run:
 python -m src.main --proxy-round-robin --manual-unlock --headed --user-data-dir output/browser_profile --proxy-list proxy_list.txt --browser-executable-path "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" --restaurants-per-proxy-turn 1 --proxy-min-rest-seconds 90 --detail-delay-min-seconds 4 --detail-delay-max-seconds 9 --human-detail-scroll
 ```
 
+Recommended Brave automation profile:
+
+```bash
+python -m src.main --brave-automation-profile --auto-detail-until-complete --detail-delay-min-seconds 5 --detail-delay-max-seconds 10 --detail-batch-size 25 --human-detail-scroll
+```
+
+On Windows this uses `C:\tmp\tripadvisor_brave_automation_profile` by default, so Chromium profile files stay outside OneDrive and long project paths. It runs headed with Brave, warms up the profile on the listing URL, then continues missing detail pages from the partial JSON.
+
+Launch multiple Brave proxy profiles and run CDP detail workers in parallel:
+
+```bash
+python -m src.main --cdp-parallel-proxies --proxy-list proxy_list.txt --parallel-workers 3 --parallel-base-port 9420 --detail-delay-min-seconds 5 --detail-delay-max-seconds 10 --max-consecutive-detail-failures 3 --partial-every-restaurants 5 --human-detail-scroll
+```
+
+This command opens one Brave profile per worker, one proxy per profile, and one local CDP port per profile. Authenticated proxies are handled by a generated local Chrome extension inside each profile directory, so proxy credentials do not appear in worker commands. The launcher pauses before scraping: check every Tripadvisor window, solve cookies/captcha/proxy prompts if needed, then press Enter in the terminal.
+
+Each worker writes a separate partial under `output/runs/cdp_parallel/run_YYYYMMDD_HHMMSS/`. At the end, the launcher backs up the existing `output/tripadvisor_milan_restaurants_normalized_partial.json`, merges that original partial plus all fresh worker partials, and writes a merge audit next to the partial as `tripadvisor_milan_restaurants_normalized_partial.parallel_merge_report.json`. If every restaurant has `detail_scraped=true`, it also writes `output/tripadvisor_milan_restaurants_enriched.json`.
+
+If `output/tripadvisor_milan_restaurants_normalized_partial.json` does not exist yet but `output/tripadvisor_milan_restaurants_normalized.json` does, a real parallel run creates the partial from the existing listing-only dataset before launching workers.
+
+The worker split is based on missing detail records first, then sharding. This means already enriched restaurants are skipped before work is divided, reducing duplicate work between parallel profiles.
+
+Distributed runs across multiple PCs use the same pending-first split, but with a global slot count. For example, if this Windows PC runs 5 profiles and a Mac Mini runs 3 profiles, use 8 total slots:
+
+Windows PC:
+
+```bash
+python -m src.main --cdp-parallel-proxies --proxy-list proxy_list.txt --parallel-workers 5 --distributed-slot-count 8 --distributed-slot-start 0 --parallel-base-port 9460 --detail-delay-min-seconds 6 --detail-delay-max-seconds 12 --max-consecutive-detail-failures 5 --partial-every-restaurants 5 --human-detail-scroll
+```
+
+Mac Mini:
+
+```bash
+python -m src.main --cdp-parallel-proxies --proxy-list proxy_list.txt --parallel-workers 3 --distributed-slot-count 8 --distributed-slot-start 5 --parallel-base-port 9460 --detail-delay-min-seconds 6 --detail-delay-max-seconds 12 --max-consecutive-detail-failures 5 --partial-every-restaurants 5 --human-detail-scroll
+```
+
+`--distributed-slot-start` is zero-based. In this example the Windows PC uses slots `0-4`, while the Mac Mini uses slots `5-7`. Both PCs must start from the same base partial/listing file. Each PC can auto-merge its own worker outputs locally; after that, merge the updated partials from the two PCs with `src.merge_outputs`.
+
+Memory sizing for parallel profiles:
+
+- Each active Brave profile usually uses about 700-900 MB of RAM on Windows.
+- Each Python worker is small by comparison, usually below 100 MB.
+- Keep at least 2 GB free for Windows and other applications.
+- Conservative estimate: `max_profiles = floor((free_ram_gb - 2) / 0.9)`.
+- Start with 2-3 profiles, check RAM and block rate, then increase one profile at a time.
+
+Print the parallel plan without launching browsers:
+
+```bash
+python -m src.main --cdp-parallel-proxies --proxy-list proxy_list.txt --parallel-workers 3 --parallel-dry-run
+```
+
+Merge older worker outputs manually:
+
+```bash
+python -m src.merge_outputs output/tripadvisor_milan_restaurants_normalized_partial.json output/runs/cdp_parallel/run_YYYYMMDD_HHMMSS/worker_*/tripadvisor_milan_restaurants_normalized_partial.json --output output/tripadvisor_milan_restaurants_normalized_partial.json
+```
+
 Useful options:
 
 ```text
@@ -125,6 +183,21 @@ Useful options:
 --partial-every-restaurants N    Save partial progress every N enriched restaurants.
 --browser-channel NAME           Use chrome, msedge, or chromium.
 --browser-executable-path PATH   Use an explicit browser executable, for example Brave.
+--brave-automation-profile       Use Brave with a headed persistent profile.
+--browser-warmup-url URL         Open this URL before scraping to warm a persistent profile.
+--connect-over-cdp-url URL       Connect to an already-open Chromium/Brave debugging endpoint.
+--cdp-detail-from-browser        Enrich missing details through the connected browser tab.
+--cdp-parallel-proxies           Launch Brave proxy profiles and parallel CDP workers.
+--parallel-workers N             Number of parallel Brave proxy profiles/workers.
+--parallel-base-port N           First local CDP port for parallel profiles.
+--parallel-profile-root PATH     Root directory for parallel Brave profile folders.
+--parallel-output-root PATH      Base directory; each run creates a fresh run_* child.
+--parallel-prepare-only          Launch profiles and print commands without starting workers.
+--parallel-dry-run               Print the parallel plan without launching browsers or workers.
+--parallel-no-manual-wait        Start workers immediately after CDP ports are ready.
+--parallel-no-auto-merge         Leave worker partials separate after parallel workers finish.
+--distributed-slot-count N       Total global slots shared across multiple PCs.
+--distributed-slot-start N       Zero-based first global slot handled by this PC.
 --headed                         Open a visible browser window.
 --user-data-dir PATH             Reuse a persistent browser profile.
 --manual-unlock                  Wait for manual DataDome or captcha unlock.
@@ -133,6 +206,8 @@ Useful options:
 --resume                         Continue from the existing partial JSON.
 --auto-detail-until-complete     Retry missing detail pages with cooldowns until complete.
 --detail-batch-size N            Reopen the browser after N missing detail pages.
+--detail-shard-count N           Split missing detail pages across N parallel runs.
+--detail-shard-index N           One-based shard number for this run.
 --cooldown-seconds N             Initial cooldown after a blocked detail batch.
 --max-cooldown-seconds N         Maximum cooldown after repeated blocked batches.
 --cooldown-multiplier N          Multiplier for repeated blocked cooldowns.
@@ -169,7 +244,7 @@ Useful options:
 Final JSON:
 
 ```text
-output/tripadvisor_milan_restaurants_normalized.json
+output/tripadvisor_milan_restaurants_enriched.json
 ```
 
 Partial progress JSON:

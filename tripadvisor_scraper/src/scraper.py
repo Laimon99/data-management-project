@@ -70,6 +70,8 @@ class TripadvisorScraper:
         max_consecutive_detail_failures: int = 10,
         auto_detail_until_complete: bool = False,
         detail_batch_size: int = config.DETAIL_BATCH_SIZE,
+        detail_shard_count: int = 1,
+        detail_shard_index: int = 1,
         cooldown_seconds: int = config.COOLDOWN_SECONDS,
         max_cooldown_seconds: int = config.MAX_COOLDOWN_SECONDS,
         cooldown_multiplier: float = config.COOLDOWN_MULTIPLIER,
@@ -82,6 +84,8 @@ class TripadvisorScraper:
         proxy_min_rest_seconds: float = 90.0,
         proxy_max_failed_turns: int = 3,
         proxy_turn_jitter_seconds: float = 5.0,
+        browser_warmup_url: str | None = None,
+        browser_warmup_seconds: float = 0.0,
     ) -> None:
         self.storage = storage
         self.start_url = start_url
@@ -108,6 +112,8 @@ class TripadvisorScraper:
         self.max_consecutive_detail_failures = max(1, max_consecutive_detail_failures)
         self.auto_detail_until_complete = auto_detail_until_complete
         self.detail_batch_size = max(1, detail_batch_size)
+        self.detail_shard_count = max(1, detail_shard_count)
+        self.detail_shard_index = min(max(1, detail_shard_index), self.detail_shard_count)
         self.cooldown_seconds = max(0, cooldown_seconds)
         self.max_cooldown_seconds = max(self.cooldown_seconds, max_cooldown_seconds)
         self.cooldown_multiplier = max(1.0, cooldown_multiplier)
@@ -120,6 +126,8 @@ class TripadvisorScraper:
         self.proxy_min_rest_seconds = max(0.0, proxy_min_rest_seconds)
         self.proxy_max_failed_turns = max(1, proxy_max_failed_turns)
         self.proxy_turn_jitter_seconds = max(0.0, proxy_turn_jitter_seconds)
+        self.browser_warmup_url = browser_warmup_url
+        self.browser_warmup_seconds = max(0.0, browser_warmup_seconds)
         self.detail_batch_counter = 0
         self.detail_stopped_early = False
 
@@ -222,6 +230,7 @@ class TripadvisorScraper:
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
 
             try:
+                self._warm_up_browser_profile(page)
                 page_number = starting_page_number
                 processed_pages = 0
                 next_url: str | None = build_offset_listing_url(self.start_url, page_number)
@@ -333,6 +342,19 @@ class TripadvisorScraper:
         except PlaywrightTimeoutError:
             logging.warning("Timed out while loading %s", page_url)
             return None
+
+    def _warm_up_browser_profile(self, page: Page) -> None:
+        if not self.browser_warmup_url:
+            return
+
+        try:
+            logging.info("Warming up browser profile on %s", self.browser_warmup_url)
+            self._load_page(page, self.browser_warmup_url)
+            self._handle_cookie_popup(page)
+            if self.browser_warmup_seconds > 0:
+                page.wait_for_timeout(int(self.browser_warmup_seconds * 1000))
+        except PlaywrightError:
+            logging.debug("Browser warm-up failed, continuing with the main scraping flow.")
 
     def _is_blocked_page(self, page: Page) -> bool:
         try:
@@ -562,11 +584,11 @@ class TripadvisorScraper:
             record_limit = min(max_restaurants, len(records)) if max_restaurants is not None and records else None
 
         cooldown_seconds = self.cooldown_seconds
-        previous_remaining = count_pending_details(records, record_limit)
+        previous_remaining = self._count_pending_details(records, record_limit)
         blocked_proxy_cycles = 0
 
         for cycle in range(1, self.max_auto_detail_cycles + 1):
-            remaining = count_pending_details(records, record_limit)
+            remaining = self._count_pending_details(records, record_limit)
             logging.info(
                 "Auto detail cycle %s/%s: %s records still need detail scraping.",
                 cycle,
@@ -575,9 +597,12 @@ class TripadvisorScraper:
             )
             if remaining == 0:
                 self.storage.save_partial(records)
-                self.storage.save_final(records)
                 self.storage.save_validation_report(build_validation_report(records))
-                logging.info("All Tripadvisor detail pages have been scraped.")
+                if self._can_write_complete_final(records, record_limit):
+                    self.storage.save_final(records)
+                    logging.info("All Tripadvisor detail pages have been scraped.")
+                else:
+                    logging.info("The configured Tripadvisor detail shard has no pending records.")
                 return records
 
             self.detail_stopped_early = False
@@ -585,11 +610,13 @@ class TripadvisorScraper:
             self.storage.save_partial(records)
             self.storage.save_validation_report(build_validation_report(records))
 
-            remaining = count_pending_details(records, record_limit)
+            remaining = self._count_pending_details(records, record_limit)
             if remaining == 0:
-                if record_limit is None:
+                if self._can_write_complete_final(records, record_limit):
                     self.storage.save_final(records)
-                logging.info("All Tripadvisor detail pages have been scraped.")
+                    logging.info("All Tripadvisor detail pages have been scraped.")
+                else:
+                    logging.info("The configured Tripadvisor detail shard has no pending records.")
                 return records
 
             made_progress = remaining < previous_remaining
@@ -625,7 +652,7 @@ class TripadvisorScraper:
         logging.warning(
             "Stopped auto detail mode after %s cycles with %s records still incomplete.",
             self.max_auto_detail_cycles,
-            count_pending_details(records, record_limit),
+            self._count_pending_details(records, record_limit),
         )
         self.storage.save_partial(records)
         self.storage.save_validation_report(build_validation_report(records))
@@ -691,7 +718,7 @@ class TripadvisorScraper:
             "mode": "proxy_round_robin",
             "initial_total_records": len(records),
             "record_limit": record_limit,
-            "initial_pending_details": count_pending_details(records, record_limit),
+            "initial_pending_details": self._count_pending_details(records, record_limit),
             "strategy": {
                 "restaurants_per_proxy_turn": self.restaurants_per_proxy_turn,
                 "proxy_min_rest_seconds": self.proxy_min_rest_seconds,
@@ -707,15 +734,15 @@ class TripadvisorScraper:
         self.storage.save_proxy_progress_report(report)
 
         for cycle in range(1, self.max_auto_detail_cycles + 1):
-            pending_before = count_pending_details(records, record_limit)
+            pending_before = self._count_pending_details(records, record_limit)
             if pending_before == 0:
                 self.storage.save_partial(records)
                 self.storage.save_validation_report(build_validation_report(records))
-                if record_limit is None:
+                if self._can_write_complete_final(records, record_limit):
                     self.storage.save_final(records)
                     logging.info("All Tripadvisor detail pages have been scraped.")
                 else:
-                    logging.info("The configured restaurant limit has no pending Tripadvisor detail records.")
+                    logging.info("The configured Tripadvisor detail shard has no pending records.")
                 return records
 
             active_states = [state for state in states if not state["retired"]]
@@ -744,7 +771,7 @@ class TripadvisorScraper:
             result = self._scrape_proxy_turn(channel, records, state["proxy"], record_limit)
             records = result.pop("records")
             duration_seconds = round(time.monotonic() - started_at, 3)
-            pending_after = count_pending_details(records, record_limit)
+            pending_after = self._count_pending_details(records, record_limit)
 
             state["turns"] += 1
             state["attempted"] += result.get("attempted", 0)
@@ -802,17 +829,17 @@ class TripadvisorScraper:
             )
 
             if pending_after == 0:
-                if record_limit is None:
+                if self._can_write_complete_final(records, record_limit):
                     self.storage.save_final(records)
                     logging.info("All Tripadvisor detail pages have been scraped.")
                 else:
-                    logging.info("The configured restaurant limit has no pending Tripadvisor detail records.")
+                    logging.info("The configured Tripadvisor detail shard has no pending records.")
                 return records
 
             if self.proxy_turn_jitter_seconds > 0:
                 time.sleep(random.uniform(0, self.proxy_turn_jitter_seconds))
 
-        remaining = count_pending_details(records, record_limit)
+        remaining = self._count_pending_details(records, record_limit)
         logging.warning("Round-robin proxy mode ended with %s pending Tripadvisor detail records.", remaining)
         self.storage.save_partial(records)
         self.storage.save_validation_report(build_validation_report(records))
@@ -820,7 +847,7 @@ class TripadvisorScraper:
         report["latest_pending_details"] = remaining
         report["proxy_results"] = [serializable_proxy_state(state) for state in states]
         self.storage.save_proxy_progress_report(report)
-        if (remaining == 0 and record_limit is None) or self.save_final_incomplete:
+        if (remaining == 0 and self._can_write_complete_final(records, record_limit)) or self.save_final_incomplete:
             self.storage.save_final(records)
         return records
 
@@ -890,6 +917,7 @@ class TripadvisorScraper:
                 page.set_default_timeout(self.card_timeout_ms)
                 page.set_default_navigation_timeout(self.navigation_timeout_ms)
                 try:
+                    self._warm_up_browser_profile(page)
                     detail_scraper = self._create_detail_scraper()
                     detail_scraped_at = utc_timestamp()
                     unlock_callback = (
@@ -899,13 +927,10 @@ class TripadvisorScraper:
                     )
                     processed_in_turn = 0
 
-                    for index, record in enumerate(records, start=1):
-                        if record_limit is not None and index > record_limit:
-                            break
-                        if record.detail_scraped:
-                            continue
+                    for index in self._pending_detail_indexes(records, record_limit):
                         if processed_in_turn >= self.restaurants_per_proxy_turn:
                             break
+                        record = records[index - 1]
 
                         logging.info(
                             "Round-robin detail attempt with %s: record %s/%s %s",
@@ -1003,6 +1028,7 @@ class TripadvisorScraper:
             page.set_default_timeout(self.card_timeout_ms)
             page.set_default_navigation_timeout(self.navigation_timeout_ms)
             try:
+                self._warm_up_browser_profile(page)
                 return self._scrape_detail_pages(
                     page,
                     records,
@@ -1024,6 +1050,7 @@ class TripadvisorScraper:
         detail_scraper = self._create_detail_scraper()
         detail_scraped_at = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
         total_records = record_limit or len(records)
+        target_indexes = self._pending_detail_indexes(records, record_limit)
         consecutive_failures = 0
         processed_missing_records = 0
         unlock_callback = (
@@ -1032,13 +1059,8 @@ class TripadvisorScraper:
             else None
         )
 
-        for index, record in enumerate(records, start=1):
-            if record_limit is not None and index > record_limit:
-                break
-
-            if record.detail_scraped:
-                continue
-
+        for target_position, index in enumerate(target_indexes, start=1):
+            record = records[index - 1]
             if max_detail_records is not None and processed_missing_records >= max_detail_records:
                 logging.info("Reached configured detail batch size: %s", max_detail_records)
                 break
@@ -1084,10 +1106,38 @@ class TripadvisorScraper:
                 self.storage.save_partial(records)
                 break
 
-            if index < total_records:
+            if target_position < len(target_indexes):
                 self._wait_between_detail_pages(page)
 
         return records
+
+    def _pending_detail_indexes(
+        self,
+        records: list[RestaurantRecord],
+        record_limit: int | None = None,
+    ) -> list[int]:
+        scoped_records = records[:record_limit] if record_limit is not None else records
+        pending_indexes = [
+            index
+            for index, record in enumerate(scoped_records, start=1)
+            if not record.detail_scraped
+        ]
+        if self.detail_shard_count <= 1:
+            return pending_indexes
+        return [
+            record_index
+            for pending_position, record_index in enumerate(pending_indexes, start=1)
+            if self._pending_position_belongs_to_shard(pending_position)
+        ]
+
+    def _pending_position_belongs_to_shard(self, pending_position: int) -> bool:
+        return ((pending_position - 1) % self.detail_shard_count) + 1 == self.detail_shard_index
+
+    def _count_pending_details(self, records: list[RestaurantRecord], record_limit: int | None = None) -> int:
+        return len(self._pending_detail_indexes(records, record_limit))
+
+    def _can_write_complete_final(self, records: list[RestaurantRecord], record_limit: int | None = None) -> bool:
+        return record_limit is None and count_pending_details(records) == 0
 
     def _create_detail_scraper(self) -> TripadvisorDetailScraper:
         return TripadvisorDetailScraper(
@@ -1238,10 +1288,18 @@ def profile_dir_for_proxy(base_dir: Path, proxy: ProxyConfig | None) -> Path:
     return base_dir.parent / "browser_profiles" / proxy.safe_label()
 
 
-def create_default_storage(project_root: Path, output_dir: str | None = None) -> JsonStorage:
+def create_default_storage(
+    project_root: Path,
+    output_dir: str | None = None,
+    input_partial: str | None = None,
+) -> JsonStorage:
+    input_partial_path = None
+    if input_partial:
+        raw_input_path = Path(input_partial)
+        input_partial_path = raw_input_path if raw_input_path.is_absolute() else project_root / raw_input_path
     if output_dir is None:
-        return JsonStorage(project_root / "output")
+        return JsonStorage(project_root / "output", input_partial_path=input_partial_path)
     output_path = Path(output_dir)
     if output_path.is_absolute():
-        return JsonStorage(output_path)
-    return JsonStorage(project_root / output_path)
+        return JsonStorage(output_path, input_partial_path=input_partial_path)
+    return JsonStorage(project_root / output_path, input_partial_path=input_partial_path)
