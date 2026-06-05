@@ -63,6 +63,10 @@ uv run pre-commit install    # (optional) install git hooks
 uv run pytest                # run the test suite
 ```
 
+> **Verifying via a `uv run <console-script>` after editing service code?** Run
+> `uv sync --reinstall-package data-management-project` first — console scripts run an
+> installed copy, not your live source. Tests (`uv run pytest`) always read source, so they need no resync.
+
 > New to `uv`, `pre-commit`, or **Docker**? See the [Developer Guide](docs/dev-guide.md).
 
 ### Configure API keys

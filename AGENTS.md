@@ -38,6 +38,16 @@ uv run tripadvisor-geocode-enrich    # geocode Tripadvisor addresses → lat/lon
 `target-version = "py311"`.
  Pre-commit should run `ruff --fix` + `ruff-format`.
 
+> **Editable-install gotcha.** Because each service's source path
+> (`services/<stage>/<name>`) differs from its import path (`<stage>.<name>`),
+> the project is installed as a *copied snapshot* in `.venv`, not a live link.
+> So `uv run <console-script>` (e.g. `uv run tripadvisor-geocode-enrich`) keeps
+> running the **old** code after you edit a service — and a plain `uv sync`
+> won't refresh it. After editing service code, before verifying through an
+> entrypoint, run `uv sync --reinstall-package data-management-project`.
+> Tests are unaffected: `uv run pytest` reads source directly via
+> `pythonpath = ["services"]`, so prefer tests for verification.
+
 ---
 
 ## Pipeline architecture
