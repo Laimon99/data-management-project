@@ -1,0 +1,53 @@
+source,field,present,missing,coverage_pct
+Google Places,place_id,10808,0,100.0
+Google Places,name,10808,0,100.0
+Google Places,address,10808,0,100.0
+Google Places,city,10808,0,100.0
+Google Places,latitude,10808,0,100.0
+Google Places,longitude,10808,0,100.0
+Google Places,rating,10107,701,93.51
+Google Places,review_count,10107,701,93.51
+Google Places,types,10808,0,100.0
+Google Places,primary_type,10784,24,99.78
+Google Places,details,10808,0,100.0
+Google Places,phone_number,9027,1781,83.52
+Google Places,website,5753,5055,53.23
+Google Places,opening_hours,9427,1381,87.22
+Google Places,reviews,10106,702,93.5
+Google Places,price,8423,2385,77.93
+Google Places,business_status,10789,19,99.82
+Google Places,details_fetched_at,10808,0,100.0
+Google Places,seed_collected_at,10808,0,100.0
+Tripadvisor,source_url,7539,0,100.0
+Tripadvisor,restaurant_name,7539,0,100.0
+Tripadvisor,address,7473,66,99.12
+Tripadvisor,rating,7524,15,99.8
+Tripadvisor,review_count,7539,0,100.0
+Tripadvisor,cuisine_type,5859,1680,77.72
+Tripadvisor,price_range,5101,2438,67.66
+Tripadvisor,photo_count,5949,1590,78.91
+Tripadvisor,website,6023,1516,79.89
+Tripadvisor,phone_number,6795,744,90.13
+Tripadvisor,email,3535,4004,46.89
+Tripadvisor,opening_hours,5096,2443,67.6
+Tripadvisor,reviews,6683,856,88.65
+TheFork,source_id,1344,0,100.0
+TheFork,restaurant_url,1344,0,100.0
+TheFork,restaurant_name,1344,0,100.0
+TheFork,address,1344,0,100.0
+TheFork,city,1344,0,100.0
+TheFork,latitude,1341,3,99.78
+TheFork,longitude,1341,3,99.78
+TheFork,rating,1300,44,96.73
+TheFork,review_count,1304,40,97.02
+TheFork,cuisine_type,1330,14,98.96
+TheFork,price_range,1344,0,100.0
+TheFork,discount,949,395,70.61
+TheFork,photo_count,1340,4,99.7
+TheFork,website,25,1319,1.86
+TheFork,phone_number,0,1344,0.0
+TheFork,email,0,1344,0.0
+TheFork,opening_hours,853,491,63.47
+TheFork,reviews,1280,64,95.24
+TheFork,detail_scraped,1344,0,100.0
+TheFork,scraped_at,1344,0,100.0

@@ -70,6 +70,12 @@ data/raw/thefork/*_before_*merge*.json
 *.log
 logs/
 
+# LaTeX build artifacts
+report/*.aux
+report/*.log
+report/*.out
+report/*.toc
+
 # Browser drivers
 chromedriver
 geckodriver

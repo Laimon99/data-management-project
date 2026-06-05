@@ -1,0 +1,64 @@
+\subsection{Tripadvisor}
+
+Tripadvisor contributes broad review and category information, but the raw file does not yet contain latitude and longitude. It therefore needs the planned geocoding enrichment before reliable geospatial integration.
+
+\paragraph{Key metrics}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Records assessed & 7539 \\
+Overall quality score & 67.89\% \\
+Average field completeness & 84.34\% \\
+Critical-field completeness & 99.78\% \\
+Validity score & 99.90\% \\
+Uniqueness score & 99.97\% \\
+Timeliness score & 0.00\% \\
+Reliability score & 53.10\% \\
+Native rating average & 3.91 \\
+Comparable rating average 0--5 & 3.91 \\
+Valid review counts & 7539 (100.00\%) \\
+Low-review records & 2723 (36.12\%) \\
+Valid coordinate pairs & 0 (0.00\%) \\
+Latest source timestamp & n/a \\
+Data age in days & n/a \\
+Quality flags & 3621 (48.0 per 100 records) \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Weakest field coverage}
+\begin{tabular}{lrrr}
+\toprule
+Field & Present & Missing & Coverage \\
+\midrule
+email & 3535 & 4004 & 46.89\% \\
+opening\_hours & 5096 & 2443 & 67.60\% \\
+price\_range & 5101 & 2438 & 67.66\% \\
+cuisine\_type & 5859 & 1680 & 77.72\% \\
+photo\_count & 5949 & 1590 & 78.91\% \\
+website & 6023 & 1516 & 79.89\% \\
+reviews & 6683 & 856 & 88.65\% \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Most frequent quality flags}
+\begin{tabular}{lr}
+\toprule
+Issue type & Count \\
+\midrule
+low\_review\_count & 2723 \\
+zero\_reviews & 813 \\
+missing\_critical\_field & 81 \\
+possible\_duplicate\_name\_address & 4 \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Interpretation}
+\begin{itemize}
+\item The weighted source quality score is 67.89\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weakest fields are email (46.89\%), opening\_hours (67.60\%), price\_range (67.66\%); downstream logic should avoid treating them as mandatory matching keys.
+\item The sparse-review threshold flags 2723 records, so rating comparisons should account for review-count reliability.
+\item Timeliness coverage is 0.00\%; sources without record-level timestamps should be documented as stale-risk inputs.
+\item The source has 3621 generated quality flags, equal to 48.03 flags per 100 records.
+\item The 0\% coordinate validity is expected at this stage and should be resolved by the latitude/longitude enrichment task before integration.
+\end{itemize}

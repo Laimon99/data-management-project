@@ -107,13 +107,32 @@ and `extract/thefork_scraper/eda-report.md`.
 
 ---
 
+### `quality_assessment` — Stage 5: Data Quality Assessment
+Profiles the raw Google Places, Tripadvisor, and TheFork datasets and generates
+report-ready quality artifacts: structured metrics, weighted quality scores,
+field coverage, anomalies, Markdown notes, and LaTeX tables.
+
+```bash
+uv run quality-assessment profile
+```
+
+Outputs are written under `data/quality/`, `docs/data-quality-assessment.md`,
+and `report/tables/`.
+
+The full PDF report can be regenerated from the repository root with:
+
+```bash
+powershell -ExecutionPolicy Bypass -File ./report/build_report.ps1
+```
+
+---
+
 ## Planned services (not yet implemented)
 
 | Service | Stage | Description |
 |---|---|---|
 | `transform/entity_resolution` | 3 | Record linkage: proximity blocking + name/address similarity → match/no-match/uncertain |
 | `transform/unified_dataset` | 4 | Joins resolved platform records into a single ratings table |
-| `transform/quality_assessment` | 5 | Completeness, consistency, uniqueness, and timeliness metrics; before/after improvement |
 
 ## Conventions
 

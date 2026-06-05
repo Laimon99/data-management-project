@@ -1,0 +1,14 @@
+{\scriptsize
+\begin{tabular}{rp{0.18\linewidth}p{0.34\linewidth}p{0.28\linewidth}}
+\toprule
+Priority & Scope & Action & Expected effect \\
+\midrule
+1 & Tripadvisor & Geocode addresses or match records to Google Places before spatial joins. & Raises spatial readiness and enables automated integration-error checks. \\
+2 & Tripadvisor & Persist record-level scrape/acquisition timestamps and parse them in QA. & Makes freshness measurable instead of relying on pipeline assumptions. \\
+3 & Google Places & Use review-count weighted ratings for cross-platform comparisons. & Reduces the impact of sparse ratings on consistency analysis. \\
+3 & Tripadvisor & Use review-count weighted ratings for cross-platform comparisons. & Reduces the impact of sparse ratings on consistency analysis. \\
+4 & Google Places & Inspect duplicate normalized name/address keys before integration. & Prevents false entity matches and duplicated restaurants. \\
+4 & Tripadvisor & Inspect duplicate normalized name/address keys before integration. & Prevents false entity matches and duplicated restaurants. \\
+\bottomrule
+\end{tabular}
+}

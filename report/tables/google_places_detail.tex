@@ -1,0 +1,63 @@
+\subsection{Google Places}
+
+Google Places is treated as the broad geographic seed and reference source. Its coordinate coverage makes it the most useful starting point for spatial integration, while weak optional fields mostly affect enrichment depth.
+
+\paragraph{Key metrics}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Records assessed & 10808 \\
+Overall quality score & 95.14\% \\
+Average field completeness & 93.79\% \\
+Critical-field completeness & 98.15\% \\
+Validity score & 93.51\% \\
+Uniqueness score & 99.85\% \\
+Timeliness score & 100.00\% \\
+Reliability score & 79.50\% \\
+Native rating average & 4.26 \\
+Comparable rating average 0--5 & 4.26 \\
+Valid review counts & 10107 (93.51\%) \\
+Low-review records & 1515 (14.99\%) \\
+Valid coordinate pairs & 10808 (100.00\%) \\
+Latest source timestamp & 2026-05-25T10:15:47.447928+00:00 \\
+Data age in days & 11.11 \\
+Quality flags & 2937 (27.2 per 100 records) \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Weakest field coverage}
+\begin{tabular}{lrrr}
+\toprule
+Field & Present & Missing & Coverage \\
+\midrule
+website & 5753 & 5055 & 53.23\% \\
+price & 8423 & 2385 & 77.93\% \\
+phone\_number & 9027 & 1781 & 83.52\% \\
+opening\_hours & 9427 & 1381 & 87.22\% \\
+reviews & 10106 & 702 & 93.50\% \\
+rating & 10107 & 701 & 93.51\% \\
+review\_count & 10107 & 701 & 93.51\% \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Most frequent quality flags}
+\begin{tabular}{lr}
+\toprule
+Issue type & Count \\
+\midrule
+low\_review\_count & 1515 \\
+missing\_critical\_field & 1402 \\
+possible\_duplicate\_name\_address & 20 \\
+\bottomrule
+\end{tabular}
+
+\paragraph{Interpretation}
+\begin{itemize}
+\item The weighted source quality score is 95.14\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weakest fields are website (53.23\%), price (77.93\%), phone\_number (83.52\%); downstream logic should avoid treating them as mandatory matching keys.
+\item The sparse-review threshold flags 1515 records, so rating comparisons should account for review-count reliability.
+\item Timeliness coverage is 100.00\%; sources without record-level timestamps should be documented as stale-risk inputs.
+\item The source has 2937 generated quality flags, equal to 27.17 flags per 100 records.
+\item Because valid coordinates are complete, Google can anchor the first geospatial join and help detect out-of-area records in other sources.
+\end{itemize}
