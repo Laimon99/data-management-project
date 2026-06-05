@@ -1,10 +1,10 @@
 import respx
 
-from google_places_api_extract.checkpoint import DetailCheckpoint
-from google_places_api_extract.mode_detail import run_mode_detail
-from google_places_api_extract.places_client import PlacesClient
-from google_places_api_extract.schema import SeedDoc
-from google_places_api_extract.storage import JsonlSeedStore
+from extract.google_places_api.checkpoint import DetailCheckpoint
+from extract.google_places_api.mode_detail import run_mode_detail
+from extract.google_places_api.places_client import PlacesClient
+from extract.google_places_api.schema import SeedDoc
+from extract.google_places_api.storage import JsonlSeedStore
 
 
 def _seed(pid: str) -> SeedDoc:

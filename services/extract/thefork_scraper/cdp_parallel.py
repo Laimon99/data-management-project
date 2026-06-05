@@ -337,7 +337,7 @@ def build_worker_command(
     command = [
         sys.executable,
         "-m",
-        "thefork_scraper_extract.main",
+        "extract.thefork_scraper.main",
         "--graphql-detail-from-cdp",
         "--connect-over-cdp-url",
         f"http://127.0.0.1:{port}",

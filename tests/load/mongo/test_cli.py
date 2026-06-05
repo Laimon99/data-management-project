@@ -5,9 +5,9 @@ import mongomock
 from pymongo.errors import ServerSelectionTimeoutError
 from typer.testing import CliRunner
 
-from mongo_load import cli
-from mongo_load.loader import load_source, serial_upsert
-from mongo_load.sources import SourceSpec
+from load.mongo import cli
+from load.mongo.loader import load_source, serial_upsert
+from load.mongo.sources import SourceSpec
 
 runner = CliRunner()
 

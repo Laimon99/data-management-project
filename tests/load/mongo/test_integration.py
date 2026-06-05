@@ -1,6 +1,6 @@
 """Integration tests that run against a real MongoDB.
 
-These cover the default batched ``bulk_write`` path in :func:`mongo_load.loader.load_source`,
+These cover the default batched ``bulk_write`` path in :func:`load.mongo.loader.load_source`,
 which mongomock 4.3.0 cannot execute. They connect to the MongoDB from
 ``DATAMAN_MONGO_URI`` (default ``mongodb://localhost:27017``) and **auto-skip** when no
 server is reachable, so the suite stays green without Docker.
@@ -8,7 +8,7 @@ server is reachable, so the suite stays green without Docker.
 Run them explicitly with::
 
     docker compose up -d mongo
-    uv run pytest tests/mongo_load/test_integration.py
+    uv run pytest tests/load/mongo/test_integration.py
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ import os
 
 import pytest
 
-from mongo_load.loader import load_source
-from mongo_load.sources import SourceSpec
+from load.mongo.loader import load_source
+from load.mongo.sources import SourceSpec
 
 pymongo = pytest.importorskip("pymongo")
 from pymongo.errors import PyMongoError  # noqa: E402

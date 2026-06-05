@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from mongo_load.config import LoaderSettings
-from mongo_load.sources import SOURCES, resolve
+from load.mongo.config import LoaderSettings
+from load.mongo.sources import SOURCES, resolve
 
 
 def test_settings_defaults_without_api_key(monkeypatch):

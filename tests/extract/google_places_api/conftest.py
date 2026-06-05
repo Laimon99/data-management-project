@@ -3,8 +3,8 @@ from typing import Any
 import pytest
 from tenacity import wait_none
 
-from google_places_api_extract.config import Settings
-from google_places_api_extract.places_client import PlacesClient
+from extract.google_places_api.config import Settings
+from extract.google_places_api.places_client import PlacesClient
 
 
 @pytest.fixture

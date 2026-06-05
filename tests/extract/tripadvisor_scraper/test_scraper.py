@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from tripadvisor_scraper_extract import scraper
+from extract.tripadvisor_scraper import scraper
 
 
 @pytest.fixture(autouse=True)

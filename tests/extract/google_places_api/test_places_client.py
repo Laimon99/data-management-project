@@ -4,8 +4,8 @@ import httpx
 import pytest
 import respx
 
-from google_places_api_extract.logging_setup import APIKeyRedactingFilter
-from google_places_api_extract.places_client import (
+from extract.google_places_api.logging_setup import APIKeyRedactingFilter
+from extract.google_places_api.places_client import (
     NEARBY_URL,
     PermanentPlacesError,
     PlacesClient,

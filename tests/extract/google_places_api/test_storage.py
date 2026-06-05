@@ -1,5 +1,5 @@
-from google_places_api_extract.schema import SeedDoc, merge_details
-from google_places_api_extract.storage import JsonlSeedStore
+from extract.google_places_api.schema import SeedDoc, merge_details
+from extract.google_places_api.storage import JsonlSeedStore
 
 
 def _doc(pid: str = "x", **kwargs) -> SeedDoc:

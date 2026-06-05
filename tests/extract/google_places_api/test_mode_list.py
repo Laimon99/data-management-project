@@ -4,12 +4,12 @@ import respx
 from pydantic import ValidationError
 from typer.testing import CliRunner
 
-from google_places_api_extract.checkpoint import TileCheckpoint
-from google_places_api_extract.cli import app
-from google_places_api_extract.config import Settings
-from google_places_api_extract.mode_list import run_mode_list
-from google_places_api_extract.places_client import NEARBY_URL, PlacesClient
-from google_places_api_extract.storage import JsonlSeedStore
+from extract.google_places_api.checkpoint import TileCheckpoint
+from extract.google_places_api.cli import app
+from extract.google_places_api.config import Settings
+from extract.google_places_api.mode_list import run_mode_list
+from extract.google_places_api.places_client import NEARBY_URL, PlacesClient
+from extract.google_places_api.storage import JsonlSeedStore
 
 from .conftest import make_place
 

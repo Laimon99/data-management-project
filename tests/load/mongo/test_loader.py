@@ -8,9 +8,9 @@ import mongomock
 import pytest
 from pymongo.errors import ServerSelectionTimeoutError
 
-from mongo_load.config import LoaderSettings
-from mongo_load.loader import load_source, open_collection, serial_upsert
-from mongo_load.sources import SOURCES, SourceSpec
+from load.mongo.config import LoaderSettings
+from load.mongo.loader import load_source, open_collection, serial_upsert
+from load.mongo.sources import SOURCES, SourceSpec
 
 # mongomock 4.3.0 cannot execute bulk_write (the default writer), so unit tests use
 # the serial writer, which produces identical collection state. The batched default
@@ -104,7 +104,7 @@ def test_idempotency(tmp_path, monkeypatch):
     # Advance the clock by 1s before the re-run so `_loaded_at` differs at
     # millisecond resolution (mongomock truncates to ms, like real MongoDB);
     # otherwise a same-millisecond re-run would report modified_count 0.
-    import mongo_load.loader as loader_mod
+    import load.mongo.loader as loader_mod
 
     class _Clock:
         @staticmethod

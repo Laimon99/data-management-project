@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from google_places_api_extract.config import Settings
+from extract.google_places_api.config import Settings
 
 
 def test_default_raw_data_paths(monkeypatch):

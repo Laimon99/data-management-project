@@ -102,7 +102,7 @@ def bulk_upsert(collection: Any, docs: list[dict[str, Any]]) -> tuple[int, int]:
     exercised by the mongomock unit tests — mongomock 4.3.0 rejects the ``sort``
     kwarg pymongo injects into bulk replace ops (fixed only on mongomock's
     unreleased ``develop``). It is covered instead by the real-Mongo integration
-    test (``tests/mongo_load/test_integration.py``).
+    test (``tests/load/mongo/test_integration.py``).
     """
 
     if not docs:
