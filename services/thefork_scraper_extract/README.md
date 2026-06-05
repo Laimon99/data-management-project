@@ -171,6 +171,35 @@ first with `--parallel-dry-run`; disable the automatic merge with
 RAM, so start with 2 profiles, watch RAM and the block rate, then add one at a
 time.
 
+### Distributed runs across multiple PCs
+
+Distributed runs use the same pending-first split, but with a global slot count.
+For example, if one machine runs 5 profiles and a second machine runs 3, use 8
+total slots. The first machine takes slots `0-4`, the second takes slots `5-7`.
+
+First machine (5 workers, slots 0–4):
+
+```bash
+uv run thefork-scraper-extract --graphql-cdp-parallel-proxies \
+    --proxy-list proxies.txt --parallel-workers 5 \
+    --distributed-slot-count 8 --distributed-slot-start 0 \
+    --parallel-base-port 9330 --partial-every-restaurants 10
+```
+
+Second machine (3 workers, slots 5–7):
+
+```bash
+uv run thefork-scraper-extract --graphql-cdp-parallel-proxies \
+    --proxy-list proxies.txt --parallel-workers 3 \
+    --distributed-slot-count 8 --distributed-slot-start 5 \
+    --parallel-base-port 9330 --partial-every-restaurants 10
+```
+
+`--distributed-slot-start` is zero-based. Both machines must start from the same
+base partial/listing file. Each machine can auto-merge its own worker outputs
+locally; afterward, merge the updated partials from the two machines with
+`uv run thefork-merge-outputs`.
+
 Useful options:
 
 ```text
@@ -233,6 +262,8 @@ Useful options:
 --parallel-dry-run               Print the parallel plan without launching browsers.
 --parallel-no-manual-wait        Start workers immediately after CDP ports are ready.
 --parallel-no-auto-merge         Leave worker partials separate after parallel workers finish.
+--distributed-slot-count N       Total global slots shared across multiple PCs.
+--distributed-slot-start N       Zero-based first global slot handled by this PC.
 --detail-shard-count N           Split missing detail pages across N parallel/teammate runs.
 --detail-shard-index N           One-based shard number for this run.
 --calibrate-detail-blocks        Run detail-block calibration without changing the partial JSON.

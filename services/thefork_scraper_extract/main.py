@@ -392,6 +392,21 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--distributed-slot-count",
+        type=int,
+        default=None,
+        help=(
+            "Total zero-based detail slots shared across multiple PCs. "
+            "When omitted, local workers split only with each other."
+        ),
+    )
+    parser.add_argument(
+        "--distributed-slot-start",
+        type=int,
+        default=0,
+        help="Zero-based global slot assigned to the first local parallel worker.",
+    )
+    parser.add_argument(
         "--proxy-list", default=None, help="Path to a text file with one proxy URL per line."
     )
     parser.add_argument(
@@ -472,6 +487,10 @@ def main() -> None:
         raise SystemExit("--detail-shard-count must be at least 1.")
     if args.detail_shard_index < 1 or args.detail_shard_index > args.detail_shard_count:
         raise SystemExit("--detail-shard-index must be between 1 and --detail-shard-count.")
+    if args.distributed_slot_count is not None and args.distributed_slot_count < 1:
+        raise SystemExit("--distributed-slot-count must be at least 1.")
+    if args.distributed_slot_start < 0:
+        raise SystemExit("--distributed-slot-start must be zero or greater.")
 
     # This package lives under services/<name>/, so the repo root is parents[2];
     # default --output-dir "data/raw/thefork" then resolves under the repo data dir.
@@ -530,6 +549,8 @@ def main() -> None:
             partial_every_restaurants=args.partial_every_restaurants,
             max_consecutive_detail_failures=args.max_consecutive_detail_failures,
             log_level=args.log_level,
+            distributed_slot_count=args.distributed_slot_count,
+            distributed_slot_start=args.distributed_slot_start,
             wait_for_manual_ready=not args.parallel_no_manual_wait,
             prepare_only=args.parallel_prepare_only,
             dry_run=args.parallel_dry_run,
