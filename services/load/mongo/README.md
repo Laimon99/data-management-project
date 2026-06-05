@@ -133,7 +133,7 @@ mongodb://localhost:27017 → dataman
 
 ## Testing
 
-Two tiers under `tests/mongo_load/`:
+Two tiers under `tests/load/mongo/`:
 
 - **Unit tests** (`test_loader.py`, `test_cli.py`, `test_config_sources.py`) run against
   in-memory **`mongomock`** — fast, no Docker. They inject the `serial_upsert` writer
@@ -143,4 +143,4 @@ Two tiers under `tests/mongo_load/`:
 - **Integration test** (`test_integration.py`) runs the **default batched `bulk_write`
   path against a real MongoDB** (`DATAMAN_MONGO_URI`, default `localhost:27017`). It
   **auto-skips** when no server is reachable, so the default suite stays green without
-  Docker. To run it: `docker compose up -d mongo && uv run pytest tests/mongo_load`.
+  Docker. To run it: `docker compose up -d mongo && uv run pytest tests/load/mongo`.

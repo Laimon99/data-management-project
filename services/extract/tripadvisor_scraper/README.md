@@ -1,7 +1,7 @@
 # TripAdvisor Scraper Extract Module
 
 **Data Management Project** — Università Milano Bicocca (A.A. 2025-2026)  
-**Module:** `services/tripadvisor_scraper_extract/`  
+**Module:** `services/extract/tripadvisor_scraper/`  
 **Last Updated:** June 2026
 
 ---
@@ -64,7 +64,7 @@ This module overcomes these defenses through:
 
 ## Quick Start
 
-The Tripadvisor extractor is packaged in `services/tripadvisor_scraper_extract` and is runnable through `uv`.
+The Tripadvisor extractor is packaged in `services/extract/tripadvisor_scraper` and is runnable through `uv`.
 
 ### Run
 
@@ -320,13 +320,13 @@ If hardcoded paths fail, the script falls back to `shutil.which()` to search the
 
 ```bash
 # Automatic detection (scans in priority order)
-python -m services.tripadvisor_scraper_extract
+python -m extract.tripadvisor_scraper
 
 # Force a specific browser
-python -m services.tripadvisor_scraper_extract --browser-path /usr/bin/google-chrome
+python -m extract.tripadvisor_scraper --browser-path /usr/bin/google-chrome
 
 # Legacy argument (deprecated but functional)
-python -m services.tripadvisor_scraper_extract --brave-path /path/to/brave
+python -m extract.tripadvisor_scraper --brave-path /path/to/brave
 ```
 
 #### Portability Benefits
@@ -588,10 +588,10 @@ Geocoded data is written to `tripadvisor_scraper_results_geocoded.json`:
 ### Running Geocoding
 
 ```bash
-python -m services.tripadvisor_scraper_extract --geocode
+python -m extract.tripadvisor_scraper --geocode
 
 # OR standalone:
-cd services/tripadvisor_scraper_extract
+cd services/extract/tripadvisor_scraper
 python geocoding_restaurant.py tripadvisor_scraper_results.json
 ```
 
@@ -642,7 +642,7 @@ For 7,539 records: **~3 hours of geocoding time**
 #### Option 1: Automatic (Recommended)
 
 ```bash
-python -m services.tripadvisor_scraper_extract
+python -m extract.tripadvisor_scraper
 ```
 
 The script will:
@@ -657,7 +657,7 @@ The script will:
 #### Option 2: Force a Specific Browser
 
 ```bash
-python -m services.tripadvisor_scraper_extract --browser-path /usr/bin/google-chrome
+python -m extract.tripadvisor_scraper --browser-path /usr/bin/google-chrome
 ```
 
 #### Option 3: Resume From Interruption
@@ -665,7 +665,7 @@ python -m services.tripadvisor_scraper_extract --browser-path /usr/bin/google-ch
 If the script was interrupted:
 
 ```bash
-python -m services.tripadvisor_scraper_extract
+python -m extract.tripadvisor_scraper
 
 # The checkpoint system automatically loads the prior state
 # and skips all previously processed restaurants
@@ -675,7 +675,7 @@ python -m services.tripadvisor_scraper_extract
 
 ```bash
 # After scraping is complete:
-python -m services.tripadvisor_scraper_extract --geocode
+python -m extract.tripadvisor_scraper --geocode
 
 # This reads tripadvisor_scraper_results.json and outputs:
 # tripadvisor_scraper_results_geocoded.json
@@ -834,7 +834,7 @@ https://www.tripadvisor.it/Restaurant_Review-g187849-d10648848-Milan_Lombardy.ht
 # https://brave.com/download
 
 # Option 2: Use installed Chrome
-python -m services.tripadvisor_scraper_extract --browser-path "C:\Program Files\Google\Chrome\Application\chrome.exe"
+python -m extract.tripadvisor_scraper --browser-path "C:\Program Files\Google\Chrome\Application\chrome.exe"
 
 # Option 3: Let Playwright's bundled Chromium be used (less effective anti-bot)
 # Do not pass --browser-path; script will auto-fallback
@@ -1082,8 +1082,8 @@ TripAdvisor has restaurant listings for many cities worldwide. To adapt the scra
 
 ### Related Modules in This Project
 
-- **`google_places_api_extract/`** — Parallel data source (venue metadata from Google Places)
-- **`thefork_scraper_extract/`** — TheFork (restaurant reservation data)
+- **`extract/google_places_api/`** — Parallel data source (venue metadata from Google Places)
+- **`extract/thefork_scraper/`** — TheFork (restaurant reservation data)
 
 
 ### Operational Guides

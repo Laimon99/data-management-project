@@ -34,7 +34,7 @@ A structural challenge that compounds all of the above is TripAdvisor's aggressi
 
 A scraper that targets a class such as `.restaurant-title` would survive indefinitely on a stable site. On TripAdvisor, the equivalent class string may look like `biGQs _P pZUbB` today and `xQTnl _R kPTgm` after the next production deploy — a time horizon that could be as short as hours.
 
-**The solution implemented in `services/tripadvisor_scraper_extract/scraper.py`** systematically avoids this fragility by anchoring all selectors exclusively to structural attributes that encode semantic meaning and are therefore stable across deployments:
+**The solution implemented in `services/extract/tripadvisor_scraper/scraper.py`** systematically avoids this fragility by anchoring all selectors exclusively to structural attributes that encode semantic meaning and are therefore stable across deployments:
 
 - **`data-automation`** attributes (e.g., `data-automation="restaurantCard"`, `data-automation="reviewCard"`) are injected by TripAdvisor's engineering team as internal testing and QA hooks. They are semantically coupled to the element's function, not its styling, and therefore survive CSS refactors entirely.
 - **`data-test-target`** attributes (e.g., `data-test-target="reviews-tab"`, `data-test-target="review-body"`) serve the same purpose at the test automation level.
@@ -439,4 +439,4 @@ This architecture guarantees that the final `data/raw/tripadvisor/tripadvisor_sc
 
 ---
 
-*End of Technical Architecture Report — `services/tripadvisor_scraper_extract/scraper.py`*
+*End of Technical Architecture Report — `services/extract/tripadvisor_scraper/scraper.py`*

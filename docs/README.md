@@ -8,7 +8,7 @@ Project-level documentation: architecture, pipeline design, storage decisions, a
 |---|---|
 | `PIPELINE.md` | High-level overview of the five-stage pipeline and data flow (rough design doc, not a locked spec) |
 | `storage-design.md` | Candidate DBMS evaluation (MongoDB, DuckDB, ClickHouse, etc.) and architecture options for raw → integrated → analytics layers |
-| `etl-design.md` | ETL / load-layer design — historical pre-implementation notes; the shipped loader is `services/mongo_load` (see its README) |
+| `etl-design.md` | ETL / load-layer design — historical pre-implementation notes; the shipped loader is `services/load/mongo` (see its README) |
 | `dev-guide.md` | Developer setup, tooling, and contribution conventions |
 | `antibot-comparison.md` | Why the TheFork scraper keeps its Chromium approach, and the anti-bot escalation ladder vs. the Tripadvisor persistent-profile design |
 | `requirements/EXAM_REQUIREMENTS.md` | Exam deliverable checklist |

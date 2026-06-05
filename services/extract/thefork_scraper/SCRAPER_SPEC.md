@@ -542,7 +542,7 @@ data/raw/thefork/thefork_milan_validation_report.json
 ## Recommended Project Structure
 
 > This reflects the original standalone design. In this repo the scraper lives
-> at `services/thefork_scraper_extract/` and is run via
+> at `services/extract/thefork_scraper/` and is run via
 > `uv run thefork-scraper-extract`; see the service `README.md` for the current
 > layout and invocation.
 

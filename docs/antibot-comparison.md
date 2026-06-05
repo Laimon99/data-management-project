@@ -57,7 +57,7 @@ not clear it — which is the likely reason 403s persist despite the backoff.
 
 The Tripadvisor scraper uses
 `chromium.launch_persistent_context(user_data_dir=…, headless=False)`
-(`services/tripadvisor_scraper_extract/scraper.py:780`) against a **persistent
+(`services/extract/tripadvisor_scraper/scraper.py:780`) against a **persistent
 on-disk profile** under `data/raw/tripadvisor/browser_automation_profile/`.
 Versus L0/L1 this buys:
 

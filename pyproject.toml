@@ -13,6 +13,7 @@ dependencies = [
     "pymongo>=4.8",
     "playwright>=1.60.0",
     "tqdm>=4.66",
+    "geopy>=2.4",
 ]
 
 [project.optional-dependencies]
@@ -33,6 +34,7 @@ tripadvisor-merge-results = "extract.tripadvisor_scraper.merge_results:main"
 thefork-scraper-extract = "extract.thefork_scraper.main:main"
 thefork-merge-outputs = "extract.thefork_scraper.merge_outputs:main"
 dataman-load = "load.mongo.cli:app"
+tripadvisor-geocode-enrich = "transform.tripadvisor_geocode.cli:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -43,6 +45,7 @@ build-backend = "hatchling.build"
 "services/extract/tripadvisor_scraper" = "extract/tripadvisor_scraper"
 "services/extract/thefork_scraper" = "extract/thefork_scraper"
 "services/load/mongo" = "load/mongo"
+"services/transform/tripadvisor_geocode" = "transform/tripadvisor_geocode"
 
 [tool.ruff]
 line-length = 100
