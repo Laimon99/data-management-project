@@ -1,5 +1,4 @@
 from pathlib import Path
-from typing import Literal
 
 from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -68,10 +67,5 @@ class Settings(BaseSettings):
     request_delay_s: float = 0.1
     request_timeout_s: float = 30.0
 
-    seed_store_backend: Literal["jsonl", "mongo"] = "jsonl"
     seed_jsonl_path: Path = Path("data/raw/google_places/restaurants_seed.jsonl")
     checkpoint_dir: Path = Path("data/raw/google_places/checkpoints")
-
-    mongo_uri: str | None = None
-    mongo_db: str = "dataman"
-    mongo_collection: str = "restaurants_seed"

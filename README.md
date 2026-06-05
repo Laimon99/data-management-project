@@ -67,8 +67,13 @@ uv run pytest                # run the test suite
 
 ### Configure API keys
 
+macOS / Linux:
 ```bash
 printf "DATAMAN_GOOGLE_PLACES_API_KEY=your_key_here\n" > .env
+```
+Windows (PowerShell):
+```powershell
+"DATAMAN_GOOGLE_PLACES_API_KEY=your_key_here" | Out-File -Encoding ascii .env
 ```
 
 The key must have **Places API (New)** enabled in Google Cloud
@@ -241,10 +246,21 @@ collections below as a **pure raw passthrough** (no transformation), keyed on ea
 source's natural identifier (`place_id`, `source_url`, `source_id`) so loads are
 **idempotent** — re-running never creates duplicates.
 
+First make sure the raw extractor files are present locally under **`data/raw`**
+(Windows: `data\raw`). Either run the three extractors yourself (see above), or reuse our
+shared output by copying the **`raw`** folder from our **Google Drive** into **`data/raw`**.
+Either way you should end up with
+`data/raw/google_places/restaurants_seed.jsonl`,
+`data/raw/tripadvisor/tripadvisor_scraper_results.json`, and
+`data/raw/thefork/thefork_milan_restaurants_enriched.json`.
+
 ```bash
 docker compose up -d mongo          # start MongoDB (localhost:27017)
 uv run dataman-load all             # load Google, Tripadvisor, and TheFork
 ```
+
+The `docker compose` and `uv run` commands above are identical on macOS, Windows
+(PowerShell), and Linux.
 
 Each source is also loadable on its own (`uv run dataman-load google|tripadvisor|thefork`),
 and `--reset` clears a collection before loading. See

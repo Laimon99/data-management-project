@@ -1,5 +1,13 @@
 # ETL & load-layer design
 
+> **Historical — pre-implementation design.** The Mongo load layer described here has
+> since shipped as `services/mongo_load` (`uv run dataman-load`). It was built as a
+> standalone package that reads the raw extractor files, not by relocating the old
+> in-extractor Mongo store (which has been removed). The **current source of truth** is
+> [`../services/mongo_load/README.md`](../services/mongo_load/README.md); the
+> `mongo → clickhouse` ETL remains the next step. The original design notes are kept
+> below for context.
+
 Status: **design only** — this document records decisions made while standing up the
 storage infrastructure (`docker-compose.yml`, see [`dev-guide.md`](dev-guide.md)). The
 loading/ETL code described here is **not built yet**; it is the next step.

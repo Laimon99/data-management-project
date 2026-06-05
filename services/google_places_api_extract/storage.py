@@ -79,45 +79,5 @@ class JsonlSeedStore:
         return None
 
 
-class MongoSeedStore:
-    """MongoDB-backed store. Wired but not the default backend in this PR."""
-
-    def __init__(self, uri: str, db: str, collection: str) -> None:
-        from pymongo import MongoClient
-
-        self._client = MongoClient(uri)
-        self._coll = self._client[db][collection]
-        self._coll.create_index("place_id", unique=True)
-
-    def upsert(self, doc: SeedDoc) -> None:
-        payload = doc.model_dump(mode="json")
-        existing = self._coll.find_one({"place_id": doc.place_id})
-        if existing is None:
-            self._coll.insert_one(payload)
-            return
-        if doc.details is None and existing.get("details") is not None:
-            payload["details"] = existing["details"]
-            payload["details_fetched_at"] = existing.get("details_fetched_at")
-        payload["seed_collected_at"] = existing.get("seed_collected_at")
-        self._coll.update_one({"place_id": doc.place_id}, {"$set": payload})
-
-    def get(self, place_id: str) -> SeedDoc | None:
-        raw = self._coll.find_one({"place_id": place_id}, {"_id": 0})
-        if raw is None:
-            return None
-        return SeedDoc.model_validate(raw)
-
-    def iter_place_ids(self) -> Iterator[str]:
-        for raw in self._coll.find({}, {"_id": 0, "place_id": 1}):
-            yield raw["place_id"]
-
-    def close(self) -> None:
-        self._client.close()
-
-
 def make_store(settings: Settings) -> SeedStore:
-    if settings.seed_store_backend == "mongo":
-        if not settings.mongo_uri:
-            raise ValueError("seed_store_backend=mongo but DATAMAN_MONGO_URI is not set")
-        return MongoSeedStore(settings.mongo_uri, settings.mongo_db, settings.mongo_collection)
     return JsonlSeedStore(settings.seed_jsonl_path)

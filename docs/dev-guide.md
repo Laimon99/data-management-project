@@ -196,6 +196,9 @@ we actually need it.
 ### Where the data loading (ETL) runs
 
 The databases always live in Docker, but the code that *loads* data into them runs on
-your **host** with `uv run`. That loader / ETL layer is the next step and is designed
-in [`etl-design.md`](etl-design.md).
+your **host** with `uv run`. The Mongo load layer is implemented as `services/mongo_load`
+(`uv run dataman-load …`) — see
+[`../services/mongo_load/README.md`](../services/mongo_load/README.md). The
+`mongo → clickhouse` ETL is the next step; its design notes live in
+[`etl-design.md`](etl-design.md).
 

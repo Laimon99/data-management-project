@@ -4,10 +4,12 @@ This file provides guidance to AI agents when working with code in this reposito
 
 Data Management project. The goal is to compare restaurant ratings across **Google Maps**, **Tripadvisor**, and **TheFork** for the Milan area — analyzing consistency, quality, and discrepancies.
 
-This repository has a runnable **Google Places seed-acquisition pipeline** and a
-runnable **Tripadvisor scraper extract**. TheFork collection, entity resolution,
-unified dataset creation, and quality assessment are still in the
-planning/scaffolding phase. Refer to `docs/` for the current design intent.
+This repository has runnable extractors for all three sources — **Google Places**
+(seed acquisition), **Tripadvisor**, and **TheFork** — plus a runnable **MongoDB
+Load layer** (`services/mongo_load`) and **Docker storage infrastructure** (MongoDB
+as system of record + a ClickHouse analytics scaffold). Entity resolution, unified
+dataset creation, and quality assessment are still in the planning/scaffolding
+phase. Refer to `docs/` for the current design intent.
 
 ---
 
@@ -22,6 +24,9 @@ uv run pre-commit run --all-files    # lint/format manually
 uv run pytest                        # run tests
 uv run google-places-api-extract     # Google Places seed CLI
 uv run tripadvisor-scraper-extract   # Tripadvisor Playwright scraper CLI
+uv run thefork-scraper-extract       # TheFork Playwright scraper CLI
+docker compose up -d mongo           # start MongoDB (storage layer)
+uv run dataman-load all              # load raw files into MongoDB (Load layer)
 ```
 
 `target-version = "py311"`.
@@ -35,7 +40,7 @@ Five sequential stages — each should live in its own module/directory:
 
 1. **Seed acquisition** — implemented in `services/google_places_api_extract`. Collect a base list of Milan restaurants (name, address, city, lat, lon) from Google Maps / Places API. This is the geographic backbone; coordinates are not re-geocoded later. LLMs may be used to filter out misclassified or noisy venues (e.g. places incorrectly tagged as restaurants).
 
-2. **Per-platform data collection** — Tripadvisor extraction is implemented in `services/tripadvisor_scraper_extract`. For TheFork and later refinements, collect ratings and review counts independently. Each platform gets its own raw output/table.
+2. **Per-platform data collection** — Tripadvisor extraction is implemented in `services/tripadvisor_scraper_extract` and TheFork extraction in `services/thefork_scraper_extract`. Each platform collects ratings and review counts independently into its own raw output/table. Raw files are then loaded into MongoDB by the **Load layer** (`services/mongo_load`, `uv run dataman-load`): a pure raw passthrough that idempotently upserts into `restaurants_raw_{google,tripadvisor,thefork}`, keyed on each source's natural id.
 
 3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches.
 
@@ -47,10 +52,9 @@ Five sequential stages — each should live in its own module/directory:
 
 ## Storage
 
-Current acquisition persistence is raw file output under `data/raw/`:
-Google Places writes to `data/raw/google_places/` (`restaurants_seed.jsonl` plus checkpoints), and Tripadvisor writes runtime files under `data/raw/tripadvisor/` (`tripadvisor_list_restaurant.txt`, `tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser profile data). Treat DBMS/storage code for downstream stages as out of scope until the storage design is revisited.
+Acquisition persistence is raw file output under `data/raw/`: Google Places writes to `data/raw/google_places/` (`restaurants_seed.jsonl` plus checkpoints), Tripadvisor writes runtime files under `data/raw/tripadvisor/` (`tripadvisor_list_restaurant.txt`, `tripadvisor_scraper_results.json`, `tripadvisor_checkpoint.json`, and browser profile data), and TheFork writes to `data/raw/thefork/`.
 
-A document-based database remains a candidate for later raw platform data, and relational/columnar storage remains acceptable for the integrated ratings table and mandatory queries.
+The storage layer is now implemented as reproducible Docker infrastructure (`docker-compose.yml`): **MongoDB** is the document system of record and is populated from the raw files by `services/mongo_load` (`uv run dataman-load`); **ClickHouse** is scaffolded behind an opt-in `analytics` profile for the future integrated ratings table and mandatory queries. See `docs/storage-design.md` for the DBMS evaluation and `docs/etl-design.md` for the load-layer design.
 
 ---
 
