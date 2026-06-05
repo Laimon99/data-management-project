@@ -159,6 +159,14 @@ def parse_args() -> argparse.Namespace:
         help="Do not merge worker partial files back into the input partial after parallel workers finish.",
     )
     parser.add_argument(
+        "--parallel-build-listing-if-missing",
+        action="store_true",
+        help=(
+            "In --cdp-parallel-proxies mode, scrape listing pages first when the input partial JSON does not exist, "
+            "then launch parallel detail enrichment. Existing partial files are left untouched."
+        ),
+    )
+    parser.add_argument(
         "--distributed-slot-count",
         type=int,
         default=None,
@@ -397,6 +405,22 @@ def main() -> None:
         if parallel_browser_path is None:
             raise SystemExit("Brave Browser was not found. Install Brave or pass --browser-executable-path.")
         input_partial_path = resolve_input_partial_path(project_root, args.input_partial)
+        if (
+            args.parallel_build_listing_if_missing
+            and not args.parallel_dry_run
+            and not input_partial_path.exists()
+        ):
+            build_listing_partial_for_parallel(
+                project_root=project_root,
+                args=args,
+                input_partial_path=input_partial_path,
+                browser_executable_path=browser_executable_path,
+                headless=headless,
+                user_data_dir=user_data_dir,
+                proxy_configs=proxy_configs,
+                browser_warmup_url=browser_warmup_url,
+                browser_warmup_seconds=browser_warmup_seconds,
+            )
         if not args.parallel_dry_run:
             input_partial_path = ensure_input_partial_available(project_root, input_partial_path, args.input_partial)
         parallel_options = ParallelCDPOptions(
@@ -558,6 +582,58 @@ def ensure_input_partial_available(project_root: Path, input_partial_path: Path,
     shutil.copy2(legacy_normalized_path, input_partial_path)
     logging.info("Created base partial from existing listing dataset: %s", input_partial_path)
     return input_partial_path
+
+
+def build_listing_partial_for_parallel(
+    *,
+    project_root: Path,
+    args: argparse.Namespace,
+    input_partial_path: Path,
+    browser_executable_path: str | None,
+    headless: bool,
+    user_data_dir: Path | None,
+    proxy_configs: list,
+    browser_warmup_url: str | None,
+    browser_warmup_seconds: float,
+) -> None:
+    logging.info(
+        "Input partial was not found. Building listing-only partial before parallel detail enrichment: %s",
+        input_partial_path,
+    )
+    listing_storage = create_default_storage(project_root, str(input_partial_path.parent), None)
+    listing_scraper = TripadvisorScraper(
+        storage=listing_storage,
+        start_url=args.start_url,
+        browser_channel=args.browser_channel,
+        browser_executable_path=browser_executable_path,
+        headless=headless,
+        delay_seconds=args.delay_seconds,
+        detail_delay_seconds=args.detail_delay_seconds,
+        detail_delay_min_seconds=args.detail_delay_min_seconds,
+        detail_delay_max_seconds=args.detail_delay_max_seconds,
+        human_scroll_enabled=args.human_detail_scroll,
+        partial_every_pages=args.partial_every_pages,
+        partial_every_restaurants=args.partial_every_restaurants,
+        scrape_detail_pages=False,
+        user_data_dir=user_data_dir,
+        manual_unlock=args.manual_unlock,
+        unlock_timeout_seconds=args.unlock_timeout_seconds,
+        save_session_only=False,
+        resume=False,
+        max_consecutive_detail_failures=args.max_consecutive_detail_failures,
+        auto_detail_until_complete=False,
+        detail_batch_size=args.detail_batch_size,
+        save_final_incomplete=args.save_final_incomplete,
+        proxy_configs=proxy_configs,
+        browser_warmup_url=browser_warmup_url,
+        browser_warmup_seconds=browser_warmup_seconds,
+    )
+    listing_scraper.scrape(max_pages=args.max_pages, max_restaurants=args.max_restaurants)
+
+    if listing_storage.partial_path != input_partial_path:
+        input_partial_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(listing_storage.partial_path, input_partial_path)
+        logging.info("Copied listing partial to requested input path: %s", input_partial_path)
 
 
 def resolve_parallel_profile_root(project_root: Path, raw_path: str | None) -> Path:

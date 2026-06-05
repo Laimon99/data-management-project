@@ -1285,7 +1285,9 @@ def utc_timestamp() -> str:
 def profile_dir_for_proxy(base_dir: Path, proxy: ProxyConfig | None) -> Path:
     if proxy is None:
         return base_dir
-    return base_dir.parent / "browser_profiles" / proxy.safe_label()
+    if base_dir.name in {"browser_profile", "brave_automation_profile"}:
+        return base_dir.parent / "browser_profiles" / proxy.safe_label()
+    return base_dir / proxy.safe_label()
 
 
 def create_default_storage(

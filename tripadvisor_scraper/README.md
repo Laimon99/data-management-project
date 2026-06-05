@@ -133,6 +133,14 @@ If `output/tripadvisor_milan_restaurants_normalized_partial.json` does not exist
 
 The worker split is based on missing detail records first, then sharding. This means already enriched restaurants are skipped before work is divided, reducing duplicate work between parallel profiles.
 
+Run listing collection and parallel detail enrichment from a clean output directory with one command:
+
+```bash
+python -m src.main --brave-automation-profile --cdp-parallel-proxies --parallel-build-listing-if-missing --proxy-list proxy_list.txt --parallel-workers 5 --distributed-slot-count 10 --distributed-slot-start 0 --parallel-base-port 9460 --parallel-profile-root C:\tmp\tripadvisor_cdp_proxy_profiles --user-data-dir C:\tmp\tripadvisor_listing_profile --detail-delay-min-seconds 6 --detail-delay-max-seconds 12 --max-consecutive-detail-failures 5 --partial-every-restaurants 5 --human-detail-scroll --log-level INFO
+```
+
+This command first creates `output/tripadvisor_milan_restaurants_normalized_partial.json` if it is missing, using listing pages only. It then launches the parallel Brave proxy profiles, enriches the missing details, and automatically merges worker outputs back into the partial. Use short profile paths such as `C:\tmp\...` on Windows to avoid long-path browser profile issues.
+
 Distributed runs across multiple PCs use the same pending-first split, but with a global slot count. For example, if this Windows PC runs 5 profiles and a Mac Mini runs 3 profiles, use 8 total slots:
 
 Windows PC:
@@ -169,6 +177,14 @@ Merge older worker outputs manually:
 python -m src.merge_outputs output/tripadvisor_milan_restaurants_normalized_partial.json output/runs/cdp_parallel/run_YYYYMMDD_HHMMSS/worker_*/tripadvisor_milan_restaurants_normalized_partial.json --output output/tripadvisor_milan_restaurants_normalized_partial.json
 ```
 
+Compare the new normalized dataset against a legacy Tripadvisor output without modifying either file:
+
+```bash
+python -m src.quality_compare --new output/tripadvisor_milan_restaurants_normalized_partial.json --legacy "..\feature-quality-metrics-simone\data\raw\tripadvisor\tripadvisor_scraper_results.json" --output output/tripadvisor_quality_compare_report.json
+```
+
+The comparison report counts meaningful non-empty fields, ignores placeholder values such as `NaN`, checks duplicate URL/source IDs, and shows which dataset has better coverage for each field.
+
 Useful options:
 
 ```text
@@ -196,6 +212,8 @@ Useful options:
 --parallel-dry-run               Print the parallel plan without launching browsers or workers.
 --parallel-no-manual-wait        Start workers immediately after CDP ports are ready.
 --parallel-no-auto-merge         Leave worker partials separate after parallel workers finish.
+--parallel-build-listing-if-missing
+                                 Build listing-only partial before parallel detail if missing.
 --distributed-slot-count N       Total global slots shared across multiple PCs.
 --distributed-slot-start N       Zero-based first global slot handled by this PC.
 --headed                         Open a visible browser window.

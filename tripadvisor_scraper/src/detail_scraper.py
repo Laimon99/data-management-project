@@ -146,6 +146,44 @@ class TripadvisorDetailScraper:
                 const element = document.querySelector(selector);
                 return element ? element.getAttribute('content') : null;
               };
+              const text = (selector, root = document) => {
+                const element = root.querySelector(selector);
+                return element ? clean(element.innerText || element.textContent || '') : '';
+              };
+              const attr = (selector, attribute, root = document) => {
+                const element = root.querySelector(selector);
+                return element ? (element.getAttribute(attribute) || '') : '';
+              };
+              const directCuisine = Array.from(
+                document.querySelectorAll('div[data-test-target="restaurant-detail-info"] a[href*="/Restaurants-g187849-c"]')
+              ).map((element) => clean(element.innerText || element.textContent || '')).filter(Boolean);
+              const directHours = Array.from(
+                document.querySelectorAll('div[data-automation="hours-section"] > div.f')
+              ).map((row) => {
+                const day = text('div.cGgaa', row);
+                const hourParts = Array.from(row.querySelectorAll('span.biGQs, div.biGQs._P'))
+                  .map((element) => clean(element.innerText || element.textContent || ''))
+                  .filter((value) => value && value !== day);
+                return day ? `${day}: ${hourParts.length ? hourParts.join(' and ') : 'Chiuso'}` : '';
+              }).filter(Boolean);
+              const directReviews = Array.from(
+                document.querySelectorAll('div[data-test-target="reviews-tab"] div[data-automation="reviewCard"]')
+              ).slice(0, 8).map((card) => {
+                const body = text('div[data-test-target="review-body"]', card);
+                const cardText = clean(card.innerText || card.textContent || '');
+                const dateMatch = cardText.match(/Scritta in data\\s+([0-9]{1,2}\\s+[^\\s]+\\s+[0-9]{4})/i);
+                const authorLink = card.querySelector('a[href^="/Profile/"], a[href*="/Profile/"]');
+                const authorFallback = card.querySelector('span.b, [data-test-target="review-author"]');
+                return {
+                  author_name: clean(
+                    authorLink?.innerText || authorLink?.textContent ||
+                    authorFallback?.innerText || authorFallback?.textContent || ''
+                  ),
+                  title: text('h3[data-test-target="review-title"] a', card),
+                  text: body,
+                  date: dateMatch ? clean(dateMatch[1]) : ''
+                };
+              }).filter((review) => review.text || review.title);
               const scripts = Array.from(document.querySelectorAll(
                 'script[type="application/ld+json"], script[type="application/json"], script[id*="NEXT"], script[id*="state"], script[id*="apollo"], script[id*="data"]'
               )).map((script) => (script.textContent || '').slice(0, maxScriptChars));
@@ -169,6 +207,20 @@ class TripadvisorDetailScraper:
                 json_scripts: scripts,
                 links,
                 images,
+                direct: {
+                  restaurant_name: text('div[data-test-target="restaurant-detail-info"] h1') || text('h1'),
+                  rating: text('div[data-automation="bubbleRatingValue"] span'),
+                  review_count: text('div[data-automation="bubbleReviewCount"] span'),
+                  cuisine_type: directCuisine.join(', '),
+                  price_range: text('a[href*="-zfp"] span'),
+                  photo_count: text('button[data-automation="seeAllPhotosCountButton"] span'),
+                  address: text('span[data-automation="restaurantsMapLinkOnName"]'),
+                  website: attr('a[data-automation="restaurantsWebsiteButton"]', 'href'),
+                  phone_number: attr('a[href^="tel:"]', 'href').replace(/^tel:/i, ''),
+                  email: attr('a[href^="mailto:"]', 'href').replace(/^mailto:/i, '').split('?')[0],
+                  working_days_hours: directHours.join('; '),
+                  reviews: directReviews
+                },
               };
             }
             """,
@@ -178,6 +230,7 @@ class TripadvisorDetailScraper:
     def _parse_detail_payload(self, payload: dict[str, Any], listing_record: RestaurantRecord) -> dict[str, Any]:
         json_documents = parse_json_documents(payload.get("json_scripts") or [])
         structured = extract_structured_restaurant_data(json_documents)
+        direct = extract_direct_dom_data(payload.get("direct") or {})
         embedded = extract_embedded_data(json_documents, payload.get("body_text") or "", payload.get("links") or [])
         visible = extract_visible_data(payload)
 
@@ -187,24 +240,29 @@ class TripadvisorDetailScraper:
 
         return {
             "source_id": extract_source_id(restaurant_url or listing_record.restaurant_url or ""),
-            "restaurant_name": first_value(structured.get("restaurant_name"), embedded.get("restaurant_name"), visible.get("restaurant_name")),
-            "address": first_value(structured.get("address"), embedded.get("address"), visible.get("address")),
+            "restaurant_name": first_value(structured.get("restaurant_name"), direct.get("restaurant_name"), embedded.get("restaurant_name"), visible.get("restaurant_name")),
+            "address": first_value(structured.get("address"), direct.get("address"), embedded.get("address"), visible.get("address")),
             "latitude": first_value(structured.get("latitude"), embedded.get("latitude"), visible.get("latitude")),
             "longitude": first_value(structured.get("longitude"), embedded.get("longitude"), visible.get("longitude")),
-            "rating": first_value(structured.get("rating"), embedded.get("rating"), visible.get("rating")),
-            "review_count": first_value(structured.get("review_count"), embedded.get("review_count"), visible.get("review_count")),
-            "cuisine_type": first_value(structured.get("cuisine_type"), embedded.get("cuisine_type"), visible.get("cuisine_type")),
-            "price_range": first_value(structured.get("price_range"), embedded.get("price_range"), visible.get("price_range")),
+            "rating": first_value(structured.get("rating"), direct.get("rating"), embedded.get("rating"), visible.get("rating")),
+            "review_count": first_value(structured.get("review_count"), direct.get("review_count"), embedded.get("review_count"), visible.get("review_count")),
+            "cuisine_type": first_value(structured.get("cuisine_type"), direct.get("cuisine_type"), embedded.get("cuisine_type"), visible.get("cuisine_type")),
+            "price_range": first_value(structured.get("price_range"), direct.get("price_range"), embedded.get("price_range"), visible.get("price_range")),
             "discount": first_value(embedded.get("discount"), visible.get("discount")),
-            "photo_count": first_value(structured.get("photo_count"), embedded.get("photo_count"), visible.get("photo_count")),
-            "website": first_value(structured.get("website"), embedded.get("website"), visible.get("website")),
-            "phone_number": first_value(structured.get("phone_number"), embedded.get("phone_number"), visible.get("phone_number")),
-            "email": first_value(structured.get("email"), embedded.get("email"), visible.get("email")),
-            "working_days_hours": first_value(structured.get("working_days_hours"), embedded.get("working_days_hours")),
+            "photo_count": first_value(structured.get("photo_count"), direct.get("photo_count"), embedded.get("photo_count"), visible.get("photo_count")),
+            "website": first_value(structured.get("website"), direct.get("website"), embedded.get("website"), visible.get("website")),
+            "phone_number": first_value(structured.get("phone_number"), direct.get("phone_number"), embedded.get("phone_number"), visible.get("phone_number")),
+            "email": first_value(structured.get("email"), direct.get("email"), embedded.get("email"), visible.get("email")),
+            "working_days_hours": first_value(structured.get("working_days_hours"), direct.get("working_days_hours"), embedded.get("working_days_hours")),
             "restaurant_url": restaurant_url,
-            "review_snippets": unique_texts([*(embedded.get("review_snippets") or []), *(visible.get("review_snippets") or [])]),
+            "review_snippets": unique_texts([
+                *(direct.get("review_snippets") or []),
+                *(embedded.get("review_snippets") or []),
+                *(visible.get("review_snippets") or []),
+            ]),
             "reviews": merge_reviews(
                 structured.get("reviews") or [],
+                direct.get("reviews") or [],
                 embedded.get("reviews") or [],
                 max_reviews=self.max_reviews_per_restaurant,
             ),
@@ -272,7 +330,7 @@ def extract_structured_restaurant_data(json_documents: list[Any]) -> dict[str, A
         "address": normalize_address(restaurant_node.get("address")),
         "latitude": parse_float(first_value(geo.get("latitude") if geo else None, geo.get("lat") if geo else None)),
         "longitude": parse_float(first_value(geo.get("longitude") if geo else None, geo.get("lng") if geo else None)),
-        "rating": parse_float(aggregate_rating.get("ratingValue") if aggregate_rating else None),
+        "rating": parse_rating(aggregate_rating.get("ratingValue") if aggregate_rating else None),
         "review_count": parse_int(aggregate_rating.get("reviewCount") if aggregate_rating else None),
         "cuisine_type": normalize_list_value(first_value(restaurant_node.get("servesCuisine"), restaurant_node.get("cuisine"))),
         "price_range": normalize_price(first_value(restaurant_node.get("priceRange"), restaurant_node.get("price"))),
@@ -282,6 +340,25 @@ def extract_structured_restaurant_data(json_documents: list[Any]) -> dict[str, A
         "working_days_hours": normalize_hours(first_value(restaurant_node.get("openingHoursSpecification"), restaurant_node.get("openingHours"))),
         "photo_count": count_images(restaurant_node.get("image")),
         "reviews": extract_reviews(restaurant_node.get("review")),
+    }
+
+
+def extract_direct_dom_data(raw_direct: dict[str, Any]) -> dict[str, Any]:
+    reviews = extract_reviews(raw_direct.get("reviews"))
+    return {
+        "restaurant_name": normalize_name_candidate(clean_optional(raw_direct.get("restaurant_name"))),
+        "address": normalize_address(raw_direct.get("address")),
+        "rating": parse_rating(raw_direct.get("rating")),
+        "review_count": parse_int(raw_direct.get("review_count")),
+        "cuisine_type": normalize_list_value(raw_direct.get("cuisine_type")),
+        "price_range": normalize_price(raw_direct.get("price_range")),
+        "photo_count": parse_int(raw_direct.get("photo_count")),
+        "website": normalize_external_url(raw_direct.get("website")),
+        "phone_number": clean_optional(raw_direct.get("phone_number")),
+        "email": clean_optional(raw_direct.get("email")),
+        "working_days_hours": normalize_hours(raw_direct.get("working_days_hours")),
+        "review_snippets": review_snippets_from_reviews(reviews),
+        "reviews": reviews,
     }
 
 
@@ -299,7 +376,7 @@ def extract_embedded_data(json_documents: list[Any], body_text: str, links: list
         "address": normalize_address(first_json_value(nodes, {"address", "streetAddress"})),
         "latitude": latitude or parse_float(first_json_value(nodes, {"latitude", "lat"})),
         "longitude": longitude or parse_float(first_json_value(nodes, {"longitude", "lng"})),
-        "rating": parse_float(first_json_value(nodes, {"ratingValue", "rating"})),
+        "rating": parse_rating(first_json_value(nodes, {"ratingValue", "rating"})),
         "review_count": parse_int(first_json_value(nodes, {"reviewCount", "reviewsCount", "numberOfReviews"})),
         "cuisine_type": cuisine_type,
         "price_range": first_value(price_range, normalize_price(first_json_value(nodes, {"priceRange", "price"}))),
@@ -472,6 +549,13 @@ def parse_float(value: Any) -> float | None:
         return None
 
 
+def parse_rating(value: Any) -> float | None:
+    rating = parse_float(value)
+    if rating is None or not 0 <= rating <= 5:
+        return None
+    return rating
+
+
 def parse_int(value: Any) -> int | None:
     if value is None:
         return None
@@ -498,7 +582,22 @@ def clean_optional(value: Any) -> str | None:
     text = clean_spaces(str(value))
     if not text:
         return None
-    if text.lower() in {"menu", "reviews", "recensioni", "photos", "foto", "prenota", "book"}:
+    if text.lower() in {
+        "menu",
+        "reviews",
+        "recensioni",
+        "photos",
+        "foto",
+        "prenota",
+        "book",
+        "nan",
+        "n/a",
+        "na",
+        "none",
+        "null",
+        "not found",
+        "not available",
+    }:
         return None
     return text
 
@@ -658,15 +757,44 @@ def extract_reviews(value: Any) -> list[dict[str, Any]]:
         author = item.get("author")
         rating = item.get("reviewRating") or item.get("rating")
         review = {
-            "author_name": clean_optional(author.get("name") if isinstance(author, dict) else author),
-            "rating": parse_float(rating.get("ratingValue") if isinstance(rating, dict) else rating),
+            "author_name": clean_author_name(
+                first_value(
+                    item.get("author_name"),
+                    author.get("name") if isinstance(author, dict) else author,
+                    author.get("nickname") if isinstance(author, dict) else None,
+                )
+            ),
+            "rating": parse_rating(rating.get("ratingValue") if isinstance(rating, dict) else rating),
             "title": clean_optional(item.get("name") or item.get("headline") or item.get("title")),
             "text": clean_optional(item.get("reviewBody") or item.get("text") or item.get("description")),
-            "date": clean_optional(item.get("datePublished") or item.get("date")),
+            "date": clean_optional(item.get("datePublished") or item.get("date") or item.get("date_of_publication")),
         }
         if review["text"] or review["title"]:
             reviews.append(review)
     return reviews
+
+
+def clean_author_name(value: Any) -> str | None:
+    text = clean_optional(value)
+    if not text:
+        return None
+    lowered = text.lower()
+    if text.isdigit() or len(text) < 2:
+        return None
+    if re.search(r"\b(?:recension|contribut|scritta|tripadvisor|leggi|scopri)\b", lowered):
+        return None
+    return text
+
+
+def review_snippets_from_reviews(reviews: list[dict[str, Any]]) -> list[str]:
+    snippets: list[str] = []
+    for review in reviews:
+        snippet = clean_optional(review.get("text") or review.get("title"))
+        if snippet:
+            snippets.append(snippet)
+        if len(snippets) >= 5:
+            break
+    return unique_texts(snippets)
 
 
 def extract_reviews_from_nodes(nodes: list[dict[str, Any]]) -> list[dict[str, Any]]:
