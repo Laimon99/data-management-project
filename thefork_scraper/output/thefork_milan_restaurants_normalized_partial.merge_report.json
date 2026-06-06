@@ -1,0 +1,47 @@
+{
+  "inputs": [
+    {
+      "path": "output\\thefork_milan_restaurants_enriched.json",
+      "records": 1344,
+      "detail_scraped": 1342,
+      "with_reviews": 1297,
+      "with_website": 0,
+      "with_social_links": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "with_working_hours_structured": 855,
+      "avg_richness_score": 49.43
+    },
+    {
+      "path": "output\\targeted_missing_20260606\\thefork_milan_restaurants_enriched.json",
+      "records": 2,
+      "detail_scraped": 2,
+      "with_reviews": 2,
+      "with_website": 0,
+      "with_social_links": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "with_working_hours_structured": 0,
+      "avg_richness_score": 48.0
+    }
+  ],
+  "output": {
+    "path": "output\\targeted_missing_20260606\\final_merge_test\\thefork_milan_restaurants_enriched.json",
+    "records": 1344,
+    "detail_scraped": 1344,
+    "with_reviews": 1299,
+    "with_website": 0,
+    "with_social_links": 0,
+    "with_phone": 0,
+    "with_email": 0,
+    "with_working_hours_structured": 855,
+    "avg_richness_score": 49.48
+  },
+  "replacement_reasons": {
+    "candidate_has_detail": 2
+  },
+  "chosen_sources": {
+    "output\\thefork_milan_restaurants_enriched.json": 1342,
+    "output\\targeted_missing_20260606\\thefork_milan_restaurants_enriched.json": 2
+  }
+}

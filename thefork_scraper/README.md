@@ -268,6 +268,33 @@ same base partial/listing file. Each PC can auto-merge its own worker outputs
 locally; after that, merge the updated partials from the two PCs with
 `src.merge_outputs`.
 
+Example 7+7 two-PC workflow used for the Milan enrichment run:
+
+1. Generate or copy the same listing-only base file on both machines:
+   `output/thefork_milan_restaurants_normalized_partial.json`.
+2. Run Windows with slots `0-6`:
+
+```bash
+python -m src.main --graphql-cdp-parallel-proxies --proxy-list proxy_list_pc_runtime.txt --parallel-workers 7 --distributed-slot-count 14 --distributed-slot-start 0 --parallel-base-port 9360 --parallel-profile-root C:\tmp\thefork_cdp_profiles_pc --input-partial output\thefork_milan_restaurants_normalized_partial.json --detail-delay-min-seconds 8 --detail-delay-max-seconds 20 --partial-every-restaurants 5 --max-consecutive-detail-failures 3 --max-reviews-per-restaurant 15 --graphql-review-size 15 --log-level INFO
+```
+
+3. Run the Mac Mini with slots `7-13`:
+
+```bash
+python3 -m src.main --graphql-cdp-parallel-proxies --proxy-list proxy_list_mac_runtime.txt --parallel-workers 7 --distributed-slot-count 14 --distributed-slot-start 7 --parallel-base-port 9360 --parallel-profile-root /tmp/thefork_cdp_profiles_mac --input-partial output/thefork_milan_restaurants_normalized_partial.json --detail-delay-min-seconds 8 --detail-delay-max-seconds 20 --partial-every-restaurants 5 --max-consecutive-detail-failures 3 --max-reviews-per-restaurant 15 --graphql-review-size 15 --log-level INFO
+```
+
+4. Copy the Mac result back to the Windows PC, then merge it with the Windows worker outputs and the listing base:
+
+```bash
+python -m src.merge_outputs output/thefork_milan_restaurants_normalized_partial_before_parallel_merge_YYYYMMDD_HHMMSS.json output/runs/graphql_cdp_parallel/run_YYYYMMDD_HHMMSS/worker_*/thefork_milan_restaurants_normalized_partial.json output/from_mac/thefork_milan_restaurants_enriched_mac_slots_7_13.json --output output/thefork_milan_restaurants_normalized_partial.json
+```
+
+When all records have `detail_scraped=true`, copy the merged partial to:
+`output/thefork_milan_restaurants_enriched.json`. If only a few records remain
+missing, create a small input JSON with those records, run a targeted
+GraphQL/CDP pass in a separate output directory, then merge that result back.
+
 Memory sizing for parallel profiles:
 
 - Each active Brave profile usually uses about 700-900 MB of RAM on Windows.
