@@ -1,12 +1,12 @@
 # services/
 
-Services are grouped by **pipeline stage** — `extract/`, `load/`, `transform/` — with one self-contained Python package per source under each. Each package has its own CLI entry point, internal modules, and co-located docs. The stage directories are PEP 420 namespace packages, so imports read as `extract.google_places_api`, `load.mongo`, `transform.tripadvisor_geocode`.
+Services are grouped by **pipeline stage** — `extract/`, `load/`, `transform/` — with one self-contained Python package per source under each. Each package has its own CLI entry point, internal modules, and co-located docs. The stage directories are PEP 420 namespace packages, so imports read as `extract.google_places_api`, `load.mongo`, `transform.tripadvisor_clean`.
 
 ```
 services/
   extract/   google_places_api/  tripadvisor_scraper/  thefork_scraper/
   load/      mongo/
-  transform/ tripadvisor_geocode/
+  transform/ tripadvisor_clean/
 ```
 
 ## Implemented services
@@ -69,15 +69,16 @@ See `load/mongo/README.md` for the source registry and load semantics.
 
 ---
 
-### `transform/tripadvisor_geocode` — Geocoding enrichment
-Adds `latitude`/`longitude` to raw Tripadvisor records by geocoding their address strings via Nominatim/OpenStreetMap (`geopy`, free, no key). Feeds proximity blocking in entity resolution and the geographic queries.
+### `transform/tripadvisor_clean` — Clean + geocode (Mongo → Mongo)
+The single Tripadvisor transform. Reads `restaurants_raw_tripadvisor`, cleans each record (rating/review-count typing, `NaN`→`null`, name/address normalization, structured address parts) and geocodes the cleaned address via Nominatim/OpenStreetMap (`geopy`, free, no key) as a sub-step, upserting one document (clean fields + `latitude`/`longitude`) into `restaurants_clean_tripadvisor`. Feeds proximity blocking in entity resolution and the geographic queries. Idempotent and resumable.
 
 ```bash
-uv run tripadvisor-geocode-enrich            # full run (defaults under data/raw/tripadvisor/)
-uv run tripadvisor-geocode-enrich --limit 20 # quick test slice
+uv run tripadvisor-clean            # full run (clean + geocode)
+uv run tripadvisor-clean --limit 20 # quick test slice
+uv run tripadvisor-clean --skip-geocode  # fast clean-only pass
 ```
 
-See `transform/tripadvisor_geocode/README.md` for details and coverage notes.
+See `transform/tripadvisor_clean/README.md` for details and coverage notes.
 
 ---
 
