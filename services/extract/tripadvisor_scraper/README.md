@@ -585,18 +585,21 @@ Geocoded data is written to `tripadvisor_scraper_results_geocoded.json`:
 }
 ```
 
-### Running Geocoding
+### Running the transform (clean + geocode)
 
-Geocoding is no longer part of this scraper — it lives in the **transform** stage
-(`services/transform/tripadvisor_geocode`). After scraping:
+Geocoding is no longer part of this scraper — it is a sub-step of the **transform** stage
+(`services/transform/tripadvisor_clean`). After scraping and loading into MongoDB
+(`uv run dataman-load tripadvisor`), the transform cleans the raw records and geocodes the
+cleaned address **Mongo → Mongo** into `restaurants_clean_tripadvisor`:
 
 ```bash
-uv run tripadvisor-geocode-enrich            # reads/writes under data/raw/tripadvisor/
-uv run tripadvisor-geocode-enrich --limit 20 # quick test slice
+uv run tripadvisor-clean            # clean + geocode the full dataset
+uv run tripadvisor-clean --limit 20 # quick test slice
+uv run tripadvisor-clean --skip-geocode  # fast clean-only pass
 ```
 
-See `services/transform/tripadvisor_geocode/README.md` for `--input`, `--output`,
-`--limit`, `--delay`, and `--timeout`.
+See `services/transform/tripadvisor_clean/README.md` for `--limit`, `--skip-geocode`,
+`--reset`, `--delay`, and `--timeout`.
 
 ### Performance Metrics
 
@@ -674,14 +677,14 @@ python -m extract.tripadvisor_scraper
 # and skips all previously processed restaurants
 ```
 
-#### Option 4: Geocoding Enrichment
+#### Option 4: Clean + Geocode (transform stage)
 
 ```bash
-# After scraping is complete (handled by the transform stage):
-uv run tripadvisor-geocode-enrich
+# After scraping and loading into MongoDB (uv run dataman-load tripadvisor):
+uv run tripadvisor-clean
 
-# This reads data/raw/tripadvisor/tripadvisor_scraper_results.json and outputs:
-# data/raw/tripadvisor/tripadvisor_scraper_results_geocoded.json
+# This reads restaurants_raw_tripadvisor and writes cleaned+geocoded docs
+# (Mongo -> Mongo) into restaurants_clean_tripadvisor.
 ```
 
 ### Runtime Interaction

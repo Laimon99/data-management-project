@@ -103,3 +103,6 @@ Thumbs.db
 _plans/
 .claude/audit.jsonl
 .codex/audit.jsonl
+
+# Claude Code session lock (not for VCS)
+.claude/scheduled_tasks.lock
