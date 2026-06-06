@@ -1,6 +1,6 @@
 \subsection{Tripadvisor}
 
-Tripadvisor contributes broad review and category information, but the raw file does not yet contain latitude and longitude. It therefore needs the planned geocoding enrichment before reliable geospatial integration.
+Tripadvisor contributes broad review and category information, but the raw file does not yet contain latitude and longitude or record-level timestamps. Its lower raw score is expected and should be improved through the planned cleaning and geocoding enrichment before reliable geospatial integration.
 
 \paragraph{Key metrics}
 \begin{tabular}{lr}
@@ -8,13 +8,16 @@ Tripadvisor contributes broad review and category information, but the raw file 
 Metric & Value \\
 \midrule
 Records assessed & 7539 \\
-Overall quality score & 67.89\% \\
+Overall quality score & 72.28\% \\
 Average field completeness & 84.34\% \\
 Critical-field completeness & 99.78\% \\
-Validity score & 99.90\% \\
+Validity score & 99.99\% \\
 Uniqueness score & 99.97\% \\
-Timeliness score & 0.00\% \\
+Timeliness score & 43.75\% \\
+Collection duration & 27.00 h \\
+Timestamp coverage & 0.00\% \\
 Reliability score & 53.10\% \\
+Format values checked & 82654 / 82655 valid \\
 Native rating average & 3.91 \\
 Comparable rating average 0--5 & 3.91 \\
 Valid review counts & 7539 (100.00\%) \\
@@ -22,7 +25,7 @@ Low-review records & 2723 (36.12\%) \\
 Valid coordinate pairs & 0 (0.00\%) \\
 Latest source timestamp & n/a \\
 Data age in days & n/a \\
-Quality flags & 3621 (48.0 per 100 records) \\
+Quality flags & 3622 (48.0 per 100 records) \\
 \bottomrule
 \end{tabular}
 
@@ -50,15 +53,18 @@ low\_review\_count & 2723 \\
 zero\_reviews & 813 \\
 missing\_critical\_field & 81 \\
 possible\_duplicate\_name\_address & 4 \\
+invalid\_field\_format & 1 \\
 \bottomrule
 \end{tabular}
 
 \paragraph{Interpretation}
 \begin{itemize}
-\item The weighted source quality score is 67.89\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weighted source quality score is 72.28\%; the score is driven by integration-critical fields rather than optional metadata.
 \item The weakest fields are email (46.89\%), opening\_hours (67.60\%), price\_range (67.66\%); downstream logic should avoid treating them as mandatory matching keys.
+\item Format validity checks 82655 present values; 1 fail the expected source-specific format.
 \item The sparse-review threshold flags 2723 records, so rating comparisons should account for review-count reliability.
-\item Timeliness coverage is 0.00\%; sources without record-level timestamps should be documented as stale-risk inputs.
-\item The source has 3621 generated quality flags, equal to 48.03 flags per 100 records.
+\item Timeliness score is 43.75\%, based on collection duration 27.00 h against a 48.00 h refresh target; timestamp coverage is 0.00\%.
+\item The source has 3622 generated quality flags, equal to 48.04 flags per 100 records.
 \item The 0\% coordinate validity is expected at this stage and should be resolved by the latitude/longitude enrichment task before integration.
+\item The missing record-level timestamps do not force timeliness to 0 anymore; Tripadvisor refreshability is estimated from the scraper runtime instead.
 \end{itemize}

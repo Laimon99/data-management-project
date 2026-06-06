@@ -41,10 +41,16 @@ No entity matching or post-integration metric is included in this baseline.
 
 The selected data-quality dimensions are completeness, validity/consistency,
 uniqueness, timeliness, and reliability. Completeness measures missing values;
-validity checks platform-specific rating scales, numeric review counts, and
-coordinate pairs; uniqueness checks stable source identifiers; timeliness checks
-available acquisition timestamps; reliability flags ratings based on sparse
-review evidence.
+validity checks source-specific field formats on present values; uniqueness
+checks stable source identifiers; timeliness measures source refreshability from
+collection duration; reliability flags ratings based on sparse review evidence.
+All percentage component scores are oriented so that 100\% is better. This is a
+raw pre-cleaning baseline and should be rerun after cleaning/enrichment to
+measure improvement with the same formulas.
+
+\subsection{Metric Definitions}
+
+\input{tables/metric_definitions.tex}
 
 \subsection{Cross-Source Summary}
 
@@ -55,7 +61,9 @@ review evidence.
 The weighted score favours dimensions required for integration and analysis:
 critical completeness, validity, spatial readiness, uniqueness, timeliness, and
 review-count reliability. This avoids treating sparse optional metadata as equal
-to identifiers, ratings, review counts, and coordinates.
+to identifiers, ratings, review counts, and coordinates. Average completeness is
+reported separately, while critical completeness is the completeness component
+used in the weighted score.
 
 \input{tables/source_quality_scores.tex}
 

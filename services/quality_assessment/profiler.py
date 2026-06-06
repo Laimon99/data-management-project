@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import csv
 import json
+import re
 from collections import Counter
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
+from dataclasses import field as dataclass_field
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -19,16 +21,24 @@ from .normalization import (
 )
 
 Accessor = Callable[[dict[str, Any]], Any]
+Validator = Callable[[Any], bool]
+DEFAULT_REFRESH_TARGET_HOURS = 48.0
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+URL_RE = re.compile(r"^https?://[^\s]+$", re.IGNORECASE)
 ANOMALY_FIELDNAMES = ["source", "record_id", "issue_type", "field", "value", "detail"]
 COVERAGE_FIELDNAMES = ["source", "field", "present", "missing", "coverage_pct"]
 SCORE_FIELDNAMES = [
     "source",
     "overall_quality_score_pct",
+    "completeness_score_pct",
     "critical_completeness_score_pct",
     "validity_score_pct",
     "spatial_readiness_score_pct",
     "uniqueness_score_pct",
     "timeliness_score_pct",
+    "timestamp_coverage_pct",
+    "collection_duration_hours",
+    "refresh_target_hours",
     "reliability_score_pct",
     "anomaly_count",
     "record_count",
@@ -49,6 +59,10 @@ class SourceConfig:
     latitude_field: str = "latitude"
     longitude_field: str = "longitude"
     timestamp_fields: tuple[str, ...] = ()
+    format_validators: dict[str, Validator] = dataclass_field(default_factory=dict)
+    collection_duration_hours: float | None = None
+    collection_duration_source: str = "observed timestamp window"
+    refresh_target_hours: float = DEFAULT_REFRESH_TARGET_HOURS
 
 
 def get_path(record: dict[str, Any], path: str) -> Any:
@@ -62,6 +76,113 @@ def get_path(record: dict[str, Any], path: str) -> Any:
 
 def make_accessor(path: str) -> Accessor:
     return lambda record: get_path(record, path)
+
+
+def valid_present_value(value: Any) -> bool:
+    return not is_missing(value)
+
+
+def valid_non_empty_text(value: Any) -> bool:
+    return not is_missing(value) and bool(str(value).strip())
+
+
+def valid_collection_or_text(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    if isinstance(value, (list, dict)):
+        return bool(value)
+    return bool(str(value).strip())
+
+
+def valid_url(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    return bool(URL_RE.match(str(value).strip()))
+
+
+def valid_email(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    return bool(EMAIL_RE.match(str(value).strip()))
+
+
+def valid_phone(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    digits = re.sub(r"\D", "", str(value))
+    return len(digits) >= 6
+
+
+def rating_validator(max_score: float) -> Validator:
+    def validate(value: Any) -> bool:
+        parsed = parse_float(value)
+        return parsed is not None and 0 <= parsed <= max_score
+
+    return validate
+
+
+def valid_non_negative_int(value: Any) -> bool:
+    parsed = parse_int(value)
+    return parsed is not None and parsed >= 0
+
+
+def valid_latitude(value: Any) -> bool:
+    parsed = parse_float(value)
+    return parsed is not None and -90 <= parsed <= 90
+
+
+def valid_longitude(value: Any) -> bool:
+    parsed = parse_float(value)
+    return parsed is not None and -180 <= parsed <= 180
+
+
+def valid_timestamp(value: Any) -> bool:
+    return parse_datetime(value) is not None
+
+
+def valid_google_price(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    if isinstance(value, dict):
+        return any(not is_missing(item) for item in value.values())
+    text = str(value).strip()
+    return text.startswith("PRICE_LEVEL_") or parse_float(text) is not None
+
+
+def valid_tripadvisor_price_range(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    text = str(value).strip()
+    allowed = set("$\u20ac£- ")
+    return any(symbol in text for symbol in "$\u20ac£") and all(char in allowed for char in text)
+
+
+def valid_euro_price_amount(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    text = str(value).strip().lower()
+    return parse_float(text) is not None and ("\u20ac" in text or "eur" in text)
+
+
+def valid_discount(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    text = str(value).strip()
+    return "%" in text and parse_float(text) is not None
+
+
+def valid_business_status(value: Any) -> bool:
+    if is_missing(value):
+        return False
+    return str(value).strip().upper() in {
+        "OPERATIONAL",
+        "CLOSED_TEMPORARILY",
+        "CLOSED_PERMANENTLY",
+    }
+
+
+def valid_bool(value: Any) -> bool:
+    return isinstance(value, bool)
 
 
 def google_config(path: Path) -> SourceConfig:
@@ -112,6 +233,27 @@ def google_config(path: Path) -> SourceConfig:
             "review_count",
         ),
         timestamp_fields=("details_fetched_at", "seed_collected_at"),
+        format_validators={
+            "place_id": valid_non_empty_text,
+            "name": valid_non_empty_text,
+            "address": valid_non_empty_text,
+            "city": valid_non_empty_text,
+            "latitude": valid_latitude,
+            "longitude": valid_longitude,
+            "rating": rating_validator(5.0),
+            "review_count": valid_non_negative_int,
+            "types": valid_collection_or_text,
+            "primary_type": valid_non_empty_text,
+            "details": valid_collection_or_text,
+            "phone_number": valid_phone,
+            "website": valid_url,
+            "opening_hours": valid_collection_or_text,
+            "reviews": valid_collection_or_text,
+            "price": valid_google_price,
+            "business_status": valid_business_status,
+            "details_fetched_at": valid_timestamp,
+            "seed_collected_at": valid_timestamp,
+        },
     )
 
 
@@ -139,6 +281,23 @@ def tripadvisor_config(path: Path) -> SourceConfig:
         rating_scale=5.0,
         fields=fields,
         critical_fields=("source_url", "restaurant_name", "address", "rating", "review_count"),
+        format_validators={
+            "source_url": valid_url,
+            "restaurant_name": valid_non_empty_text,
+            "address": valid_non_empty_text,
+            "rating": rating_validator(5.0),
+            "review_count": valid_non_negative_int,
+            "cuisine_type": valid_collection_or_text,
+            "price_range": valid_tripadvisor_price_range,
+            "photo_count": valid_non_negative_int,
+            "website": valid_url,
+            "phone_number": valid_phone,
+            "email": valid_email,
+            "opening_hours": valid_collection_or_text,
+            "reviews": valid_collection_or_text,
+        },
+        collection_duration_hours=27.0,
+        collection_duration_source="configured scraper runtime estimate",
     )
 
 
@@ -182,6 +341,30 @@ def thefork_config(path: Path) -> SourceConfig:
             "review_count",
         ),
         timestamp_fields=("scraped_at",),
+        format_validators={
+            "source_id": valid_present_value,
+            "restaurant_url": valid_url,
+            "restaurant_name": valid_non_empty_text,
+            "address": valid_non_empty_text,
+            "city": valid_non_empty_text,
+            "latitude": valid_latitude,
+            "longitude": valid_longitude,
+            "rating": rating_validator(10.0),
+            "review_count": valid_non_negative_int,
+            "cuisine_type": valid_collection_or_text,
+            "price_range": valid_euro_price_amount,
+            "discount": valid_discount,
+            "photo_count": valid_non_negative_int,
+            "website": valid_url,
+            "phone_number": valid_phone,
+            "email": valid_email,
+            "opening_hours": valid_collection_or_text,
+            "reviews": valid_collection_or_text,
+            "detail_scraped": valid_bool,
+            "scraped_at": valid_timestamp,
+        },
+        collection_duration_hours=2.0,
+        collection_duration_source="configured scraper runtime estimate",
     )
 
 
@@ -222,6 +405,9 @@ def analyze_source(config: SourceConfig, low_review_threshold: int = 20) -> dict
     valid_coordinates = 0
     coordinates_present = 0
     coordinates_in_area = 0
+    format_checked_values = 0
+    format_valid_values = 0
+    format_invalid_fields = Counter[str]()
     invalid_json_lines = 0
 
     for index, record in enumerate(iter_records(config), 1):
@@ -246,6 +432,37 @@ def analyze_source(config: SourceConfig, low_review_threshold: int = 20) -> dict
         for field, value in values.items():
             if not is_missing(value):
                 present_counts[field] += 1
+
+        fields_with_specific_flags = {
+            config.rating_field,
+            config.review_count_field,
+            *config.timestamp_fields,
+        }
+        for field, validator in config.format_validators.items():
+            value = values.get(field)
+            if is_missing(value):
+                continue
+            format_checked_values += 1
+            try:
+                is_valid_format = validator(value)
+            except (TypeError, ValueError):
+                is_valid_format = False
+            if is_valid_format:
+                format_valid_values += 1
+                continue
+            format_invalid_fields[field] += 1
+            if field in fields_with_specific_flags:
+                continue
+            anomalies.append(
+                anomaly(
+                    config.name,
+                    source_id_text,
+                    "invalid_field_format",
+                    field,
+                    value,
+                    "Present value does not match the expected source-specific format.",
+                )
+            )
 
         if not is_missing(source_id):
             ids[str(source_id)] += 1
@@ -493,13 +710,29 @@ def analyze_source(config: SourceConfig, low_review_threshold: int = 20) -> dict
     timestamp_parseable_pct = pct(timestamp_parseable_total, timestamp_present_total)
     latest_timestamp = max(timestamp_values) if timestamp_values else None
     oldest_timestamp = min(timestamp_values) if timestamp_values else None
+    timestamp_window_hours = (
+        round((latest_timestamp - oldest_timestamp).total_seconds() / 3600, 2)
+        if latest_timestamp and oldest_timestamp
+        else None
+    )
+    collection_duration_hours = config.collection_duration_hours
+    collection_duration_source = config.collection_duration_source
+    if collection_duration_hours is None:
+        collection_duration_hours = timestamp_window_hours
+        collection_duration_source = (
+            "observed timestamp window" if timestamp_window_hours is not None else "unavailable"
+        )
+    timeliness_score = refreshability_score(
+        collection_duration_hours,
+        config.refresh_target_hours,
+    )
     data_age_days = (
         round((generated_at - latest_timestamp).total_seconds() / 86400, 2)
         if latest_timestamp
         else None
     )
     reliability_score = pct(reliable_reviews, record_count)
-    validity_score = average_pct([rating_valid_pct, review_valid_pct])
+    validity_score = pct(format_valid_values, format_checked_values)
     spatial_readiness_score = coordinate_valid_pct
     overall_quality_score = weighted_quality_score(
         {
@@ -507,7 +740,7 @@ def analyze_source(config: SourceConfig, low_review_threshold: int = 20) -> dict
             "validity": validity_score,
             "spatial_readiness": spatial_readiness_score,
             "uniqueness": uniqueness_score,
-            "timeliness": timestamp_coverage_pct,
+            "timeliness": timeliness_score,
             "reliability": reliability_score,
         }
     )
@@ -557,11 +790,24 @@ def analyze_source(config: SourceConfig, low_review_threshold: int = 20) -> dict
             "timestamp_present_count": timestamp_present_total,
             "timestamp_parseable_count": timestamp_parseable_total,
             "records_with_timestamp_count": records_with_timestamp,
-            "timeliness_score_pct": timestamp_coverage_pct,
+            "timestamp_coverage_pct": timestamp_coverage_pct,
             "timestamp_parseable_pct": timestamp_parseable_pct,
+            "timestamp_window_hours": timestamp_window_hours,
+            "collection_duration_hours": (
+                round(collection_duration_hours, 2)
+                if collection_duration_hours is not None
+                else None
+            ),
+            "collection_duration_source": collection_duration_source,
+            "refresh_target_hours": config.refresh_target_hours,
+            "timeliness_score_pct": timeliness_score,
             "oldest_timestamp": oldest_timestamp.isoformat() if oldest_timestamp else None,
             "latest_timestamp": latest_timestamp.isoformat() if latest_timestamp else None,
             "data_age_days": data_age_days,
+            "format_checked_value_count": format_checked_values,
+            "format_valid_value_count": format_valid_values,
+            "format_invalid_value_count": format_checked_values - format_valid_values,
+            "format_invalid_fields": dict(format_invalid_fields),
             "validity_score_pct": validity_score,
             "overall_quality_score_pct": overall_quality_score,
             "anomaly_count": len(anomalies),
@@ -615,11 +861,15 @@ def quality_score_row(source: dict[str, Any]) -> dict[str, Any]:
     return {
         "source": source["source"],
         "overall_quality_score_pct": summary["overall_quality_score_pct"],
+        "completeness_score_pct": summary["completeness_score_pct"],
         "critical_completeness_score_pct": summary["critical_completeness_score_pct"],
         "validity_score_pct": summary["validity_score_pct"],
         "spatial_readiness_score_pct": summary["spatial_readiness_score_pct"],
         "uniqueness_score_pct": summary["uniqueness_score_pct"],
         "timeliness_score_pct": summary["timeliness_score_pct"],
+        "timestamp_coverage_pct": summary["timestamp_coverage_pct"],
+        "collection_duration_hours": summary["collection_duration_hours"],
+        "refresh_target_hours": summary["refresh_target_hours"],
         "reliability_score_pct": summary["reliability_score_pct"],
         "anomaly_count": summary["anomaly_count"],
         "record_count": source["record_count"],
@@ -658,11 +908,22 @@ def anomaly(
 
 
 def pct(numerator: int, denominator: int) -> float:
-    return round((numerator / denominator) * 100, 2) if denominator else 0.0
+    if not denominator:
+        return 0.0
+    value = round((numerator / denominator) * 100, 2)
+    if numerator < denominator and value == 100.0:
+        return 99.99
+    return value
 
 
 def average_pct(values: list[float]) -> float:
     return round(sum(values) / len(values), 2) if values else 0.0
+
+
+def refreshability_score(duration_hours: float | None, target_hours: float) -> float:
+    if duration_hours is None or target_hours <= 0:
+        return 0.0
+    return round(max(0.0, 100.0 * (1 - (duration_hours / target_hours))), 2)
 
 
 def weighted_quality_score(components: dict[str, float]) -> float:
