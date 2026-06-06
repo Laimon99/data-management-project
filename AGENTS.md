@@ -7,14 +7,16 @@ Data Management project. The goal is to compare restaurant ratings across **Goog
 This repository has runnable extractors for all three sources — **Google Places**
 (seed acquisition), **Tripadvisor**, and **TheFork** — plus a runnable **MongoDB
 Load layer** (`services/load/mongo`), a **Tripadvisor transform**
-(clean + geocode, `services/transform/tripadvisor_clean`), and **Docker storage infrastructure**
-(MongoDB as system of record + a ClickHouse analytics scaffold). Entity resolution,
-unified dataset creation, and quality assessment are still in the planning/scaffolding
-phase. Refer to `docs/` for the current design intent.
+(clean + geocode, `services/transform/tripadvisor_clean`), a **Google Places transform**
+(clean + normalize + relevance-flag, `services/transform/google_clean`), and **Docker
+storage infrastructure** (MongoDB as system of record + a ClickHouse analytics
+scaffold). Entity resolution, unified dataset creation, and quality assessment are
+still in the planning/scaffolding phase. Refer to `docs/` for the current design intent.
 
 Services are grouped by pipeline stage: `services/extract/`, `services/load/`,
 `services/transform/` (PEP 420 namespace packages → imports like
-`extract.google_places_api`, `load.mongo`, `transform.tripadvisor_clean`).
+`extract.google_places_api`, `load.mongo`, `transform.tripadvisor_clean`,
+`transform.google_clean`).
 
 ---
 
@@ -33,6 +35,7 @@ uv run thefork-scraper-extract       # TheFork Playwright scraper CLI
 docker compose up -d mongo           # start MongoDB (storage layer)
 uv run dataman-load all              # load raw files into MongoDB (Load layer)
 uv run tripadvisor-clean             # clean + geocode Tripadvisor → restaurants_clean_tripadvisor (transform)
+uv run google-clean                  # clean+normalize Google → restaurants_clean_google (transform)
 ```
 
 `target-version = "py311"`.
@@ -58,7 +61,7 @@ Five sequential stages — each should live in its own module/directory:
 
 2. **Per-platform data collection** — Tripadvisor extraction is implemented in `services/extract/tripadvisor_scraper` and TheFork extraction in `services/extract/thefork_scraper`. Each platform collects ratings and review counts independently into its own raw output/table. Raw files are then loaded into MongoDB by the **Load layer** (`services/load/mongo`, `uv run dataman-load`): a pure raw passthrough that idempotently upserts into `restaurants_raw_{google,tripadvisor,thefork}`, keyed on each source's natural id.
 
-3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches. Tripadvisor records (which lack coordinates) are cleaned and enriched with lat/lon beforehand by the **Tripadvisor transform** `services/transform/tripadvisor_clean` (`uv run tripadvisor-clean`, Mongo→Mongo): it normalizes/type-coerces the raw records and geocodes the cleaned address (Nominatim/OpenStreetMap) into `restaurants_clean_tripadvisor`, enabling proximity blocking. Geocoding is a sub-step of this transform, not a separate stage.
+3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches. Tripadvisor records (which lack coordinates) are cleaned and enriched with lat/lon beforehand by the **Tripadvisor transform** `services/transform/tripadvisor_clean` (`uv run tripadvisor-clean`, Mongo→Mongo): it normalizes/type-coerces the raw records and geocodes the cleaned address (Nominatim/OpenStreetMap) into `restaurants_clean_tripadvisor`, enabling proximity blocking. Geocoding is a sub-step of this transform, not a separate stage. The Google seed is cleaned beforehand by `services/transform/google_clean` (`uv run google-clean`, Mongo→Mongo) into `restaurants_clean_google`: it projects the lean fields out of the raw `details` blob, normalizes name/city, lifts structured address parts, copies the authoritative coordinates (never re-geocoded), and flags dining relevance (`is_dining` / `category_tier`) so non-dining noise (gas stations, supermarkets, hotels) can be excluded from matching.
 
 4. **Unified dataset** — single table joining all platform ratings per restaurant, with geographic coordinates. Must support at least two queries (e.g. rating difference > 1 star, avg rating by area).
 

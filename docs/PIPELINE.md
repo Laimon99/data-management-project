@@ -26,7 +26,12 @@ Restaurant List (name, address, lat, lon)
         ├──► TheFork Scraper
         │
         ▼
-Platform-specific tables
+Platform-specific raw tables  (restaurants_raw_{google,tripadvisor,thefork})
+        │
+        ▼
+Transform layer (clean / normalize / flag)
+   • google_clean      → restaurants_clean_google      (uv run google-clean)
+   • tripadvisor clean+geocode → restaurants_clean_tripadvisor
         │
         ▼
 LLM-based Entity Matching
@@ -34,6 +39,13 @@ LLM-based Entity Matching
         ▼
 Unified Ratings Table (+ geo analysis)
 ```
+
+> **Transform (T) layer.** Each source is cleaned Mongo→Mongo before matching. For
+> **Google**, `services/transform/google_clean` (`uv run google-clean`) projects the lean
+> fields out of the raw `details` blob, normalizes name/city, lifts structured address
+> parts, copies the authoritative coordinates (never re-geocoded), and classifies dining
+> relevance (`is_dining` / `category_tier`) so non-dining venues can be excluded. See
+> `specs/google-places-elt-transform.md` and `services/extract/google_places_api/eda-report.md`.
 
 ---
 

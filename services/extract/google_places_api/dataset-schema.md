@@ -14,7 +14,7 @@ Raw file path: `data/raw/google_places/restaurants_seed.jsonl`.
 | `place_id` | string | 100% | Google Places unique identifier (e.g. `ChIJ...`). Primary key. |
 | `name` | string | 100% | Display name of the venue. |
 | `formatted_address` | string | 100% | Full postal address as returned by the Places search. |
-| `city` | string | 100% | Always `"Milan"` — the seed is scoped to this city. |
+| `city` | string | 100% | Municipality from the address. **Not** always "Milan": 62 distinct values across the Milan metropolitan area (`Milano` 8960, `Sesto San Giovanni` 311, `Corsico`, `Segrate`, …), with a `"Milano"`/`"Milan"` EN/IT spelling split and some unreliable out-of-area values (e.g. `Torino`, `MARTINA FRANCA`) despite in-bbox coordinates. The transform `google_clean` derives a canonical `city` from the structured `addressComponents`. See `eda-report.md` §3. |
 | `latitude` | float | 100% | WGS-84 latitude. Authoritative; not re-geocoded in later stages. |
 | `longitude` | float | 100% | WGS-84 longitude. Authoritative; not re-geocoded in later stages. |
 | `types` | list[string] | 100% | All Google place type tags (e.g. `["restaurant", "food", "point_of_interest"]`). |

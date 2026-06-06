@@ -517,7 +517,15 @@ Stored within the `review` array:
 
 ---
 
-## Post-Processing: Geocoding (see the branch: tripadvsior-geocoding-enrichment)
+## Post-Processing: Geocoding (transform stage)
+
+This scraper outputs address strings but **no coordinates**, and geocoding is **not**
+part of the scraper. Coordinates are added downstream by the **transform stage**
+(`services/transform/tripadvisor_clean`), which cleans the raw records and enriches the
+cleaned address with latitude/longitude via Nominatim/OpenStreetMap.
+
+➡️ See **[`services/transform/tripadvisor_clean/README.md`](../../transform/tripadvisor_clean/README.md)**
+for how to run it, its CLI flags, rate-limiting/compliance, and output format.
 
 ### Motivation
 

@@ -71,6 +71,12 @@ shape" already sketched in the root `README.md`:
 - `restaurants_raw_google` — seed + raw Place Details.
 - `restaurants_raw_tripadvisor` — raw scraped payload.
 - `restaurants_raw_thefork` — raw scraped payload.
+- `restaurants_clean_google` — lean, normalized, relevance-flagged Google records
+  produced by the **transform layer** `services/transform/google_clean`
+  (`uv run google-clean`, Mongo→Mongo): projects the relevant fields out of the raw
+  `details` blob, normalizes name/city, lifts structured address parts, copies the
+  authoritative coordinates (never re-geocoded), and flags dining relevance. See
+  `specs/google-places-elt-transform.md`.
 - `restaurants_integrated` (ClickHouse) — unified per-restaurant ratings + coordinates,
   feeding the mandatory queries (rating difference > 1 star, avg rating by area, …).
 
