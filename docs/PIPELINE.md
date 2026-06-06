@@ -110,6 +110,29 @@ Each platform generates its **own table**, without assuming perfect name or addr
 
 ---
 
+## Step 2b – Transform (Clean + Geocode)
+
+Before entity resolution, raw per-platform records are transformed **Mongo → Mongo**
+(the raw collections stay immutable). The first transform implemented is the
+**Tripadvisor transform** (`services/transform/tripadvisor_clean`, `uv run tripadvisor-clean`):
+
+* reads `restaurants_raw_tripadvisor`;
+* cleans each record with pure functions — rating `"5,0" → 5.0`, review count
+  `"(1.234 recensioni)" → 1234`, `"NaN"`-sentinel → `null`, name/address normalization,
+  best-effort `postal_code` / `street` / `city` extraction;
+* **geocodes the cleaned address** via Nominatim/OpenStreetMap as a sub-step (clean-first
+  for higher hit-rate; resumable — already-geocoded records are skipped; `--skip-geocode`
+  gives a fast clean-only pass);
+* upserts **one** document (clean fields + `latitude`/`longitude`) into
+  `restaurants_clean_tripadvisor`, keyed on `source_url`.
+
+It returns a `CleanReport` of before/after counts (parsed/nulled ratings & reviews,
+NaN coercions, normalizations, low-review count, geocoding outcomes) — evidence for the
+Step-5 quality assessment. This single combined transform is the template the other two
+sources will copy. Geocoding is part of the transform, **not** a separate stage.
+
+---
+
 ## Step 3 – Entity Resolution Problem
 
 Direct joins are **not reliable** because:

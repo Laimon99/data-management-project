@@ -521,11 +521,109 @@ Stored within the `review` array:
 
 This scraper outputs address strings but **no coordinates**, and geocoding is **not**
 part of the scraper. Coordinates are added downstream by the **transform stage**
-(`services/transform/tripadvisor_geocode`), which reads the scraped JSON and enriches it
-with latitude/longitude via Nominatim/OpenStreetMap.
+(`services/transform/tripadvisor_clean`), which cleans the raw records and enriches the
+cleaned address with latitude/longitude via Nominatim/OpenStreetMap.
 
-➡️ See **[`services/transform/tripadvisor_geocode/README.md`](../../transform/tripadvisor_geocode/README.md)**
+➡️ See **[`services/transform/tripadvisor_clean/README.md`](../../transform/tripadvisor_clean/README.md)**
 for how to run it, its CLI flags, rate-limiting/compliance, and output format.
+
+### Motivation
+
+TripAdvisor provides address strings but not geographic coordinates (latitude/longitude). For mapping, spatial analysis, and geospatial joins with other datasets, we must enrich the address field with GPS coordinates.
+
+### Tool: geopy + Nominatim
+
+The `geocoding_restaurant.py` module uses:
+
+- **geopy:** Python library for geolocation services
+- **Nominatim:** Free, open-source geocoder (OpenStreetMap-based)
+
+```python
+from geopy.geocoders import Nominatim
+
+geolocator = Nominatim(user_agent="data-management-project-tripadvisor-v11")
+location = geolocator.geocode("Via Torino 19, 20123 Milano Italia")
+print(location.latitude, location.longitude)
+# Output: 45.4637, 9.1923
+```
+
+### Rate-Limiting & Compliance
+
+Nominatim's Terms of Service **require:**
+
+1. **User-Agent Header:** Must identify your application uniquely (not a generic "Mozilla/5.0")
+2. **Delay Between Requests:** Minimum **1.5 seconds** between consecutive requests
+
+The script enforces these:
+
+```python
+geolocator = Nominatim(
+    user_agent="data-management-project-tripadvisor-v11",  # Unique identifier
+    timeout=10
+)
+
+# Delay between requests
+time.sleep(1.5)  # Blocking sleep is acceptable here (I/O-bound, not large-scale)
+location = geolocator.geocode(address)
+```
+
+### Failure Handling
+
+| Input | Output |
+|---|---|
+| Valid address (e.g., `"Via Torino 19, 20123 Milano"`) | Coordinates (e.g., `45.4637`, `9.1923`) |
+| Address not found in Nominatim | `"NaN"` for both lat/long |
+| Network error / timeout | `"NaN"` for both lat/long, continue to next |
+| Input address already `"NaN"` | Skip geocoding, output `"NaN"` for both |
+
+### Output File Structure
+
+Geocoded data is written to `tripadvisor_scraper_results_geocoded.json`:
+
+```json
+{
+  "restaurant_name": "Osteria del Balabiott",
+  "rating": "4,5",
+  ...
+  "address": "Via Torino 19, 20123 Milano Italia",
+  "latitude": "45.4637",           // ← NEW
+  "longitude": "9.1923",           // ← NEW
+  "website": "https://www.balabiott.it",
+  ...
+}
+```
+
+### Running the transform (clean + geocode)
+
+Geocoding is no longer part of this scraper — it is a sub-step of the **transform** stage
+(`services/transform/tripadvisor_clean`). After scraping and loading into MongoDB
+(`uv run dataman-load tripadvisor`), the transform cleans the raw records and geocodes the
+cleaned address **Mongo → Mongo** into `restaurants_clean_tripadvisor`:
+
+```bash
+uv run tripadvisor-clean            # clean + geocode the full dataset
+uv run tripadvisor-clean --limit 20 # quick test slice
+uv run tripadvisor-clean --skip-geocode  # fast clean-only pass
+```
+
+See `services/transform/tripadvisor_clean/README.md` for `--limit`, `--skip-geocode`,
+`--reset`, `--delay`, and `--timeout`.
+
+### Performance Metrics
+
+Typical throughput: **2,400 records / 40 minutes** (1.5s delay × 2,400 = 3,600 seconds / 60 min = 60 min overhead)
+
+For 7,539 records: **~3 hours of geocoding time**
+
+```
+────────────────────────────────────────────────────────
+[DONE] File saved to 'tripadvisor_scraper_results_geocoded.json'
+       ✔  Coordinates found   : 7,100
+       ✘  Not found          : 396
+       ⊘  Skipped (addr NaN) : 43
+       Total                 : 7,539
+────────────────────────────────────────────────────────
+```
 
 ---
 
@@ -587,11 +685,15 @@ python -m extract.tripadvisor_scraper
 # and skips all previously processed restaurants
 ```
 
-#### Option 4: Geocoding Enrichment
+#### Option 4: Clean + Geocode (transform stage)
 
-Geocoding is a separate **transform** stage, not part of this scraper. After scraping,
-see [`services/transform/tripadvisor_geocode/README.md`](../../transform/tripadvisor_geocode/README.md)
-for how to enrich the scraped JSON with coordinates.
+```bash
+# After scraping and loading into MongoDB (uv run dataman-load tripadvisor):
+uv run tripadvisor-clean
+
+# This reads restaurants_raw_tripadvisor and writes cleaned+geocoded docs
+# (Mongo -> Mongo) into restaurants_clean_tripadvisor.
+```
 
 ### Runtime Interaction
 

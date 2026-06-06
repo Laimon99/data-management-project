@@ -21,8 +21,10 @@ tests/
 ├── load/
 │   └── mongo/                     # Tests for the load layer (mongomock)
 └── transform/
-    └── tripadvisor_geocode/       # Tests for geocoding enrichment (patched Nominatim)
-        └── test_geocode.py            # helpers + dataset loop classification
+    └── tripadvisor_clean/         # Tests for the clean+geocode transform (mongomock, patched Nominatim)
+        ├── test_clean_cleaners.py     # pure cleaning functions
+        ├── test_geocode_core.py       # geocoding core (retry/back-off, build_query)
+        └── test_clean_transform.py    # Mongo orchestration: idempotency, resumability, --skip-geocode
 ```
 
 ## Conventions
