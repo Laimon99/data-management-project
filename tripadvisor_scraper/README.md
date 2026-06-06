@@ -158,6 +158,31 @@ python -m src.main --cdp-parallel-proxies --proxy-list proxy_list.txt --parallel
 
 `--distributed-slot-start` is zero-based. In this example the Windows PC uses slots `0-4`, while the Mac Mini uses slots `5-7`. Both PCs must start from the same base partial/listing file. Each PC can auto-merge its own worker outputs locally; after that, merge the updated partials from the two PCs with `src.merge_outputs`.
 
+Example 7+7 two-PC workflow used for the Milan enrichment run:
+
+1. Generate or copy the same listing-only base file on both machines:
+   `output/tripadvisor_milan_restaurants_normalized_partial.json`.
+2. Run Windows with slots `0-6`:
+
+```bash
+python -m src.main --cdp-parallel-proxies --proxy-list proxy_list_pc_runtime.txt --parallel-workers 7 --distributed-slot-count 14 --distributed-slot-start 0 --parallel-base-port 9460 --parallel-profile-root C:\tmp\tripadvisor_cdp_profiles_pc --input-partial output\tripadvisor_milan_restaurants_normalized_partial.json --detail-delay-min-seconds 6 --detail-delay-max-seconds 12 --max-consecutive-detail-failures 5 --partial-every-restaurants 5 --human-detail-scroll --max-reviews-per-restaurant 15 --log-level INFO
+```
+
+3. Run the Mac Mini with slots `7-13`:
+
+```bash
+python3 -m src.main --cdp-parallel-proxies --proxy-list proxy_list_mac_runtime.txt --parallel-workers 7 --distributed-slot-count 14 --distributed-slot-start 7 --parallel-base-port 9460 --parallel-profile-root /tmp/tripadvisor_cdp_profiles_mac --input-partial output/tripadvisor_milan_restaurants_normalized_partial.json --detail-delay-min-seconds 6 --detail-delay-max-seconds 12 --max-consecutive-detail-failures 5 --partial-every-restaurants 5 --human-detail-scroll --max-reviews-per-restaurant 15 --log-level INFO
+```
+
+4. Copy the Mac result back to the Windows PC, then merge it with the Windows worker outputs and the listing base:
+
+```bash
+python -m src.merge_outputs output/tripadvisor_milan_restaurants_normalized.json output/runs/cdp_parallel/run_YYYYMMDD_HHMMSS/worker_*/tripadvisor_milan_restaurants_normalized_partial.json output/from_mac/tripadvisor_milan_restaurants_enriched_mac_slots_7_13.json --output output/tripadvisor_milan_restaurants_normalized_partial.json
+```
+
+When all records have `detail_scraped=true`, copy the merged partial to:
+`output/tripadvisor_milan_restaurants_enriched.json`.
+
 Memory sizing for parallel profiles:
 
 - Each active Brave profile usually uses about 700-900 MB of RAM on Windows.

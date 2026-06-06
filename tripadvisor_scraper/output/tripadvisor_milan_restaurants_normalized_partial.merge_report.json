@@ -1,0 +1,147 @@
+{
+  "inputs": [
+    {
+      "path": "output\\tripadvisor_milan_restaurants_normalized.json",
+      "records": 7548,
+      "detail_scraped": 0,
+      "with_coordinates": 0,
+      "with_reviews": 0,
+      "with_website": 0,
+      "with_social_links": 0,
+      "with_phone": 0,
+      "with_email": 0,
+      "with_working_hours_structured": 0,
+      "avg_richness_score": 10.64
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_01_proxy_1_82_47_252_105_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 540,
+      "with_coordinates": 533,
+      "with_reviews": 480,
+      "with_website": 308,
+      "with_social_links": 540,
+      "with_phone": 486,
+      "with_email": 5,
+      "with_working_hours_structured": 376,
+      "avg_richness_score": 14.16
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_02_proxy_2_82_47_253_205_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 540,
+      "with_coordinates": 533,
+      "with_reviews": 476,
+      "with_website": 314,
+      "with_social_links": 540,
+      "with_phone": 491,
+      "with_email": 7,
+      "with_working_hours_structured": 365,
+      "avg_richness_score": 14.18
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_03_proxy_3_82_47_252_90_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 539,
+      "with_coordinates": 537,
+      "with_reviews": 481,
+      "with_website": 311,
+      "with_social_links": 539,
+      "with_phone": 494,
+      "with_email": 8,
+      "with_working_hours_structured": 352,
+      "avg_richness_score": 14.15
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_04_proxy_4_82_47_252_48_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 539,
+      "with_coordinates": 535,
+      "with_reviews": 477,
+      "with_website": 327,
+      "with_social_links": 539,
+      "with_phone": 489,
+      "with_email": 10,
+      "with_working_hours_structured": 358,
+      "avg_richness_score": 14.19
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_05_proxy_5_82_47_252_107_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 539,
+      "with_coordinates": 536,
+      "with_reviews": 478,
+      "with_website": 301,
+      "with_social_links": 539,
+      "with_phone": 494,
+      "with_email": 7,
+      "with_working_hours_structured": 368,
+      "avg_richness_score": 14.18
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_06_proxy_6_82_47_252_98_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 539,
+      "with_coordinates": 534,
+      "with_reviews": 481,
+      "with_website": 303,
+      "with_social_links": 539,
+      "with_phone": 493,
+      "with_email": 10,
+      "with_working_hours_structured": 365,
+      "avg_richness_score": 14.17
+    },
+    {
+      "path": "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_07_proxy_7_82_47_252_1_50100\\tripadvisor_milan_restaurants_normalized_partial.json",
+      "records": 7548,
+      "detail_scraped": 539,
+      "with_coordinates": 536,
+      "with_reviews": 476,
+      "with_website": 312,
+      "with_social_links": 539,
+      "with_phone": 491,
+      "with_email": 6,
+      "with_working_hours_structured": 360,
+      "avg_richness_score": 14.17
+    },
+    {
+      "path": "output\\from_mac\\tripadvisor_milan_restaurants_enriched_mac_slots_7_13.json",
+      "records": 7548,
+      "detail_scraped": 3773,
+      "with_coordinates": 3738,
+      "with_reviews": 3338,
+      "with_website": 2133,
+      "with_social_links": 3773,
+      "with_phone": 3384,
+      "with_email": 1787,
+      "with_working_hours_structured": 2561,
+      "avg_richness_score": 36.06
+    }
+  ],
+  "output": {
+    "path": "output\\rebuilt_merge_20260606\\tripadvisor_milan_restaurants_normalized_partial.json",
+    "records": 7548,
+    "detail_scraped": 7548,
+    "with_coordinates": 7482,
+    "with_reviews": 6687,
+    "with_website": 4309,
+    "with_social_links": 7548,
+    "with_phone": 6822,
+    "with_email": 1840,
+    "with_working_hours_structured": 5105,
+    "avg_richness_score": 60.73
+  },
+  "replacement_reasons": {
+    "candidate_has_detail": 7548
+  },
+  "chosen_sources": {
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_01_proxy_1_82_47_252_105_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 540,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_02_proxy_2_82_47_253_205_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 540,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_03_proxy_3_82_47_252_90_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 539,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_04_proxy_4_82_47_252_48_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 539,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_05_proxy_5_82_47_252_107_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 539,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_06_proxy_6_82_47_252_98_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 539,
+    "C:\\Users\\simon\\OneDrive\\Desktop\\Università\\Magistrale\\ESAMI DA DARE\\Anno 1 Semestre 1\\Data Management\\Progetto\\data management project\\tripadvisor-scraper-simone\\tripadvisor_scraper\\output\\runs\\cdp_parallel\\run_20260606_120741\\worker_07_proxy_7_82_47_252_1_50100\\tripadvisor_milan_restaurants_normalized_partial.json": 539,
+    "output\\from_mac\\tripadvisor_milan_restaurants_enriched_mac_slots_7_13.json": 3773
+  }
+}
