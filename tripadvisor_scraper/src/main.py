@@ -49,6 +49,12 @@ def parse_args() -> argparse.Namespace:
         help="Perform a light human-like scroll before extracting detail page fields.",
     )
     parser.add_argument(
+        "--max-reviews-per-restaurant",
+        type=int,
+        default=config.MAX_REVIEWS_PER_RESTAURANT,
+        help="Maximum review objects to keep per restaurant.",
+    )
+    parser.add_argument(
         "--partial-every-pages",
         type=int,
         default=5,
@@ -438,6 +444,7 @@ def main() -> None:
             detail_delay_max_seconds=coalesce_delay(args.detail_delay_max_seconds, args.detail_delay_seconds),
             partial_every_restaurants=args.partial_every_restaurants,
             max_consecutive_detail_failures=args.max_consecutive_detail_failures,
+            max_reviews_per_restaurant=args.max_reviews_per_restaurant,
             log_level=args.log_level,
             distributed_slot_count=args.distributed_slot_count,
             distributed_slot_start=args.distributed_slot_start,
@@ -481,6 +488,7 @@ def main() -> None:
             detail_shard_count=args.detail_shard_count,
             detail_shard_index=args.detail_shard_index,
             human_scroll_enabled=args.human_detail_scroll,
+            max_reviews_per_restaurant=args.max_reviews_per_restaurant,
         )
         run_cdp_detail_enrichment(storage, cdp_options)
         return
@@ -523,6 +531,7 @@ def main() -> None:
         proxy_turn_jitter_seconds=args.proxy_turn_jitter_seconds,
         browser_warmup_url=browser_warmup_url,
         browser_warmup_seconds=browser_warmup_seconds,
+        max_reviews_per_restaurant=args.max_reviews_per_restaurant,
     )
 
     try:

@@ -25,8 +25,9 @@ Detail pages try to improve:
 - discount if exposed
 - photo count
 - website, phone number, and email when exposed
-- opening hours
-- review snippets and up to 5 reviews
+- social links separately from official website links
+- opening hours as both display text and structured data when exposed
+- review snippets and configurable reviews per restaurant
 - `detail_scraped`
 
 Extraction priority is JSON-LD, embedded JSON, visible HTML text, links and attributes, listing fallback data, then `null`.
@@ -195,6 +196,7 @@ Useful options:
 --detail-delay-min-seconds N     Minimum random delay between detail pages.
 --detail-delay-max-seconds N     Maximum random delay between detail pages.
 --human-detail-scroll            Lightly scroll detail pages before extraction.
+--max-reviews-per-restaurant N   Maximum review objects to keep per restaurant.
 --partial-every-pages N          Save partial progress every N listing pages.
 --partial-every-restaurants N    Save partial progress every N enriched restaurants.
 --browser-channel NAME           Use chrome, msedge, or chromium.

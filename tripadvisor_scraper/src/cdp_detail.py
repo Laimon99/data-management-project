@@ -23,6 +23,7 @@ class CDPDetailOptions:
     detail_shard_count: int = 1
     detail_shard_index: int = 1
     human_scroll_enabled: bool = True
+    max_reviews_per_restaurant: int = config.MAX_REVIEWS_PER_RESTAURANT
 
 
 def run_cdp_detail_enrichment(storage: JsonStorage, options: CDPDetailOptions) -> dict[str, Any]:
@@ -41,6 +42,7 @@ def run_cdp_detail_enrichment(storage: JsonStorage, options: CDPDetailOptions) -
         max_consecutive_detail_failures=options.max_consecutive_failures,
         detail_shard_count=options.detail_shard_count,
         detail_shard_index=options.detail_shard_index,
+        max_reviews_per_restaurant=options.max_reviews_per_restaurant,
     )
     pending_indexes = scraper._pending_detail_indexes(records)
     if options.max_records is not None:

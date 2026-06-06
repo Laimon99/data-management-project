@@ -34,6 +34,7 @@ class ParallelCDPOptions:
     detail_delay_max_seconds: float
     partial_every_restaurants: int
     max_consecutive_detail_failures: int
+    max_reviews_per_restaurant: int
     log_level: str
     distributed_slot_count: int | None = None
     distributed_slot_start: int = 0
@@ -299,6 +300,8 @@ def build_worker_command(
         str(options.detail_delay_max_seconds),
         "--max-consecutive-detail-failures",
         str(options.max_consecutive_detail_failures),
+        "--max-reviews-per-restaurant",
+        str(options.max_reviews_per_restaurant),
         "--human-detail-scroll",
         "--log-level",
         options.log_level,
