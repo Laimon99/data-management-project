@@ -8,20 +8,23 @@ Google Places is treated as the broad geographic seed and reference source. Its 
 Metric & Value \\
 \midrule
 Records assessed & 10808 \\
-Overall quality score & 95.14\% \\
+Overall quality score & 93.16\% \\
 Average field completeness & 93.79\% \\
 Critical-field completeness & 98.15\% \\
-Validity score & 93.51\% \\
+Validity score & 100.00\% \\
 Uniqueness score & 99.85\% \\
-Timeliness score & 100.00\% \\
+Timeliness score & 67.23\% \\
+Collection duration & 15.73 h \\
+Timestamp coverage & 100.00\% \\
 Reliability score & 79.50\% \\
+Format values checked & 192603 / 192603 valid \\
 Native rating average & 4.26 \\
 Comparable rating average 0--5 & 4.26 \\
 Valid review counts & 10107 (93.51\%) \\
 Low-review records & 1515 (14.99\%) \\
 Valid coordinate pairs & 10808 (100.00\%) \\
 Latest source timestamp & 2026-05-25T10:15:47.447928+00:00 \\
-Data age in days & 11.11 \\
+Data age in days & 11.94 \\
 Quality flags & 2937 (27.2 per 100 records) \\
 \bottomrule
 \end{tabular}
@@ -54,10 +57,11 @@ possible\_duplicate\_name\_address & 20 \\
 
 \paragraph{Interpretation}
 \begin{itemize}
-\item The weighted source quality score is 95.14\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weighted source quality score is 93.16\%; the score is driven by integration-critical fields rather than optional metadata.
 \item The weakest fields are website (53.23\%), price (77.93\%), phone\_number (83.52\%); downstream logic should avoid treating them as mandatory matching keys.
+\item Format validity checks 192603 present values; 0 fail the expected source-specific format.
 \item The sparse-review threshold flags 1515 records, so rating comparisons should account for review-count reliability.
-\item Timeliness coverage is 100.00\%; sources without record-level timestamps should be documented as stale-risk inputs.
+\item Timeliness score is 67.23\%, based on collection duration 15.73 h against a 48.00 h refresh target; timestamp coverage is 100.00\%.
 \item The source has 2937 generated quality flags, equal to 27.17 flags per 100 records.
 \item Because valid coordinates are complete, Google can anchor the first geospatial join and help detect out-of-area records in other sources.
 \end{itemize}

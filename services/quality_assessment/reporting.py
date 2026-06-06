@@ -22,19 +22,31 @@ def write_markdown_report(payload: dict[str, Any], output_path: Path) -> None:
         "## Quality Dimensions",
         "",
         "- **Completeness**: percentage of non-missing values per relevant field.",
-        "- **Validity / consistency**: ratings in the expected platform scale, parsable",
-        "  non-negative review counts, and valid coordinate pairs where applicable.",
+        "- **Critical completeness**: same calculation restricted to fields required",
+        "  for matching, rating analysis, and spatial integration.",
+        "- **Validity / consistency**: present values matching source-specific formats",
+        "  such as rating scale, review-count type, URL/email/phone shape, price format,",
+        "  timestamp format, and numeric fields.",
         "- **Uniqueness**: duplicate source identifiers and possible duplicate normalized",
         "  name/address pairs.",
-        "- **Timeliness**: availability of source timestamps or scrape timestamps.",
+        "- **Timeliness**: refreshability based on the collection duration required by",
+        "  each source; timestamp coverage is reported separately as supporting evidence.",
         f"- **Reliability**: records with review count below `{payload['low_review_threshold']}`",
         "  are flagged as sparse evidence for rating interpretation.",
         "- **Overall score**: weighted roll-up of critical completeness, validity,",
         "  spatial readiness, uniqueness, timeliness, and review-count reliability.",
         "",
-        "## Cross-Source Summary",
+        "## Metric Definitions",
         "",
     ]
+    lines.extend(markdown_metric_definitions(payload))
+    lines.extend(
+        [
+            "",
+            "## Cross-Source Summary",
+            "",
+        ]
+    )
     lines.extend(markdown_summary_table(payload))
     lines.extend(["", "## Pre-Integration Visual Diagnostics", ""])
     lines.extend(markdown_visual_diagnostics(payload))
@@ -55,6 +67,7 @@ def write_markdown_report(payload: dict[str, Any], output_path: Path) -> None:
             "- `data/quality/field_coverage.csv`: field-level completeness table.",
             "- `data/quality/anomalies.csv`: record-level quality flags.",
             "- `data/quality/source_quality_scores.csv`: weighted quality score components.",
+            "- `report/tables/metric_definitions.tex`: LaTeX metric formula table.",
             "- `report/tables/source_summary.tex`: LaTeX source summary table.",
             "- `report/tables/source_quality_scores.tex`: score breakdown table.",
             "- `report/tables/visual_quality_scores.tex`: score bar chart.",
@@ -75,26 +88,81 @@ def write_markdown_report(payload: dict[str, Any], output_path: Path) -> None:
             "parsed as integers, and TheFork ratings remain on their native 0-10 scale.",
             "For cross-platform analysis, TheFork can later be projected to a 0-5 scale by",
             "dividing by two, but this assessment keeps the original source scale.",
+            "This baseline should be rerun after cleaning/enrichment so before/after",
+            "changes in completeness, validity, spatial readiness, and reliability are",
+            "measured with the same formulas.",
             "",
         ]
     )
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
+def markdown_metric_definitions(payload: dict[str, Any]) -> list[str]:
+    target_hours = payload["sources"][0]["summary"].get("refresh_target_hours", 48.0)
+    return [
+        "All component scores are percentages where **100% is better**. Quality flags",
+        "are warning counts, not a positive score.",
+        "",
+        "| Metric | Formula / definition | Reading |",
+        "|---|---|---|",
+        (
+            "| Completeness | `100 * present relevant field values / expected relevant field "
+            "values` | Average coverage over all profiled fields. |"
+        ),
+        (
+            "| Critical completeness | `100 * present critical field values / expected "
+            "critical field values` | Coverage of identifiers, name/address, rating, "
+            "review-count, and coordinates where required. |"
+        ),
+        (
+            "| Validity | `100 * valid present values / present values checked by validators` "
+            "| Source-specific format checks over present values; missingness is handled by "
+            "completeness. |"
+        ),
+        (
+            "| Spatial readiness | `100 * records with valid latitude/longitude pair / records` "
+            "| Readiness for geospatial matching. |"
+        ),
+        (
+            "| Timeliness | `max(0, 100 * (1 - collection_duration_hours / "
+            "refresh_target_hours))` | Refreshability against the current "
+            f"{fmt_float(target_hours)}h target. |"
+        ),
+        (
+            "| Reliability | `100 * records with review_count >= low_review_threshold / "
+            "records` | Share of records whose rating is supported by enough reviews. |"
+        ),
+        (
+            "| Uniqueness | `100 - 100 * duplicate flags / records` | Penalizes duplicate "
+            "source identifiers and duplicate normalized name/address keys. |"
+        ),
+        (
+            "| Quality flags | Record-level warnings; `flags_per_100 = 100 * flags / records` "
+            "| Diagnostic log for cleaning/enrichment, not an automatic deletion list. |"
+        ),
+        "",
+        (
+            "`timestamp_coverage_pct` is reported separately because record-level timestamps "
+            "are useful evidence, but they are not the timeliness score itself."
+        ),
+    ]
+
+
 def markdown_summary_table(payload: dict[str, Any]) -> list[str]:
     lines = [
-        "| Source | Records | Quality score | Critical | Validity | Spatial | "
+        "| Source | Records | Quality score | Completeness | Critical | Validity | Spatial | "
         "Timeliness | Reliable reviews | Flags / 100 records |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for source in payload["sources"]:
         summary = source["summary"]
         lines.append(
-            "| {source} | {records} | {score} | {critical} | {validity} | "
-            "{spatial} | {timeliness} | {reliability} | {flags} |".format(
+            "| {source} | {records} | {score} | {complete} | {critical} | "
+            "{validity} | {spatial} | {timeliness} | {reliability} | {flags} |".format(
                 source=source["source"],
                 records=source["record_count"],
                 score=fmt_pct(summary["overall_quality_score_pct"]),
+                complete=fmt_pct(summary["completeness_score_pct"]),
                 critical=fmt_pct(summary["critical_completeness_score_pct"]),
                 validity=fmt_pct(summary["validity_score_pct"]),
                 spatial=fmt_pct(summary["spatial_readiness_score_pct"]),
@@ -133,19 +201,29 @@ def markdown_score_model(payload: dict[str, Any]) -> list[str]:
         "The overall score is not a generic average of all available fields. It uses",
         "a fixed weighted model aligned with the integration task:",
         "",
+        "Average completeness is reported in the summary, but the weighted score uses",
+        "critical completeness so optional metadata does not dominate identifiers,",
+        "ratings, review counts, and coordinates.",
+        "",
         "| Component | Weight | Interpretation |",
         "|---|---:|---|",
         (
             "| Critical completeness | 25% | fields needed for identity, ratings, "
             "review counts, and coordinates |"
         ),
-        "| Validity | 20% | parsable ratings and review counts in the expected platform scale |",
+        (
+            "| Validity | 20% | present values matching expected source-specific formats "
+            "across the profiled fields |"
+        ),
         "| Spatial readiness | 15% | records with complete latitude/longitude pairs |",
         (
             "| Uniqueness | 15% | absence of duplicate source identifiers and "
             "duplicate name/address keys |"
         ),
-        "| Timeliness | 10% | records carrying parseable acquisition or scrape timestamps |",
+        (
+            "| Timeliness | 10% | source refreshability from collection duration versus "
+            "the refresh target |"
+        ),
         (
             "| Reliability | 15% | records whose review count is at least the "
             "sparse-evidence threshold |"
@@ -203,7 +281,10 @@ def markdown_comparative_findings(payload: dict[str, Any]) -> list[str]:
         key=lambda source: source["summary"]["low_review_pct_of_valid_reviews"],
     )
     most_flags = max(sources, key=anomaly_flags_per_100)
-    weakest_timeliness = min(sources, key=lambda source: source["summary"]["timeliness_score_pct"])
+    weakest_timeliness = min(
+        sources,
+        key=lambda source: source["summary"]["timeliness_score_pct"],
+    )
     coordinate_ready = [
         source["source"]
         for source in sources
@@ -230,10 +311,14 @@ def markdown_comparative_findings(payload: dict[str, Any]) -> list[str]:
         "of valid review counts).",
         f"- Highest density of quality flags: **{most_flags['source']}** "
         f"({fmt_float(anomaly_flags_per_100(most_flags))} flags per 100 records).",
-        f"- Weakest timeliness evidence: **{weakest_timeliness['source']}** "
+        f"- Weakest source refreshability: **{weakest_timeliness['source']}** "
         f"({fmt_pct(weakest_timeliness['summary']['timeliness_score_pct'])}).",
         "- Tripadvisor currently has no coordinates in the raw file, so its geospatial",
         "  integration depends on the enrichment step before final matching.",
+        "- Tripadvisor's lower raw score is expected at this stage: the file has no",
+        "  coordinates, no record-level timestamps, and many sparse pages with zero or",
+        "  low review counts. Cleaning/enrichment should be measured by rerunning the",
+        "  same assessment after preprocessing.",
     ]
     return lines
 
@@ -264,7 +349,13 @@ def markdown_source_section(source: dict[str, Any]) -> list[str]:
         f"| Validity score | {fmt_pct(summary['validity_score_pct'])} |",
         f"| Uniqueness score | {fmt_pct(summary['uniqueness_score_pct'])} |",
         f"| Timeliness score | {fmt_pct(summary['timeliness_score_pct'])} |",
+        f"| Collection duration | {fmt_hours(summary['collection_duration_hours'])} |",
+        f"| Timestamp coverage | {fmt_pct(summary['timestamp_coverage_pct'])} |",
         f"| Reliability score | {fmt_pct(summary['reliability_score_pct'])} |",
+        (
+            f"| Format values checked | {summary['format_valid_value_count']} / "
+            f"{summary['format_checked_value_count']} valid |"
+        ),
         f"| Native rating average | {fmt_optional(summary['rating_avg'])} |",
         f"| Comparable rating average (0-5) | {fmt_optional(comparable_rating_avg(source))} |",
         f"| Valid review counts | {summary['valid_review_count']} "
@@ -299,6 +390,10 @@ def markdown_source_section(source: dict[str, Any]) -> list[str]:
 
 def write_latex_tables(payload: dict[str, Any], tables_dir: Path) -> None:
     tables_dir.mkdir(parents=True, exist_ok=True)
+    (tables_dir / "metric_definitions.tex").write_text(
+        metric_definitions_table(payload),
+        encoding="utf-8",
+    )
     (tables_dir / "source_summary.tex").write_text(
         source_summary_table(payload),
         encoding="utf-8",
@@ -347,13 +442,76 @@ def write_latex_tables(payload: dict[str, Any], tables_dir: Path) -> None:
         )
 
 
-def source_summary_table(payload: dict[str, Any]) -> str:
+def metric_definitions_table(payload: dict[str, Any]) -> str:
+    target_hours = payload["sources"][0]["summary"].get("refresh_target_hours", 48.0)
+    definitions = [
+        (
+            "Completeness",
+            "100 * present relevant field values / expected relevant field values",
+            "Average coverage over all profiled fields.",
+        ),
+        (
+            "Critical completeness",
+            "100 * present critical field values / expected critical field values",
+            "Coverage of fields required for matching and analysis.",
+        ),
+        (
+            "Validity",
+            "100 * valid present values / present values checked by validators",
+            "Source-specific format checks; missingness is handled separately.",
+        ),
+        (
+            "Spatial readiness",
+            "100 * records with valid latitude/longitude pair / records",
+            "Readiness for geospatial integration.",
+        ),
+        (
+            "Timeliness",
+            "max(0, 100 * (1 - collection_duration_hours / refresh_target_hours))",
+            f"Refreshability against the current {fmt_float(target_hours)}h target.",
+        ),
+        (
+            "Reliability",
+            "100 * records with review_count >= low_review_threshold / records",
+            "Share of ratings supported by enough reviews.",
+        ),
+        (
+            "Uniqueness",
+            "100 - 100 * duplicate flags / records",
+            "Penalizes duplicate identifiers and normalized name/address keys.",
+        ),
+        (
+            "Quality flags",
+            "flags_per_100 = 100 * generated warnings / records",
+            "Record-level warnings for cleaning, not a deletion list.",
+        ),
+    ]
     rows = [
         r"{\scriptsize",
-        r"\begin{tabular}{lrrrrrrrr}",
+        r"\begin{tabular}{p{0.21\linewidth}p{0.37\linewidth}p{0.32\linewidth}}",
+        r"\toprule",
+        r"Metric & Formula / definition & Reading \\",
+        r"\midrule",
+    ]
+    for metric, formula, reading in definitions:
+        rows.append(
+            "{metric} & {formula} & {reading} \\\\".format(
+                metric=latex_escape(metric),
+                formula=latex_escape(formula),
+                reading=latex_escape(reading),
+            )
+        )
+    rows.extend([r"\bottomrule", r"\end{tabular}", r"}", ""])
+    return "\n".join(rows)
+
+
+def source_summary_table(payload: dict[str, Any]) -> str:
+    rows = [
+        r"{\tiny",
+        r"\begin{tabular}{lrrrrrrrrr}",
         r"\toprule",
         (
-            r"Source & Records & Score & Critical & Validity & Spatial & "
+            r"Source & Records & Score & Complete & Critical & Validity & Spatial & "
             r"Timeliness & Reliable & Flags/100 \\"
         ),
         r"\midrule",
@@ -361,11 +519,12 @@ def source_summary_table(payload: dict[str, Any]) -> str:
     for source in payload["sources"]:
         summary = source["summary"]
         rows.append(
-            "{source} & {records} & {score} & {critical} & {validity} & "
-            "{spatial} & {timeliness} & {reliable} & {flags} \\\\".format(
+            "{source} & {records} & {score} & {complete} & {critical} & "
+            "{validity} & {spatial} & {timeliness} & {reliable} & {flags} \\\\".format(
                 source=latex_escape(source["source"]),
                 records=source["record_count"],
                 score=latex_pct(summary["overall_quality_score_pct"]),
+                complete=latex_pct(summary["completeness_score_pct"]),
                 critical=latex_pct(summary["critical_completeness_score_pct"]),
                 validity=latex_pct(summary["validity_score_pct"]),
                 spatial=latex_pct(summary["spatial_readiness_score_pct"]),
@@ -575,7 +734,10 @@ def source_comparison_table(payload: dict[str, Any]) -> str:
         key=lambda source: source["summary"]["low_review_pct_of_valid_reviews"],
     )
     most_flags = max(sources, key=anomaly_flags_per_100)
-    weakest_timeliness = min(sources, key=lambda source: source["summary"]["timeliness_score_pct"])
+    weakest_timeliness = min(
+        sources,
+        key=lambda source: source["summary"]["timeliness_score_pct"],
+    )
     coordinate_ready = [
         source["source"]
         for source in sources
@@ -617,6 +779,11 @@ def source_comparison_table(payload: dict[str, Any]) -> str:
             + "; Tripadvisor still requires latitude/longitude enrichment.",
         ),
         (
+            "Tripadvisor raw limitation",
+            "Lower raw score is expected: no coordinates, no record-level timestamps, "
+            "and many zero/low-review records before cleaning.",
+        ),
+        (
             "Most sparse review evidence",
             f"{sparsest['source']} "
             f"({fmt_pct(sparsest['summary']['low_review_pct_of_valid_reviews'])}).",
@@ -627,7 +794,7 @@ def source_comparison_table(payload: dict[str, Any]) -> str:
             f"({fmt_float(anomaly_flags_per_100(most_flags))} flags per 100 records).",
         ),
         (
-            "Weakest timeliness evidence",
+            "Weakest source refreshability",
             f"{weakest_timeliness['source']} "
             f"({fmt_pct(weakest_timeliness['summary']['timeliness_score_pct'])}).",
         ),
@@ -667,7 +834,17 @@ def source_detail_section(source: dict[str, Any]) -> str:
         f"Validity score & {latex_pct(summary['validity_score_pct'])} \\\\",
         f"Uniqueness score & {latex_pct(summary['uniqueness_score_pct'])} \\\\",
         f"Timeliness score & {latex_pct(summary['timeliness_score_pct'])} \\\\",
+        (
+            "Collection duration & "
+            f"{latex_escape(fmt_hours(summary['collection_duration_hours']))} \\\\"
+        ),
+        f"Timestamp coverage & {latex_pct(summary['timestamp_coverage_pct'])} \\\\",
         f"Reliability score & {latex_pct(summary['reliability_score_pct'])} \\\\",
+        (
+            "Format values checked & "
+            f"{summary['format_valid_value_count']} / "
+            f"{summary['format_checked_value_count']} valid \\\\"
+        ),
         f"Native rating average & {latex_optional(summary['rating_avg'])} \\\\",
         f"Comparable rating average 0--5 & {latex_optional(comparable_rating_avg(source))} \\\\",
         (
@@ -811,8 +988,9 @@ def source_role(source_name: str) -> str:
     if source_name == "Tripadvisor":
         return (
             "Tripadvisor contributes broad review and category information, but the raw "
-            "file does not yet contain latitude and longitude. It therefore needs the "
-            "planned geocoding enrichment before reliable geospatial integration."
+            "file does not yet contain latitude and longitude or record-level timestamps. "
+            "Its lower raw score is expected and should be improved through the planned "
+            "cleaning and geocoding enrichment before reliable geospatial integration."
         )
     if source_name == "TheFork":
         return (
@@ -829,15 +1007,20 @@ def interpretation_notes(source: dict[str, Any]) -> list[str]:
     lowest_text = ", ".join(
         f"{item['field']} ({fmt_pct(item['coverage_pct'])})" for item in lowest_fields
     )
+    invalid_formats = summary["format_invalid_value_count"]
     notes = [
         f"The weighted source quality score is {fmt_pct(summary['overall_quality_score_pct'])}; "
         "the score is driven by integration-critical fields rather than optional metadata.",
         f"The weakest fields are {lowest_text}; downstream logic should avoid treating "
         "them as mandatory matching keys.",
+        f"Format validity checks {summary['format_checked_value_count']} present values; "
+        f"{invalid_formats} fail the expected source-specific format.",
         f"The sparse-review threshold flags {summary['low_review_records']} records, "
         "so rating comparisons should account for review-count reliability.",
-        f"Timeliness coverage is {fmt_pct(summary['timeliness_score_pct'])}; "
-        "sources without record-level timestamps should be documented as stale-risk inputs.",
+        f"Timeliness score is {fmt_pct(summary['timeliness_score_pct'])}, based on "
+        f"collection duration {fmt_hours(summary['collection_duration_hours'])} against "
+        f"a {fmt_hours(summary['refresh_target_hours'])} refresh target; timestamp "
+        f"coverage is {fmt_pct(summary['timestamp_coverage_pct'])}.",
         f"The source has {summary['anomaly_count']} generated quality flags, equal to "
         f"{fmt_float(anomaly_flags_per_100(source))} flags per 100 records.",
     ]
@@ -850,6 +1033,10 @@ def interpretation_notes(source: dict[str, Any]) -> list[str]:
         notes.append(
             "The 0% coordinate validity is expected at this stage and should be resolved "
             "by the latitude/longitude enrichment task before integration."
+        )
+        notes.append(
+            "The missing record-level timestamps do not force timeliness to 0 anymore; "
+            "Tripadvisor refreshability is estimated from the scraper runtime instead."
         )
     elif source["source"] == "TheFork":
         notes.append(
@@ -879,8 +1066,17 @@ def improvement_actions(payload: dict[str, Any]) -> list[tuple[int, str, str, st
                 (
                     2,
                     source["source"],
+                    "Document and reduce collection duration, or add incremental refresh.",
+                    "Improves source refreshability when frequent updates are required.",
+                )
+            )
+        if summary["timestamp_coverage_pct"] < 95:
+            actions.append(
+                (
+                    2,
+                    source["source"],
                     "Persist record-level scrape/acquisition timestamps and parse them in QA.",
-                    "Makes freshness measurable instead of relying on pipeline assumptions.",
+                    "Keeps traceability separate from the refreshability score.",
                 )
             )
         if summary["reliability_score_pct"] < 80:
@@ -997,6 +1193,12 @@ def fmt_optional(value: float | int | None) -> str:
 
 def fmt_optional_text(value: Any) -> str:
     return "n/a" if value is None else str(value)
+
+
+def fmt_hours(value: float | int | None) -> str:
+    if value is None:
+        return "n/a"
+    return f"{float(value):.2f} h"
 
 
 def fmt_float(value: float) -> str:

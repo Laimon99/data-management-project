@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-05T13:01:27.304689+00:00",
+  "generated_at": "2026-06-06T08:45:59.912576+00:00",
   "low_review_threshold": 20,
   "sources": [
     {
       "source": "Google Places",
       "input_path": "data\\raw\\google_places\\restaurants_seed.jsonl",
-      "generated_at": "2026-06-05T13:01:22.796664+00:00",
+      "generated_at": "2026-06-06T08:45:51.377913+00:00",
       "record_count": 10808,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -177,13 +177,22 @@
         "timestamp_present_count": 21616,
         "timestamp_parseable_count": 21616,
         "records_with_timestamp_count": 10808,
-        "timeliness_score_pct": 100.0,
+        "timestamp_coverage_pct": 100.0,
         "timestamp_parseable_pct": 100.0,
+        "timestamp_window_hours": 15.73,
+        "collection_duration_hours": 15.73,
+        "collection_duration_source": "observed timestamp window",
+        "refresh_target_hours": 48.0,
+        "timeliness_score_pct": 67.23,
         "oldest_timestamp": "2026-05-24T18:31:49.107218+00:00",
         "latest_timestamp": "2026-05-25T10:15:47.447928+00:00",
-        "data_age_days": 11.11,
-        "validity_score_pct": 93.51,
-        "overall_quality_score_pct": 95.14,
+        "data_age_days": 11.94,
+        "format_checked_value_count": 192603,
+        "format_valid_value_count": 192603,
+        "format_invalid_value_count": 0,
+        "format_invalid_fields": {},
+        "validity_score_pct": 100.0,
+        "overall_quality_score_pct": 93.16,
         "anomaly_count": 2937
       },
       "anomalies": [
@@ -23688,7 +23697,7 @@
     {
       "source": "Tripadvisor",
       "input_path": "data\\raw\\tripadvisor\\tripadvisor_scraper_results.json",
-      "generated_at": "2026-06-05T13:01:26.294006+00:00",
+      "generated_at": "2026-06-06T08:45:57.466540+00:00",
       "record_count": 7539,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -23818,14 +23827,25 @@
         "timestamp_present_count": 0,
         "timestamp_parseable_count": 0,
         "records_with_timestamp_count": 0,
-        "timeliness_score_pct": 0.0,
+        "timestamp_coverage_pct": 0.0,
         "timestamp_parseable_pct": 0.0,
+        "timestamp_window_hours": null,
+        "collection_duration_hours": 27.0,
+        "collection_duration_source": "configured scraper runtime estimate",
+        "refresh_target_hours": 48.0,
+        "timeliness_score_pct": 43.75,
         "oldest_timestamp": null,
         "latest_timestamp": null,
         "data_age_days": null,
-        "validity_score_pct": 99.9,
-        "overall_quality_score_pct": 67.89,
-        "anomaly_count": 3621
+        "format_checked_value_count": 82655,
+        "format_valid_value_count": 82654,
+        "format_invalid_value_count": 1,
+        "format_invalid_fields": {
+          "email": 1
+        },
+        "validity_score_pct": 99.99,
+        "overall_quality_score_pct": 72.28,
+        "anomaly_count": 3622
       },
       "anomalies": [
         {
@@ -52351,6 +52371,14 @@
         {
           "source": "Tripadvisor",
           "record_id": "https://www.tripadvisor.it/Restaurant_Review-g187849-d17420320-Reviews-CAKE_l_HUB_caffetteria-Milan_Lombardy.html",
+          "issue_type": "invalid_field_format",
+          "field": "email",
+          "value": "cakelhub@comunitanuov",
+          "detail": "Present value does not match the expected source-specific format."
+        },
+        {
+          "source": "Tripadvisor",
+          "record_id": "https://www.tripadvisor.it/Restaurant_Review-g187849-d17420320-Reviews-CAKE_l_HUB_caffetteria-Milan_Lombardy.html",
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "15",
@@ -52801,7 +52829,7 @@
     {
       "source": "TheFork",
       "input_path": "data\\raw\\thefork\\thefork_milan_restaurants_normalized.json",
-      "generated_at": "2026-06-05T13:01:27.195456+00:00",
+      "generated_at": "2026-06-06T08:45:59.637259+00:00",
       "record_count": 1344,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -52980,13 +53008,22 @@
         "timestamp_present_count": 1344,
         "timestamp_parseable_count": 1344,
         "records_with_timestamp_count": 1344,
-        "timeliness_score_pct": 100.0,
+        "timestamp_coverage_pct": 100.0,
         "timestamp_parseable_pct": 100.0,
+        "timestamp_window_hours": 139.99,
+        "collection_duration_hours": 2.0,
+        "collection_duration_source": "configured scraper runtime estimate",
+        "refresh_target_hours": 48.0,
+        "timeliness_score_pct": 95.83,
         "oldest_timestamp": "2026-05-29T18:20:32+00:00",
         "latest_timestamp": "2026-06-04T14:19:50+00:00",
-        "data_age_days": 0.95,
-        "validity_score_pct": 96.88,
-        "overall_quality_score_pct": 97.48,
+        "data_age_days": 1.77,
+        "format_checked_value_count": 21815,
+        "format_valid_value_count": 21815,
+        "format_invalid_value_count": 0,
+        "format_invalid_fields": {},
+        "validity_score_pct": 100.0,
+        "overall_quality_score_pct": 97.69,
         "anomaly_count": 195
       },
       "anomalies": [

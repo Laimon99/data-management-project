@@ -1,0 +1,16 @@
+{\scriptsize
+\begin{tabular}{p{0.21\linewidth}p{0.37\linewidth}p{0.32\linewidth}}
+\toprule
+Metric & Formula / definition & Reading \\
+\midrule
+Completeness & 100 * present relevant field values / expected relevant field values & Average coverage over all profiled fields. \\
+Critical completeness & 100 * present critical field values / expected critical field values & Coverage of fields required for matching and analysis. \\
+Validity & 100 * valid present values / present values checked by validators & Source-specific format checks; missingness is handled separately. \\
+Spatial readiness & 100 * records with valid latitude/longitude pair / records & Readiness for geospatial integration. \\
+Timeliness & max(0, 100 * (1 - collection\_duration\_hours / refresh\_target\_hours)) & Refreshability against the current 48.00h target. \\
+Reliability & 100 * records with review\_count >= low\_review\_threshold / records & Share of ratings supported by enough reviews. \\
+Uniqueness & 100 - 100 * duplicate flags / records & Penalizes duplicate identifiers and normalized name/address keys. \\
+Quality flags & flags\_per\_100 = 100 * generated warnings / records & Record-level warnings for cleaning, not a deletion list. \\
+\bottomrule
+\end{tabular}
+}
