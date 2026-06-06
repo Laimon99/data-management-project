@@ -26,8 +26,9 @@ Detail pages try to improve:
 - cuisine type and price range
 - discount and photo count
 - website, phone number, and email when exposed
-- opening hours
-- review snippets and up to 5 reviews
+- social links separately from official website links
+- opening hours as both display text and structured data when exposed
+- review snippets and configurable reviews per restaurant
 - `detail_scraped`
 
 Extraction priority is JSON-LD, embedded JSON, visible HTML text, links and attributes, listing fallback data, then `null`.
@@ -377,6 +378,7 @@ Useful options:
 --detail-delay-min-seconds N     Minimum random delay between detail pages.
 --detail-delay-max-seconds N     Maximum random delay between detail pages.
 --human-detail-scroll            Lightly scroll detail pages before extraction.
+--max-reviews-per-restaurant N   Maximum review objects to keep per restaurant.
 --pause-on-antibot               Pause for manual intervention on HTTP 403/429 or anti-bot markers.
 --micro-pause-min-ms N           Minimum human-like micro-pause before detail extraction.
 --micro-pause-max-ms N           Maximum human-like micro-pause before detail extraction.
@@ -388,7 +390,7 @@ Useful options:
 --browser-warmup-url URL         Open this URL before detail scraping to warm a persistent profile.
 --connect-over-cdp-url URL       Connect to an already-open Chromium/Brave debugging endpoint.
 --graphql-detail-from-cdp        Enrich missing details through in-page TheFork GraphQL requests.
---graphql-review-size N          Reviews requested per restaurant in GraphQL/CDP mode.
+--graphql-review-size N          Reviews requested per restaurant in GraphQL/CDP mode; defaults to --max-reviews-per-restaurant.
 --graphql-cdp-parallel-proxies   Launch Brave proxy profiles and parallel GraphQL/CDP workers.
 --parallel-workers N             Number of parallel Brave proxy profiles/workers.
 --parallel-base-port N           First local CDP port for parallel profiles.

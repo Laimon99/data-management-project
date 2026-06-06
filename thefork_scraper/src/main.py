@@ -281,8 +281,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--graphql-review-size",
         type=int,
+        default=None,
+        help=(
+            "Maximum reviews to request per restaurant in --graphql-detail-from-cdp mode. "
+            "Defaults to --max-reviews-per-restaurant."
+        ),
+    )
+    parser.add_argument(
+        "--max-reviews-per-restaurant",
+        type=int,
         default=config.MAX_REVIEWS_PER_RESTAURANT,
-        help="Maximum reviews to request per restaurant in --graphql-detail-from-cdp mode.",
+        help="Maximum review objects to keep per restaurant in non-GraphQL detail mode.",
     )
     parser.add_argument(
         "--graphql-cdp-parallel-proxies",
@@ -420,6 +429,8 @@ def main() -> None:
         raise SystemExit("--distributed-slot-count must be at least 1.")
     if args.distributed_slot_start < 0:
         raise SystemExit("--distributed-slot-start must be zero or greater.")
+    if args.graphql_review_size is None:
+        args.graphql_review_size = args.max_reviews_per_restaurant
 
     project_root = Path(__file__).resolve().parents[1]
     browser_executable_path = resolve_browser_executable_path(
@@ -564,6 +575,7 @@ def main() -> None:
         deferred_url_retry_cycles=args.deferred_url_retry_cycles,
         browser_warmup_url=browser_warmup_url,
         browser_warmup_seconds=browser_warmup_seconds,
+        max_reviews_per_restaurant=args.max_reviews_per_restaurant,
     )
 
     records = scraper.scrape(max_pages=args.max_pages, max_restaurants=args.max_restaurants)

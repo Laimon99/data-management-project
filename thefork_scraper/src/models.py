@@ -20,9 +20,11 @@ class RestaurantRecord:
     discount: str | None = None
     photo_count: int | None = None
     website: str | None = None
+    social_links: dict[str, str] = field(default_factory=dict)
     phone_number: str | None = None
     email: str | None = None
     working_days_hours: str | None = None
+    working_hours_structured: list[Any] = field(default_factory=list)
     restaurant_url: str | None = None
     review_snippets: list[str] = field(default_factory=list)
     reviews: list[Any] = field(default_factory=list)

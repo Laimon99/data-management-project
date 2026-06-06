@@ -24,6 +24,14 @@ from .parser import (
 
 THEFORK_HOST = "www.thefork.it"
 MAX_SCRIPT_CHARS = 300_000
+SOCIAL_HOSTS = {
+    "facebook": ("facebook.com", "fb.com"),
+    "instagram": ("instagram.com",),
+    "tiktok": ("tiktok.com",),
+    "youtube": ("youtube.com", "youtu.be"),
+    "x": ("twitter.com", "x.com"),
+    "linkedin": ("linkedin.com",),
+}
 PHONE_PATTERN = re.compile(r"(?:\+39\s*)?(?:0\d{1,3}[\s./-]?\d{5,8}|3\d{2}[\s./-]?\d{6,7})")
 EMAIL_PATTERN = re.compile(r"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}", re.IGNORECASE)
 COORDINATE_PAIR_PATTERNS = [
@@ -279,9 +287,18 @@ class TheForkDetailScraper:
             "discount": first_value(embedded.get("discount"), visible.get("discount")),
             "photo_count": first_value(structured.get("photo_count"), embedded.get("photo_count"), visible.get("photo_count")),
             "website": first_value(structured.get("website"), embedded.get("website"), visible.get("website")),
+            "social_links": merge_social_links(
+                structured.get("social_links") or {},
+                embedded.get("social_links") or {},
+                visible.get("social_links") or {},
+            ),
             "phone_number": first_value(structured.get("phone_number"), embedded.get("phone_number"), visible.get("phone_number")),
             "email": first_value(structured.get("email"), embedded.get("email"), visible.get("email")),
             "working_days_hours": first_value(structured.get("working_days_hours"), embedded.get("working_days_hours")),
+            "working_hours_structured": first_value(
+                structured.get("working_hours_structured"),
+                embedded.get("working_hours_structured"),
+            ) or [],
             "restaurant_url": restaurant_url,
             "review_snippets": unique_texts([*(embedded.get("review_snippets") or []), *(visible.get("review_snippets") or [])]),
             "reviews": merge_reviews(
@@ -310,9 +327,11 @@ class TheForkDetailScraper:
             "discount",
             "photo_count",
             "website",
+            "social_links",
             "phone_number",
             "email",
             "working_days_hours",
+            "working_hours_structured",
             "restaurant_url",
         ):
             value = detail_data.get(field_name)
@@ -358,9 +377,13 @@ def extract_structured_restaurant_data(json_documents: list[Any]) -> dict[str, A
         "cuisine_type": normalize_list_value(first_value(restaurant_node.get("servesCuisine"), restaurant_node.get("cuisine"))),
         "price_range": normalize_price(first_value(restaurant_node.get("priceRange"), restaurant_node.get("price"))),
         "website": normalize_external_url(first_value(restaurant_node.get("url"), first_list_value(restaurant_node.get("sameAs")))),
+        "social_links": extract_social_links_from_values(restaurant_node.get("sameAs")),
         "phone_number": clean_optional(restaurant_node.get("telephone")),
         "email": clean_optional(restaurant_node.get("email")),
         "working_days_hours": normalize_hours(first_value(restaurant_node.get("openingHoursSpecification"), restaurant_node.get("openingHours"))),
+        "working_hours_structured": normalize_hours_structured(
+            first_value(restaurant_node.get("openingHoursSpecification"), restaurant_node.get("openingHours"))
+        ),
         "photo_count": count_images(image_value),
         "reviews": extract_reviews(restaurant_node.get("review")),
     }
@@ -383,9 +406,16 @@ def extract_embedded_data(json_documents: list[Any], body_text: str, links: list
         "discount": extract_discount_from_text(scripts_text + "\n" + body_text),
         "photo_count": first_value(count_images(first_json_value(nodes, {"image", "images", "photos", "photo"})), count_visible_images_from_links(links)),
         "website": normalize_external_url(first_json_value(nodes, {"website", "officialWebsite", "url"})),
+        "social_links": merge_social_links(
+            extract_social_links_from_values(first_json_value(nodes, {"sameAs", "socialLinks", "socialMedia"})),
+            extract_social_links_from_links(links),
+        ),
         "phone_number": clean_optional(first_json_value(nodes, {"telephone", "phone", "phoneNumber"})),
         "email": clean_optional(first_json_value(nodes, {"email"})),
         "working_days_hours": normalize_hours(first_json_value(nodes, {"openingHoursSpecification", "openingHours", "hours"})),
+        "working_hours_structured": normalize_hours_structured(
+            first_json_value(nodes, {"openingHoursSpecification", "openingHours", "hours"})
+        ),
         "review_snippets": extract_review_snippets_from_text(body_text),
         "reviews": extract_reviews_from_nodes(nodes),
     }
@@ -412,6 +442,7 @@ def extract_visible_data(payload: dict[str, Any]) -> dict[str, Any]:
         "discount": extract_discount_from_text(body_text),
         "photo_count": extract_visible_photo_count(body_text, images),
         "website": extract_website_from_links(links),
+        "social_links": extract_social_links_from_links(links),
         "phone_number": extract_phone_from_links_or_text(links, body_text),
         "email": extract_email_from_links_or_text(links, body_text),
         "review_snippets": extract_review_snippets_from_text(body_text),
@@ -526,12 +557,82 @@ def normalize_external_url(value: Any) -> str | None:
     return url
 
 
+def social_platform_for_url(url: str) -> str | None:
+    if not url.startswith(("http://", "https://")):
+        return None
+    host = urlparse(url).netloc.lower()
+    for platform, host_parts in SOCIAL_HOSTS.items():
+        if any(host_part in host for host_part in host_parts):
+            return platform
+    return None
+
+
+def normalize_social_url(value: Any) -> tuple[str, str] | None:
+    if isinstance(value, list):
+        for item in value:
+            normalized = normalize_social_url(item)
+            if normalized:
+                return normalized
+        return None
+    if not isinstance(value, str):
+        return None
+    url = value.strip()
+    platform = social_platform_for_url(url)
+    if not platform:
+        return None
+    return platform, url
+
+
+def extract_social_links_from_values(value: Any) -> dict[str, str]:
+    if value in (None, "", [], {}):
+        return {}
+    values = value if isinstance(value, list) else [value]
+    links: dict[str, str] = {}
+    for item in values:
+        normalized = normalize_social_url(item)
+        if normalized:
+            platform, url = normalized
+            links.setdefault(platform, url)
+    return links
+
+
+def extract_social_links_from_links(links: list[dict[str, str]]) -> dict[str, str]:
+    result: dict[str, str] = {}
+    for link in links:
+        normalized = normalize_social_url(link.get("href"))
+        if normalized:
+            platform, url = normalized
+            result.setdefault(platform, url)
+    return result
+
+
+def merge_social_links(*social_maps: dict[str, str]) -> dict[str, str]:
+    merged: dict[str, str] = {}
+    for social_map in social_maps:
+        if not isinstance(social_map, dict):
+            continue
+        for platform, url in social_map.items():
+            if clean_optional(url):
+                merged.setdefault(str(platform), str(url))
+    return merged
+
+
 def normalize_hours(value: Any) -> str | None:
     if value in (None, "", [], {}):
         return None
     if isinstance(value, str):
         return clean_optional(value)
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def normalize_hours_structured(value: Any) -> list[Any]:
+    if value in (None, "", [], {}):
+        return []
+    if isinstance(value, list):
+        return value
+    if isinstance(value, dict):
+        return [value]
+    return []
 
 
 def parse_float(value: Any) -> float | None:
@@ -744,6 +845,8 @@ def extract_reviews(value: Any) -> list[dict[str, Any]]:
         rating = item.get("reviewRating") or item.get("rating")
         review = {
             "author_name": clean_optional(author.get("name") if isinstance(author, dict) else author),
+            "author_profile": clean_optional(item.get("author_profile") or item.get("authorUrl") or item.get("url")),
+            "author_contributions": parse_int(item.get("author_contributions") or item.get("userReviewCount")),
             "rating": parse_float(rating.get("ratingValue") if isinstance(rating, dict) else rating),
             "title": clean_optional(item.get("name") or item.get("headline")),
             "text": clean_optional(item.get("reviewBody") or item.get("text") or item.get("description")),

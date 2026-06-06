@@ -146,7 +146,9 @@ def field_weight(key: str, value: Any) -> int:
         return 10
     if key == "reviews" and isinstance(value, list):
         return 2 + len(value)
-    if key in {"website", "phone", "phone_number", "email", "opening_hours", "working_days_hours", "latitude", "longitude"}:
+    if key == "social_links" and isinstance(value, dict):
+        return 2 + len(value)
+    if key in {"website", "phone", "phone_number", "email", "opening_hours", "working_days_hours", "working_hours_structured", "latitude", "longitude"}:
         return 3
     return 1
 
@@ -166,8 +168,10 @@ def build_stats(path: Path, records: list[dict[str, Any]]) -> dict[str, Any]:
         "detail_scraped": count_with(records, "detail_scraped", True),
         "with_reviews": sum(1 for record in records if is_non_empty(record.get("reviews"))),
         "with_website": sum(1 for record in records if is_non_empty(record.get("website"))),
+        "with_social_links": sum(1 for record in records if is_non_empty(record.get("social_links"))),
         "with_phone": sum(1 for record in records if is_non_empty(record.get("phone_number") or record.get("phone"))),
         "with_email": sum(1 for record in records if is_non_empty(record.get("email"))),
+        "with_working_hours_structured": sum(1 for record in records if is_non_empty(record.get("working_hours_structured"))),
         "avg_richness_score": round(
             sum(richness_score(record) for record in records) / max(1, len(records)),
             2,
