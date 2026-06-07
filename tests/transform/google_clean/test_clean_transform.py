@@ -205,6 +205,30 @@ def test_rerun_default_removes_previously_kept_junk(db):
     assert second.stale_deleted == 1
 
 
+def test_full_run_deletes_vanished_source_records(db):
+    # A venue removed from the raw source must not linger in the clean collection on a full
+    # rerun (convergence beyond drop-rule changes).
+    src, dst = db.raw, db.clean
+    _seed(src, [_restaurant("p1"), _restaurant("p2", name="Bar X", primary_type="bar")])
+    _clean(src, dst, _settings())
+    assert dst.count_documents({}) == 2
+    src.delete_one({"_id": "p2"})  # delisted upstream
+    report = _clean(src, dst, _settings())
+    assert dst.find_one({"_id": "p2"}) is None
+    assert report.stale_deleted == 1
+    assert set(d["_id"] for d in dst.find()) == {"p1"}
+
+
+def test_limited_run_does_not_delete_unread_records(db):
+    # A partial --limit run must not delete the records it didn't read.
+    src, dst = db.raw, db.clean
+    _seed(src, [_restaurant("p1"), _restaurant("p2", name="Bar X", primary_type="bar")])
+    _clean(src, dst, _settings())
+    report = _clean(src, dst, _settings(), limit=1)
+    assert report.stale_deleted == 0
+    assert dst.count_documents({}) == 2
+
+
 def test_source_equals_destination_raises(db):
     settings = _settings(source_collection="same", destination_collection="same")
     with pytest.raises(ValueError):
