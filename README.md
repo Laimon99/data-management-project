@@ -126,12 +126,19 @@ Both runs are idempotent. See [`services/extract/google_places_api/README.md`](s
 
 #### How the current dataset was collected
 
-The scraper iterates over a pre-built list of 7,539 Tripadvisor restaurant URLs for
-the Milan area (`tripadvisor_list_restaurant.txt`) and visits each page to extract
-the full venue profile.
+The scraper uses a two-loop workflow. If `tripadvisor_list_restaurant.txt` is absent,
+the first loop starts from Tripadvisor's Milan listing page. Starting URL:
+[Tripadvisor Milan restaurants](https://www.tripadvisor.it/Restaurants-g187849-Milan_Lombardy.html).
+It scans each
+`data-automation="restaurantCard"`, extracts child links beginning with
+`/Restaurant_Review-`, deduplicates them, writes the URL list after every listing page,
+and follows the `data-smoke-attr="pagination-next-arrow"` / `aria-label="Pagina
+successiva"` href to paginate. If the URL file already exists, the scraper skips this
+first loop and reuses it.
 
-<!-- TODO: ask Edoardo how the original tripadvisor_list_restaurant.txt was obtained
-     (search/listing pages crawled? export? third-party source?) -->
+The second loop reads the resulting 7,539 Tripadvisor restaurant URLs for the Milan area
+from `tripadvisor_list_restaurant.txt`, applies the checkpoint to skip already processed
+URLs, and visits each restaurant page to extract the full venue profile.
 
 | Field | Coverage |
 |---|---|
