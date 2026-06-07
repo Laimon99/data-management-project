@@ -656,17 +656,6 @@
   "restaurants_clean_tripadvisor": {
     "documents": 7539,
     "fields": {
-      "_coordinates_backfilled_at": {
-        "present": 6327,
-        "present_pct": 83.9,
-        "non_null": 6327,
-        "non_null_pct": 83.9,
-        "non_empty": 6327,
-        "non_empty_pct": 83.9,
-        "types": [
-          "datetime"
-        ]
-      },
       "_id": {
         "present": 7539,
         "present_pct": 100.0,

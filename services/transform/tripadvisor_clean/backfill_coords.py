@@ -11,7 +11,6 @@ from __future__ import annotations
 import json
 import math
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -136,7 +135,6 @@ def backfill_collection(
                     "longitude": lon,
                     "has_coordinates": True,
                     "flags": _clean_flags(doc.get("flags")),
-                    "_coordinates_backfilled_at": datetime.now(UTC),
                 }
             },
         )

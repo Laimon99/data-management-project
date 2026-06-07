@@ -6,11 +6,9 @@ that are copied unchanged from raw appear only in the first table. Fields that a
 parsed, normalized, geocoded, derived, or created by the transform appear only in the
 second table.
 
-Coverage figures match the current Mongo audit of **7,539 clean documents**. This
-collection was last produced with `uv run tripadvisor-clean --skip-geocode`, so the
-coordinate fields exist with the correct names (`latitude`, `longitude`) but currently
-have **0% non-null coverage**. A full geocoding run would change only coordinate coverage
-and coordinate-derived flags.
+Coverage figures match the current Mongo audit of **7,539 clean documents**. The
+coordinate fields use the exact clean-schema names `latitude` and `longitude`; both are
+currently populated for **83.9%** of Tripadvisor records.
 
 Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 `working_days_hours`, and `review` are replaced by clean fields and remain in
@@ -44,9 +42,9 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 | `_id` | str | 100% | Created from `source_url`. | Mongo key for idempotent upserts. |
 | `ta_location_id` | str \| null | 100% | Extracted from the `-d<n>-` token in `source_url`. | Stable Tripadvisor venue id for blocking and audit. |
 | `restaurant_name` | str \| null | 100% | Normalized from raw `restaurant_name`: whitespace collapsed. | Clean display name. |
-| `latitude` | float \| null | 0% | Created by geocoding the cleaned `address`; current Mongo collection was run with `--skip-geocode`, so all values are null. | Estimated latitude field because Tripadvisor has no native coordinates. |
-| `longitude` | float \| null | 0% | Created by geocoding the cleaned `address`; current Mongo collection was run with `--skip-geocode`, so all values are null. | Estimated longitude field because Tripadvisor has no native coordinates. |
-| `has_coordinates` | bool | 100% | Created from both `latitude` and `longitude` being present; false for the current skip-geocode collection. | Coordinate coverage flag. |
+| `latitude` | float \| null | 83.9% | Created from coordinate enrichment of the cleaned `address`. | Estimated latitude because Tripadvisor has no native coordinates. |
+| `longitude` | float \| null | 83.9% | Created from coordinate enrichment of the cleaned `address`. | Estimated longitude because Tripadvisor has no native coordinates. |
+| `has_coordinates` | bool | 100% | Created from both `latitude` and `longitude` being present. | Coordinate coverage flag; true for records with both coordinates. |
 | `address` | str \| null | 99.1% | Normalized from raw `address`: `NaN`/blank to null; whitespace and separators normalized. | Clean full address line. |
 | `street` | str \| null | 99.1% | Parsed from the normalized `address` before the postal code. | Street/address prefix for matching. |
 | `postal_code` | str \| null | 95.9% | Extracted as a 5-digit Italian CAP from `address`. | Postal code for blocking and consistency checks. |
@@ -72,7 +70,7 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 | `has_website` | bool | 100% | Created from `website is not null`. | Website coverage flag. |
 | `has_phone` | bool | 100% | Created from `phone_number is not null`. | Phone coverage flag. |
 | `has_email` | bool | 100% | Created from `email is not null`. | Email coverage flag. |
-| `flags` | list[str] | 100% | Created as a reason list from quality checks and geocoding outcome. | May include `no_rating`, `missing_review_count`, `low_review`, `missing_address`, `geocode_not_found`, `missing_coordinates`, `rating_with_zero_reviews`, `no_reviews`, `no_hours`. |
+| `flags` | list[str] | 55.8% non-empty | Created as a reason list from quality checks and geocoding outcome; field is present on every document. | May include `no_rating`, `missing_review_count`, `low_review`, `missing_address`, `geocode_not_found`, `missing_coordinates`, `rating_with_zero_reviews`, `no_reviews`, `no_hours`. |
 | `_transformed_at` | datetime | 100% | Added by transform at write time. | UTC transform timestamp. |
 | `_source_collection` | str | 100% | Added from transform settings. | Source collection name, normally `restaurants_raw_tripadvisor`. |
 
