@@ -1,0 +1,1502 @@
+{
+  "restaurants_clean_google": {
+    "documents": 10786,
+    "fields": {
+      "_id": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_source_collection": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_transformed_at": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "datetime"
+        ]
+      },
+      "address": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "allows_dogs": {
+        "present": 4710,
+        "present_pct": 43.7,
+        "non_null": 4710,
+        "non_null_pct": 43.7,
+        "non_empty": 4710,
+        "non_empty_pct": 43.7,
+        "types": [
+          "bool"
+        ]
+      },
+      "business_status": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10784,
+        "non_null_pct": 100.0,
+        "non_empty": 10784,
+        "non_empty_pct": 100.0,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "category_tier": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "city": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "city_out_of_area": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "country": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "curbside_pickup": {
+        "present": 2861,
+        "present_pct": 26.5,
+        "non_null": 2861,
+        "non_null_pct": 26.5,
+        "non_empty": 2861,
+        "non_empty_pct": 26.5,
+        "types": [
+          "bool"
+        ]
+      },
+      "delivery": {
+        "present": 6973,
+        "present_pct": 64.6,
+        "non_null": 6973,
+        "non_null_pct": 64.6,
+        "non_empty": 6973,
+        "non_empty_pct": 64.6,
+        "types": [
+          "bool"
+        ]
+      },
+      "dine_in": {
+        "present": 9615,
+        "present_pct": 89.1,
+        "non_null": 9615,
+        "non_null_pct": 89.1,
+        "non_empty": 9615,
+        "non_empty_pct": 89.1,
+        "types": [
+          "bool"
+        ]
+      },
+      "flags": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 1658,
+        "non_empty_pct": 15.4,
+        "types": [
+          "list"
+        ]
+      },
+      "good_for_children": {
+        "present": 5611,
+        "present_pct": 52.0,
+        "non_null": 5611,
+        "non_null_pct": 52.0,
+        "non_empty": 5611,
+        "non_empty_pct": 52.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "good_for_groups": {
+        "present": 4998,
+        "present_pct": 46.3,
+        "non_null": 4998,
+        "non_null_pct": 46.3,
+        "non_empty": 4998,
+        "non_empty_pct": 46.3,
+        "types": [
+          "bool"
+        ]
+      },
+      "good_for_watching_sports": {
+        "present": 5768,
+        "present_pct": 53.5,
+        "non_null": 5768,
+        "non_null_pct": 53.5,
+        "non_empty": 5768,
+        "non_empty_pct": 53.5,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_phone": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_rating": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_website": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "is_dining": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "is_operational": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "latitude": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "float"
+        ]
+      },
+      "live_music": {
+        "present": 7820,
+        "present_pct": 72.5,
+        "non_null": 7820,
+        "non_null_pct": 72.5,
+        "non_empty": 7820,
+        "non_empty_pct": 72.5,
+        "types": [
+          "bool"
+        ]
+      },
+      "locality": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10481,
+        "non_null_pct": 97.2,
+        "non_empty": 10481,
+        "non_empty_pct": 97.2,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "longitude": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "float"
+        ]
+      },
+      "low_review": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "menu_for_children": {
+        "present": 3451,
+        "present_pct": 32.0,
+        "non_null": 3451,
+        "non_null_pct": 32.0,
+        "non_empty": 3451,
+        "non_empty_pct": 32.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "name": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "name_is_geographic": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "outdoor_seating": {
+        "present": 5301,
+        "present_pct": 49.1,
+        "non_null": 5301,
+        "non_null_pct": 49.1,
+        "non_empty": 5301,
+        "non_empty_pct": 49.1,
+        "types": [
+          "bool"
+        ]
+      },
+      "phone": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 9027,
+        "non_null_pct": 83.7,
+        "non_empty": 9027,
+        "non_empty_pct": 83.7,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "photo_count": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "place_id": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "postal_code": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "price_level": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 4826,
+        "non_null_pct": 44.7,
+        "non_empty": 4826,
+        "non_empty_pct": 44.7,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "price_range": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 7972,
+        "non_null_pct": 73.9,
+        "non_empty": 7972,
+        "non_empty_pct": 73.9,
+        "types": [
+          "null",
+          "obj"
+        ]
+      },
+      "primary_type": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10762,
+        "non_null_pct": 99.8,
+        "non_empty": 10762,
+        "non_empty_pct": 99.8,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "province": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "rating": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10107,
+        "non_null_pct": 93.7,
+        "non_empty": 10107,
+        "non_empty_pct": 93.7,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "reservable": {
+        "present": 5749,
+        "present_pct": 53.3,
+        "non_null": 5749,
+        "non_null_pct": 53.3,
+        "non_empty": 5749,
+        "non_empty_pct": 53.3,
+        "types": [
+          "bool"
+        ]
+      },
+      "restroom": {
+        "present": 9014,
+        "present_pct": 83.6,
+        "non_null": 9014,
+        "non_null_pct": 83.6,
+        "non_empty": 9014,
+        "non_empty_pct": 83.6,
+        "types": [
+          "bool"
+        ]
+      },
+      "review_count": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10107,
+        "non_null_pct": 93.7,
+        "non_empty": 10107,
+        "non_empty_pct": 93.7,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "reviews": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10106,
+        "non_empty_pct": 93.7,
+        "types": [
+          "list"
+        ]
+      },
+      "serves_beer": {
+        "present": 8113,
+        "present_pct": 75.2,
+        "non_null": 8113,
+        "non_null_pct": 75.2,
+        "non_empty": 8113,
+        "non_empty_pct": 75.2,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_breakfast": {
+        "present": 4314,
+        "present_pct": 40.0,
+        "non_null": 4314,
+        "non_null_pct": 40.0,
+        "non_empty": 4314,
+        "non_empty_pct": 40.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_cocktails": {
+        "present": 5890,
+        "present_pct": 54.6,
+        "non_null": 5890,
+        "non_null_pct": 54.6,
+        "non_empty": 5890,
+        "non_empty_pct": 54.6,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_coffee": {
+        "present": 6256,
+        "present_pct": 58.0,
+        "non_null": 6256,
+        "non_null_pct": 58.0,
+        "non_empty": 6256,
+        "non_empty_pct": 58.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_dessert": {
+        "present": 6074,
+        "present_pct": 56.3,
+        "non_null": 6074,
+        "non_null_pct": 56.3,
+        "non_empty": 6074,
+        "non_empty_pct": 56.3,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_dinner": {
+        "present": 5097,
+        "present_pct": 47.3,
+        "non_null": 5097,
+        "non_null_pct": 47.3,
+        "non_empty": 5097,
+        "non_empty_pct": 47.3,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_lunch": {
+        "present": 5753,
+        "present_pct": 53.3,
+        "non_null": 5753,
+        "non_null_pct": 53.3,
+        "non_empty": 5753,
+        "non_empty_pct": 53.3,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_vegetarian_food": {
+        "present": 2280,
+        "present_pct": 21.1,
+        "non_null": 2280,
+        "non_null_pct": 21.1,
+        "non_empty": 2280,
+        "non_empty_pct": 21.1,
+        "types": [
+          "bool"
+        ]
+      },
+      "serves_wine": {
+        "present": 7463,
+        "present_pct": 69.2,
+        "non_null": 7463,
+        "non_null_pct": 69.2,
+        "non_empty": 7463,
+        "non_empty_pct": 69.2,
+        "types": [
+          "bool"
+        ]
+      },
+      "street": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10592,
+        "non_null_pct": 98.2,
+        "non_empty": 10592,
+        "non_empty_pct": 98.2,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "street_number": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 9966,
+        "non_null_pct": 92.4,
+        "non_empty": 9966,
+        "non_empty_pct": 92.4,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "takeout": {
+        "present": 7572,
+        "present_pct": 70.2,
+        "non_null": 7572,
+        "non_null_pct": 70.2,
+        "non_empty": 7572,
+        "non_empty_pct": 70.2,
+        "types": [
+          "bool"
+        ]
+      },
+      "types": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 10786,
+        "non_null_pct": 100.0,
+        "non_empty": 10786,
+        "non_empty_pct": 100.0,
+        "types": [
+          "list"
+        ]
+      },
+      "website": {
+        "present": 10786,
+        "present_pct": 100.0,
+        "non_null": 5753,
+        "non_null_pct": 53.3,
+        "non_empty": 5753,
+        "non_empty_pct": 53.3,
+        "types": [
+          "null",
+          "str"
+        ]
+      }
+    }
+  },
+  "restaurants_clean_tripadvisor": {
+    "documents": 7539,
+    "fields": {
+      "_coordinates_backfilled_at": {
+        "present": 6327,
+        "present_pct": 83.9,
+        "non_null": 6327,
+        "non_null_pct": 83.9,
+        "non_empty": 6327,
+        "non_empty_pct": 83.9,
+        "types": [
+          "datetime"
+        ]
+      },
+      "_id": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_source_collection": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_transformed_at": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "datetime"
+        ]
+      },
+      "address": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7473,
+        "non_null_pct": 99.1,
+        "non_empty": 7473,
+        "non_empty_pct": 99.1,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "city": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7233,
+        "non_null_pct": 95.9,
+        "non_empty": 7233,
+        "non_empty_pct": 95.9,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "cuisines": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 5859,
+        "non_empty_pct": 77.7,
+        "types": [
+          "list"
+        ]
+      },
+      "email": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 3535,
+        "non_null_pct": 46.9,
+        "non_empty": 3535,
+        "non_empty_pct": 46.9,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "flags": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 4208,
+        "non_empty_pct": 55.8,
+        "types": [
+          "list"
+        ]
+      },
+      "has_address": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_coordinates": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_email": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_hours": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_phone": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_rating": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_review_count": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_reviews": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_website": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "latitude": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 6327,
+        "non_null_pct": 83.9,
+        "non_empty": 6327,
+        "non_empty_pct": 83.9,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "longitude": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 6327,
+        "non_null_pct": 83.9,
+        "non_empty": 6327,
+        "non_empty_pct": 83.9,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "low_review": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "opening_hours": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 5096,
+        "non_empty_pct": 67.6,
+        "types": [
+          "list"
+        ]
+      },
+      "phone_number": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 6795,
+        "non_null_pct": 90.1,
+        "non_empty": 6795,
+        "non_empty_pct": 90.1,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "photo_count": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 5949,
+        "non_null_pct": 78.9,
+        "non_empty": 5949,
+        "non_empty_pct": 78.9,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "postal_code": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7233,
+        "non_null_pct": 95.9,
+        "non_empty": 7233,
+        "non_empty_pct": 95.9,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "price_band": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 5101,
+        "non_null_pct": 67.7,
+        "non_empty": 5101,
+        "non_empty_pct": 67.7,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "price_tier_level": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 5101,
+        "non_null_pct": 67.7,
+        "non_empty": 5101,
+        "non_empty_pct": 67.7,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "rating": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7524,
+        "non_null_pct": 99.8,
+        "non_empty": 7524,
+        "non_empty_pct": 99.8,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "restaurant_name": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "reviews": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 6683,
+        "non_empty_pct": 88.6,
+        "types": [
+          "list"
+        ]
+      },
+      "sample_size": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "source_url": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "street": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7472,
+        "non_null_pct": 99.1,
+        "non_empty": 7472,
+        "non_empty_pct": 99.1,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "ta_location_id": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "total_review": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 7539,
+        "non_null_pct": 100.0,
+        "non_empty": 7539,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "website": {
+        "present": 7539,
+        "present_pct": 100.0,
+        "non_null": 6023,
+        "non_null_pct": 79.9,
+        "non_empty": 6023,
+        "non_empty_pct": 79.9,
+        "types": [
+          "null",
+          "str"
+        ]
+      }
+    }
+  },
+  "restaurants_clean_thefork": {
+    "documents": 1344,
+    "fields": {
+      "_id": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_source_collection": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "_transformed_at": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "datetime"
+        ]
+      },
+      "address": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "avg_price_eur": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "city": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "cuisines": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1319,
+        "non_empty_pct": 98.1,
+        "types": [
+          "list"
+        ]
+      },
+      "detail_scraped": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "dietary_options": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 508,
+        "non_empty_pct": 37.8,
+        "types": [
+          "list"
+        ]
+      },
+      "discount_pct": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 933,
+        "non_null_pct": 69.4,
+        "non_empty": 933,
+        "non_empty_pct": 69.4,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "flags": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 259,
+        "non_empty_pct": 19.3,
+        "types": [
+          "list"
+        ]
+      },
+      "has_discount": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_hours": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_rating": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_review_count": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "has_reviews": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "house_number": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1295,
+        "non_null_pct": 96.4,
+        "non_empty": 1295,
+        "non_empty_pct": 96.4,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "latitude": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1341,
+        "non_null_pct": 99.8,
+        "non_empty": 1341,
+        "non_empty_pct": 99.8,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "longitude": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1341,
+        "non_null_pct": 99.8,
+        "non_empty": 1341,
+        "non_empty_pct": 99.8,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "low_review": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "opening_hours": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 853,
+        "non_empty_pct": 63.5,
+        "types": [
+          "list"
+        ]
+      },
+      "photo_count": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1340,
+        "non_null_pct": 99.7,
+        "non_empty": 1340,
+        "non_empty_pct": 99.7,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "postal_code": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1341,
+        "non_null_pct": 99.8,
+        "non_empty": 1341,
+        "non_empty_pct": 99.8,
+        "types": [
+          "null",
+          "str"
+        ]
+      },
+      "rating": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1300,
+        "non_null_pct": 96.7,
+        "non_empty": 1300,
+        "non_empty_pct": 96.7,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "rating_sample_divergent": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "bool"
+        ]
+      },
+      "restaurant_name": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "restaurant_url": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "review_count": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1304,
+        "non_null_pct": 97.0,
+        "non_empty": 1304,
+        "non_empty_pct": 97.0,
+        "types": [
+          "int",
+          "null"
+        ]
+      },
+      "review_snippets": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1291,
+        "non_empty_pct": 96.1,
+        "types": [
+          "list"
+        ]
+      },
+      "reviews": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1280,
+        "non_empty_pct": 95.2,
+        "types": [
+          "list"
+        ]
+      },
+      "sample_avg_rating": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1280,
+        "non_null_pct": 95.2,
+        "non_empty": 1280,
+        "non_empty_pct": 95.2,
+        "types": [
+          "float",
+          "null"
+        ]
+      },
+      "sample_size": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "scraped_at": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "source": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "source_id": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "source_page_number": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "int"
+        ]
+      },
+      "street": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      },
+      "tf_id": {
+        "present": 1344,
+        "present_pct": 100.0,
+        "non_null": 1344,
+        "non_null_pct": 100.0,
+        "non_empty": 1344,
+        "non_empty_pct": 100.0,
+        "types": [
+          "str"
+        ]
+      }
+    }
+  }
+}
