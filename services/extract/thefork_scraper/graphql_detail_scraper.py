@@ -296,6 +296,7 @@ def merge_graphql_detail(
         "discount": parse_discount(restaurant),
         "photo_count": photo_count,
         "working_days_hours": parse_opening_hours(restaurant),
+        "working_hours_structured": parse_opening_hours_structured(restaurant),
         "restaurant_url": restaurant_url,
     }
 
@@ -376,13 +377,18 @@ def count_photos(restaurant: dict[str, Any]) -> int | None:
 
 
 def parse_opening_hours(restaurant: dict[str, Any]) -> str | None:
+    specifications = parse_opening_hours_structured(restaurant)
+    return json.dumps(specifications, ensure_ascii=False) if specifications else None
+
+
+def parse_opening_hours_structured(restaurant: dict[str, Any]) -> list[dict[str, Any]]:
     opening_hours = (
         ((restaurant.get("openingTimeInformation") or {}).get("openingHours") or {})
         if isinstance(restaurant, dict)
         else {}
     )
     if not opening_hours:
-        return None
+        return []
 
     day_names = {
         "mon": "luned\u00ec",
@@ -408,9 +414,7 @@ def parse_opening_hours(restaurant: dict[str, Any]) -> str | None:
                         "opens": start,
                     }
                 )
-    if not specifications:
-        return None
-    return json.dumps(specifications, ensure_ascii=False)
+    return specifications
 
 
 def minutes_to_time(value: Any) -> str | None:

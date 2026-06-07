@@ -105,14 +105,18 @@ Every restaurant record must use this normalized schema initially:
   "discount": "Sconti fino al 30%",
   "photo_count": 12,
   "website": null,
+  "social_links": { "instagram": "https://www.instagram.com/example" },
   "phone_number": null,
   "email": null,
   "working_days_hours": null,
+  "working_hours_structured": [],
   "restaurant_url": "https://www.thefork.it/ristorante/drinkiamo-bistrot-r801007",
   "review_snippets": ["Pasta buonissima e fresca come fatta dalla nonna."],
   "reviews": [
     {
       "author_name": "Mario",
+      "author_profile": null,
+      "author_contributions": null,
       "rating": 10,
       "title": null,
       "text": "Excellent restaurant.",
@@ -323,6 +327,20 @@ Rules:
 - do not use the TheFork restaurant URL as `website`;
 - if only TheFork URLs are found, keep `website` as `null`.
 
+### `social_links`
+
+Map of social platform to profile URL, kept separate from `website`. Only links
+whose host matches a known social platform (Facebook, Instagram, TikTok,
+YouTube, X/Twitter, LinkedIn) are collected; the first non-empty URL per
+platform wins.
+
+Extraction priority:
+
+1. structured data `sameAs`;
+2. embedded JSON social fields and detail-page social links;
+3. visible detail-page social links;
+4. `{}`.
+
 ### `phone_number`
 
 Extraction priority:
@@ -354,6 +372,18 @@ Extraction priority:
 4. `null`.
 
 Format must be consistent across all records: raw string, dictionary by weekday, or list of intervals.
+
+### `working_hours_structured`
+
+Machine-readable counterpart of `working_days_hours`: a list of opening-hour
+specification objects when structured hours are exposed, otherwise `[]`.
+
+Extraction priority:
+
+1. structured data `openingHoursSpecification` / `openingHours`;
+2. embedded JSON opening hours;
+3. GraphQL/CDP opening-hours specifications;
+4. `[]`.
 
 ### `restaurant_url`
 
@@ -393,6 +423,8 @@ Each review must use:
 ```json
 {
   "author_name": null,
+  "author_profile": null,
+  "author_contributions": null,
   "rating": null,
   "title": null,
   "text": null,
@@ -402,7 +434,7 @@ Each review must use:
 
 Rules:
 
-- collect at most `MAX_REVIEWS_PER_RESTAURANT`;
+- collect at most `--max-reviews-per-restaurant` (default `MAX_REVIEWS_PER_RESTAURANT`);
 - do not click infinite review pagination unless explicitly implemented;
 - skip empty reviews;
 - deduplicate reviews.
