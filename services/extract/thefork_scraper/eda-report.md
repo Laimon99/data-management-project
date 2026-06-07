@@ -1,5 +1,12 @@
 # TheFork Milan — Strict EDA & Data-Quality Assessment
 
+> ⚠️ **This analysis is of the *pre*-2026-06-06 scrape.** A newer scrape has since landed
+> (reviews tripled, coordinates complete, `working_hours_structured` added, `website`/
+> dietary/multi-cuisine lost) — see [`../../../docs/the_fork_migration/DATASET_CHANGES.md`](../../../docs/the_fork_migration/DATASET_CHANGES.md)
+> for the deltas and [`../../../specs/thefork-elt-transform.md`](../../../specs/thefork-elt-transform.md)
+> for how the transform reflects the new version. The findings below remain the
+> methodological record; specific counts are from the older file.
+
 > Deep exploratory data analysis of the TheFork extract
 > (`data/raw/thefork/thefork_milan_restaurants_enriched.json`, **N = 1,344** records),
 > written from a **data-analyst + data-engineer** standpoint to decide whether the source
