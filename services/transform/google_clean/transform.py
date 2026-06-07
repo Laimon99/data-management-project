@@ -188,8 +188,10 @@ def clean_collection(
 
     Each raw record is projected/normalized/classified and upserted as one lean
     document. Re-running converges to the same contents with no duplicates — including
-    when drop settings change: a record dropped this run has any stale copy from a
-    previous run deleted from the destination.
+    when drop settings change (a record dropped this run has any stale copy deleted) and
+    when the source set shrinks: on a **full run** (``limit is None``) any destination key
+    no longer present in the source is deleted. A ``--limit`` run is intentionally partial
+    and only removes keys it actively dropped this run.
     """
     if settings.source_collection == settings.destination_collection:
         raise ValueError(
@@ -235,13 +237,18 @@ def clean_collection(
             flush()
     flush()
 
-    # Rerun convergence: delete stale destination docs for keys dropped this run (e.g.
-    # previously kept as non_dining/junk, now excluded by changed drop settings). Keys
-    # also written this run (only possible via duplicate raws) are never deleted.
-    stale = dropped_keys - seen
-    if stale:
-        result = dest.delete_many({"_id": {"$in": list(stale)}})
+    # Rerun convergence. On a full run the destination must mirror exactly the keys written
+    # this run, so any destination key not written — whether dropped by a rule this run or
+    # vanished from the source upstream — is deleted. A --limit run is intentionally partial,
+    # so it only removes keys it actively dropped this run (never keys it never read).
+    if limit is None:
+        result = dest.delete_many({"_id": {"$nin": list(seen)}})
         report.stale_deleted = result.deleted_count
+    else:
+        stale = dropped_keys - seen
+        if stale:
+            result = dest.delete_many({"_id": {"$in": list(stale)}})
+            report.stale_deleted = result.deleted_count
 
     report.distinct_cities_before = len(cities_before)
     report.distinct_cities_after = len(cities_after)
