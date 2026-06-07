@@ -102,7 +102,8 @@ uv run thefork-clean                # full run
 uv run thefork-clean --limit 20     # quick test slice
 ```
 
-See `transform/thefork_clean/README.md` and `extract/thefork_scraper/eda-report.md`.
+See `transform/thefork_clean/README.md`, `transform/thefork_clean/clean-dataset-schema.md`,
+and `extract/thefork_scraper/eda-report.md`.
 
 ---
 

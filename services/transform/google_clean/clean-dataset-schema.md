@@ -1,149 +1,103 @@
-# Clean Dataset Schema — `restaurants_clean_google`
+# Clean Dataset Schema - `restaurants_clean_google`
 
-Output of the `google_clean` transform (`uv run google-clean`), Mongo → Mongo. One
-document per kept Google Places venue, keyed on `place_id` (→ `_id`). The heavy raw
-`details` blob is **not** copied; the full raw record stays in `restaurants_raw_google`
-as the audit trail / LLM-extension source.
+Output of the `google_clean` transform (`uv run google-clean`), Mongo -> Mongo. The
+raw input is `restaurants_raw_google`; the clean output is one lean document per kept
+Google Places venue in `restaurants_clean_google`, keyed by `place_id` (`_id`).
 
-Coverage figures below are from a full run: **10,786 documents** (10,808 raw − 22 inert
-junk dropped). “Coverage” = % of documents where the field is non-null.
+Coverage for the clean table is from a full run: **10,786 clean documents** from
+**10,808 raw records** after dropping 22 inert junk records. "Coverage" means non-null
+coverage unless the description says "non-empty" for arrays. Raw coverage comes from
+the Google Places seed schema.
 
-**Source legend:** `passthrough` (copied verbatim from the raw flat field) · `normalized`
-(cleaned/recased copy) · `derived` (lifted from `details.addressComponents`/computed) ·
-`flag` (boolean quality/relevance flag) · `feature` (derived analytic feature) ·
-`metadata` (transform bookkeeping). **NEW** marks fields that did not exist in the raw
-flat seed record (they are extracted from `details` or computed here).
+## Old Features - Raw Source Schema
 
----
+| Field | Type | Coverage | Description |
+|---|---|---:|---|
+| `place_id` | str | 100% | Google Places natural key. |
+| `name` | str | 100% | Raw venue display name. |
+| `formatted_address` | str | 100% | Full formatted address from Places search. |
+| `city` | str | 100% | Raw city string from the seed. It is not fully reliable and includes Milan/Milano spelling drift plus some out-of-area values. |
+| `latitude` | float | 100% | WGS-84 latitude from Google. Used as authoritative seed coordinate. |
+| `longitude` | float | 100% | WGS-84 longitude from Google. Used as authoritative seed coordinate. |
+| `types` | list[str] | 100% | Google place type tags. |
+| `primary_type` | str | 100% | Google's primary type for the place. |
+| `rating` | float \| null | 94% | Top-level Google aggregate rating on a 1-5 scale. |
+| `user_rating_count` | int \| null | 94% | Top-level Google review count. |
+| `details` | obj | 100% | Full Places Details response. Kept only in the raw collection. |
+| `details.addressComponents` | list[obj] | 100% | Structured address parts used to derive street, number, postal code, locality, province, and country. |
+| `details.rating` | float \| null | 94% | Details-level aggregate rating, preferred over the top-level value when present. |
+| `details.userRatingCount` | int \| null | 94% | Details-level review count, preferred over the top-level value when present. |
+| `details.businessStatus` | str \| null | about 100% | Operational status used for quality flags. |
+| `details.priceLevel` | str \| null | 45% | Google's categorical price tier. |
+| `details.priceRange` | obj \| null | 74% | Numeric price range with currency and units. |
+| `details.websiteUri` | str \| null | 53% | Venue website URL when Google returns it. |
+| `details.internationalPhoneNumber` | str \| null | 84% | International phone number, preferred over national format. |
+| `details.nationalPhoneNumber` | str \| null | 84% | National phone number fallback. |
+| `details.photos` | list[obj] | 91% | Up to 10 Google photo metadata objects. |
+| `details.reviews` | list[obj] | 94% | Up to 5 recent Google reviews in the full Places Details shape. |
+| `details.service_amenity_flags` | bool fields | varies | Google booleans such as `dineIn`, `takeout`, `servesBeer`, `outdoorSeating`, and similar service/amenity flags. |
+| `details_fetched_at` | str | 100% | Timestamp of the Places Details fetch. Kept in raw only. |
+| `seed_collected_at` | str | 100% | Timestamp of seed acquisition. Kept in raw only. |
 
-## Identity & key
+## New Features - Clean Schema
 
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `_id` | str | 100% | passthrough | Mongo key = `place_id`. |
-| `place_id` | str | 100% | passthrough | Google Places id (natural key). |
-| `name` | str \| null | 100% | normalized | Display name, whitespace-collapsed; ALL-CAPS recased to title case (best-effort). |
-
-## Location (authoritative — never recomputed)
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `latitude` | float | 100% | passthrough | WGS-84 latitude, copied verbatim from the seed. |
-| `longitude` | float | 100% | passthrough | WGS-84 longitude, copied verbatim from the seed. |
-
-## Address (structured lookup from `details.addressComponents`)
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `address` | str \| null | 100% | normalized | Full `formatted_address`, whitespace/separator-normalized. |
-| `street` | str \| null | 98.2% | **NEW** derived | `route` component. |
-| `street_number` | str \| null | 92.4% | **NEW** derived | `street_number` component. |
-| `postal_code` | str \| null | 100% | **NEW** derived | Italian CAP (`postal_code` component). |
-| `locality` | str \| null | 97.2% | **NEW** derived | `locality` component (raw, before canonicalization). |
-| `province` | str \| null | 100% | **NEW** derived | `administrative_area_level_2` short code (e.g. `MI`). |
-| `country` | str \| null | 100% | **NEW** derived | `country` component (e.g. `Italy`). |
-| `city` | str \| null | 100% | normalized | Canonical city: from `locality` (fallback flat `city`), recased, `Milan`→`Milano`. |
-| `city_out_of_area` | bool | 100% | **NEW** flag | True when `city` names a place outside the Milan metro (e.g. `Torino`) despite in-bbox coords. |
-
-## Ratings (canonical = `details.*`, coalesced to top-level when missing)
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `rating` | float \| null | 93.7% | normalized | Google rating 1.0–5.0; prefers `details.rating`, falls back to top-level. |
-| `review_count` | int \| null | 93.7% | normalized | Review count (was `user_rating_count`); prefers `details.userRatingCount`. |
-| `has_rating` | bool | 100% | **NEW** flag | `rating is not null`. |
-| `low_review` | bool | 100% | **NEW** flag | `review_count < low_review_threshold` (default 10); **count-only**. |
-
-## Classification & relevance
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `primary_type` | str \| null | 99.8% | passthrough | Google's most specific type. |
-| `types` | list[str] | 100% | passthrough | All Google type tags. |
-| `category_tier` | str | 100% | **NEW** derived | `restaurant` / `cafe_bar_bakery` / `non_dining` / `unknown`. |
-| `is_dining` | bool | 100% | **NEW** derived | `category_tier ∈ {restaurant, cafe_bar_bakery}` (in-scope for the comparison). |
-
-## Quality flags
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `business_status` | str \| null | 100% | passthrough | `OPERATIONAL` / `CLOSED_TEMPORARILY` / `CLOSED_PERMANENTLY`. |
-| `is_operational` | bool | 100% | **NEW** flag | `business_status == "OPERATIONAL"`. |
-| `name_is_geographic` | bool | 100% | **NEW** flag | Name is a region/city/CAP string (junk signal). |
-| `flags` | list[str] | 100% | **NEW** | Reason list — any of `non_dining`, `name_is_geographic`, `not_operational`, `low_review`, `city_out_of_area` (may be empty). |
-
-## Features (NEW — derived from `details`)
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `photo_count` | int | 100% | **NEW** feature | Number of photo-metadata objects Google returned (richness/popularity signal). |
-| `price_level` | str \| null | 44.7% | passthrough | Categorical tier (`PRICE_LEVEL_*`). |
-| `price_range` | obj \| null | 73.9% | **NEW** feature | Compacted `{start, end, currency}` (ints / EUR). |
-| `has_website` | bool | 100% | **NEW** flag | Website present (non-blank). |
-| `has_phone` | bool | 100% | **NEW** flag | Phone present (non-blank). |
-| `website` | str \| null | 53.3% | derived | Venue website (blank → null) — matching aid. |
-| `phone` | str \| null | 83.7% | derived | International (or national) phone — matching aid. |
-
-### Amenity / service flags (NEW — **present-only**, snake-cased Google booleans)
-
-Each is emitted **only when Google supplies it**, so documents have a heterogeneous set
-(coverage = how often Google returned the flag). Downstream should treat *missing* as
-*unknown*, not `False`.
-
-| Field | Coverage | · | Field | Coverage |
-|---|---|---|---|---|
-| `dine_in` | 89.1% | · | `serves_beer` | 75.2% |
-| `takeout` | 70.2% | · | `serves_wine` | 69.2% |
-| `delivery` | 64.6% | · | `serves_cocktails` | 54.6% |
-| `reservable` | 53.3% | · | `serves_coffee` | 58.0% |
-| `curbside_pickup` | 26.5% | · | `serves_dessert` | 56.3% |
-| `outdoor_seating` | 49.1% | · | `serves_breakfast` | 40.0% |
-| `live_music` | 72.5% | · | `serves_lunch` | 53.3% |
-| `good_for_children` | 52.0% | · | `serves_dinner` | 47.3% |
-| `good_for_groups` | 46.3% | · | `serves_vegetarian_food` | 21.1% |
-| `good_for_watching_sports` | 53.5% | · | `menu_for_children` | 32.0% |
-| `allows_dogs` | 43.7% | · | `restroom` | 83.6% |
-
-## Reviews (slimmed)
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `reviews` | list[obj] | 100% | **NEW** feature | ≤5 reviews, each `{rating, text, language, publish_time, author}`. Empty list when none. Full reviews remain in raw for the LLM extension. |
-
-## Metadata
-
-| Field | Type | Coverage | Source | Description |
-|---|---|---|---|---|
-| `_transformed_at` | datetime | 100% | metadata | UTC timestamp of the transform run. |
-| `_source_collection` | str | 100% | metadata | `restaurants_raw_google`. |
-
----
-
-## Example document (abridged)
-
-```json
-{
-  "_id": "ChIJ--B9MpPAhkcR5i3IsaONCho",
-  "place_id": "ChIJ--B9MpPAhkcR5i3IsaONCho",
-  "name": "In Piazza",
-  "latitude": 45.5167039, "longitude": 9.1692377,
-  "address": "Via Gaetano Osculati, 2, 20161 Milano MI, Italy",
-  "street": "Via Gaetano Osculati", "street_number": "2",
-  "postal_code": "20161", "locality": "Milano", "province": "MI", "country": "Italy",
-  "city": "Milano", "city_out_of_area": false,
-  "rating": 4.2, "review_count": 549, "has_rating": true, "low_review": false,
-  "primary_type": "restaurant", "types": ["restaurant", "pizza_restaurant", "..."],
-  "category_tier": "restaurant", "is_dining": true,
-  "business_status": "OPERATIONAL", "is_operational": true,
-  "name_is_geographic": false, "flags": [],
-  "photo_count": 10, "price_level": "PRICE_LEVEL_INEXPENSIVE",
-  "price_range": {"start": 10, "end": 20, "currency": "EUR"},
-  "has_website": true, "has_phone": true,
-  "website": "http://www.inpiazzaaffori.it/", "phone": "+39 02 645 6224",
-  "dine_in": true, "takeout": true, "reservable": true, "serves_wine": true,
-  "reviews": [{"rating": 5, "text": "...", "language": "en",
-               "publish_time": "2026-05-01T...", "author": "Marco R."}],
-  "_transformed_at": "2026-06-06T19:23:04.857Z",
-  "_source_collection": "restaurants_raw_google"
-}
-```
+| Field | Type | Coverage | Transformed | Description |
+|---|---|---:|---|---|
+| `_id` | str | 100% | Created from `place_id`. | Mongo key for idempotent upserts. |
+| `place_id` | str | 100% | Copied from raw `place_id`. | Google Places natural key. |
+| `name` | str \| null | 100% | Whitespace collapsed; ALL-CAPS names recased best-effort. | Clean display name for matching and reporting. |
+| `latitude` | float | 100% | Copied from raw `latitude`; never re-geocoded. | Canonical latitude when Google is part of a match. |
+| `longitude` | float | 100% | Copied from raw `longitude`; never re-geocoded. | Canonical longitude when Google is part of a match. |
+| `address` | str \| null | 100% | Normalized from raw `formatted_address`. | Full clean address string. |
+| `street` | str \| null | 98.2% | Derived from `details.addressComponents` route component. | Street name. |
+| `street_number` | str \| null | 92.4% | Derived from `details.addressComponents` street-number component. | Civic number. |
+| `postal_code` | str \| null | 100% | Derived from `details.addressComponents` postal-code component. | Italian CAP. |
+| `locality` | str \| null | 97.2% | Derived from `details.addressComponents` locality component. | Raw locality before city canonicalization. |
+| `province` | str \| null | 100% | Derived from `details.addressComponents` administrative-area component. | Province code, usually `MI`. |
+| `country` | str \| null | 100% | Derived from `details.addressComponents` country component. | Country name. |
+| `city` | str \| null | 100% | Derived from locality with raw `city` fallback; `Milan` normalized to `Milano`. | Canonical city string for blocking and analysis. |
+| `city_out_of_area` | bool | 100% | Derived by checking canonical `city` against known out-of-area names. | Quality flag for records whose city label conflicts with the Milan-area scope. |
+| `rating` | float \| null | 93.7% | Coalesced from `details.rating`, then raw `rating`; validated to 1-5. | Google aggregate rating. |
+| `review_count` | int \| null | 93.7% | Coalesced from `details.userRatingCount`, then raw `user_rating_count`; renamed. | Google review count. |
+| `has_rating` | bool | 100% | Derived from `rating is not null`. | Rating coverage flag. |
+| `low_review` | bool | 100% | Derived from `review_count < low_review_threshold` when count exists. | Count-only quality flag; records are kept. |
+| `primary_type` | str \| null | 99.8% | Copied from raw `primary_type`. | Google's main category type. |
+| `types` | list[str] | 100% | Copied from raw `types`; missing converted to empty list. | Full Google type vocabulary for the venue. |
+| `category_tier` | str | 100% | Derived from `primary_type` and `types`. | `restaurant`, `cafe_bar_bakery`, `non_dining`, or `unknown`. |
+| `is_dining` | bool | 100% | Derived from `category_tier`. | True for restaurant/cafe/bar/bakery categories in scope for matching. |
+| `business_status` | str \| null | 100% | Lifted from `details.businessStatus`. | Operational status from Google. |
+| `is_operational` | bool | 100% | Derived from `business_status == "OPERATIONAL"`. | Operational-quality flag. |
+| `name_is_geographic` | bool | 100% | Derived from name/locality heuristics. | Flags geographic placeholder names rather than venues. |
+| `flags` | list[str] | 100% | Derived reason list. | May include `non_dining`, `name_is_geographic`, `not_operational`, `low_review`, `city_out_of_area`. |
+| `photo_count` | int | 100% | Derived as `len(details.photos)`. | Photo metadata count, a source-richness feature. |
+| `price_level` | str \| null | 44.7% | Lifted from `details.priceLevel`. | Google categorical price tier. |
+| `price_range` | obj \| null | 73.9% | Parsed from `details.priceRange` into `{start, end, currency}`. | Numeric EUR price range. |
+| `has_website` | bool | 100% | Derived from cleaned `website`. | Website coverage flag. |
+| `has_phone` | bool | 100% | Derived from cleaned `phone`. | Phone coverage flag. |
+| `website` | str \| null | 53.3% | Trimmed from `details.websiteUri`; blanks to null. | Venue website used as matching evidence when available. |
+| `phone` | str \| null | 83.7% | Trimmed from `details.internationalPhoneNumber` with national fallback. | Venue phone used as matching evidence when available. |
+| `dine_in` | bool | 89.1% | Snake-cased from `details.dineIn`; emitted only when supplied. | Service flag; missing means unknown, not false. |
+| `takeout` | bool | 70.2% | Snake-cased from `details.takeout`; emitted only when supplied. | Service flag; missing means unknown, not false. |
+| `delivery` | bool | 64.6% | Snake-cased from `details.delivery`; emitted only when supplied. | Service flag; missing means unknown, not false. |
+| `reservable` | bool | 53.3% | Snake-cased from `details.reservable`; emitted only when supplied. | Service flag; missing means unknown, not false. |
+| `curbside_pickup` | bool | 26.5% | Snake-cased from `details.curbsidePickup`; emitted only when supplied. | Service flag; missing means unknown, not false. |
+| `outdoor_seating` | bool | 49.1% | Snake-cased from `details.outdoorSeating`; emitted only when supplied. | Amenity flag; missing means unknown, not false. |
+| `serves_vegetarian_food` | bool | 21.1% | Snake-cased from `details.servesVegetarianFood`; emitted only when supplied. | Cuisine/service flag; missing means unknown, not false. |
+| `serves_breakfast` | bool | 40.0% | Snake-cased from `details.servesBreakfast`; emitted only when supplied. | Meal-service flag; missing means unknown, not false. |
+| `serves_lunch` | bool | 53.3% | Snake-cased from `details.servesLunch`; emitted only when supplied. | Meal-service flag; missing means unknown, not false. |
+| `serves_dinner` | bool | 47.3% | Snake-cased from `details.servesDinner`; emitted only when supplied. | Meal-service flag; missing means unknown, not false. |
+| `serves_beer` | bool | 75.2% | Snake-cased from `details.servesBeer`; emitted only when supplied. | Beverage flag; missing means unknown, not false. |
+| `serves_wine` | bool | 69.2% | Snake-cased from `details.servesWine`; emitted only when supplied. | Beverage flag; missing means unknown, not false. |
+| `serves_cocktails` | bool | 54.6% | Snake-cased from `details.servesCocktails`; emitted only when supplied. | Beverage flag; missing means unknown, not false. |
+| `serves_coffee` | bool | 58.0% | Snake-cased from `details.servesCoffee`; emitted only when supplied. | Beverage flag; missing means unknown, not false. |
+| `serves_dessert` | bool | 56.3% | Snake-cased from `details.servesDessert`; emitted only when supplied. | Meal-service flag; missing means unknown, not false. |
+| `live_music` | bool | 72.5% | Snake-cased from `details.liveMusic`; emitted only when supplied. | Amenity flag; missing means unknown, not false. |
+| `good_for_children` | bool | 52.0% | Snake-cased from `details.goodForChildren`; emitted only when supplied. | Audience flag; missing means unknown, not false. |
+| `good_for_groups` | bool | 46.3% | Snake-cased from `details.goodForGroups`; emitted only when supplied. | Audience flag; missing means unknown, not false. |
+| `allows_dogs` | bool | 43.7% | Snake-cased from `details.allowsDogs`; emitted only when supplied. | Amenity flag; missing means unknown, not false. |
+| `restroom` | bool | 83.6% | Snake-cased from `details.restroom`; emitted only when supplied. | Amenity flag; missing means unknown, not false. |
+| `menu_for_children` | bool | 32.0% | Snake-cased from `details.menuForChildren`; emitted only when supplied. | Menu flag; missing means unknown, not false. |
+| `good_for_watching_sports` | bool | 53.5% | Snake-cased from `details.goodForWatchingSports`; emitted only when supplied. | Amenity flag; missing means unknown, not false. |
+| `reviews` | list[obj] | 100% | Slimmed from `details.reviews` to `{rating, text, language, publish_time, author}`. | Capped recent-review sample; empty list when no reviews. |
+| `_transformed_at` | datetime | 100% | Added by transform at write time. | UTC transform timestamp. |
+| `_source_collection` | str | 100% | Added from transform settings. | Source collection name, normally `restaurants_raw_google`. |

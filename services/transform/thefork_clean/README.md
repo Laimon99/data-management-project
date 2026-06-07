@@ -55,6 +55,9 @@ A before/after `CleanReport` (read/written, parsed-field coverage, flags raised)
 as JSON and feeds the stage-5 quality assessment. Each clean doc carries `_id` (= `source_id`),
 `_transformed_at`, and `_source_collection` metadata.
 
+Full old-vs-new field reference (types, coverage, and transformation rules):
+**[`clean-dataset-schema.md`](clean-dataset-schema.md)**.
+
 ## Design
 
 See `specs/thefork-elt-transform.md` for the spec and
