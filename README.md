@@ -358,9 +358,9 @@ The integration stage follows the following workflow: first create clean source 
 
 ### 01. Schema transformation / pre-integration
 
-* **Input**: `n` source schemas from Google, Tripadvisor, and TheFork raw collections.
-* **Output**: `n` source schemas **homogeneized** into comparable clean collections.
-* **Methods used**: model transformation + reverse engineering of the raw extractor
+* **Input**: 3 source schemas from Google, Tripadvisor, and TheFork raw collections.
+* **Output**: 3 source schemas **homogeneized** into comparable clean collections.
+* **Methods used**: model transformations based on reverse engineering of the raw extractor
   outputs and EDA findings.
 
 This is implemented as the clean transform layer. After loading, each source is cleaned
@@ -391,16 +391,17 @@ homogeneized output schema in the service README, `eda-report.md`, and where pre
 
 ### 02. Correspondences investigation
 
-* **Input**: `n` homogeneized source schemas.
-* **Output**: homogeneized source schemas plus candidate correspondences between Google, Tripadvisor, and TheFork records.
-* **Methods used**: techniques to discover correspondences, starting with blocking and similarity scoring before any expensive matching step.
+* **Input**: 3 homogeneized cleaned schemas.
+* **Output**: 3 homogeneized schemas plus candidate correspondences between Google, Tripadvisor, and TheFork records.
+* **Methods used**: TODO
 
 Restaurants do **not share IDs**, so integration depends on record linkage. The planned matching workflow is:
 
-1. **Blocking** by city and geographic proximity, e.g. distance under 200 meters.
+1. **Blocking** by geographic proximity, e.g. distance under 200 meters.
 2. **Similarity metrics** over normalized names and addresses, e.g. Levenshtein / Jaro-Winkler.
 3. **Composite matching score** combining distance, name similarity, address similarity, and platform-specific evidence.
 4. **Decision labels**: match, no match, uncertain.
+5. **LLM-based tie breaking**: breaking uncertain pairs using LLM based approach. 
 
 Integration quality is measured with false matches, missed matches, and ambiguous
 matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
