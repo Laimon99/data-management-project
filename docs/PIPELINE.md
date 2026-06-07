@@ -29,9 +29,10 @@ Restaurant List (name, address, lat, lon)
 Platform-specific raw tables  (restaurants_raw_{google,tripadvisor,thefork})
         │
         ▼
-Transform layer (clean / normalize / flag)
-   • google_clean      → restaurants_clean_google      (uv run google-clean)
-   • tripadvisor clean+geocode → restaurants_clean_tripadvisor
+Transform layer (clean / normalize / structure / flag)  — all three implemented
+   • google_clean              → restaurants_clean_google        (uv run google-clean)
+   • tripadvisor clean+geocode → restaurants_clean_tripadvisor   (uv run tripadvisor-clean)
+   • thefork_clean             → restaurants_clean_thefork       (uv run thefork-clean)
         │
         ▼
 LLM-based Entity Matching
@@ -40,12 +41,23 @@ LLM-based Entity Matching
 Unified Ratings Table (+ geo analysis)
 ```
 
-> **Transform (T) layer.** Each source is cleaned Mongo→Mongo before matching. For
-> **Google**, `services/transform/google_clean` (`uv run google-clean`) projects the lean
-> fields out of the raw `details` blob, normalizes name/city, lifts structured address
-> parts, copies the authoritative coordinates (never re-geocoded), and classifies dining
-> relevance (`is_dining` / `category_tier`) so non-dining venues can be excluded. See
-> `specs/google-places-elt-transform.md` and `services/extract/google_places_api/eda-report.md`.
+> **Transform (T) layer — all three sources implemented.** Each source is cleaned
+> Mongo→Mongo before matching; the raw collections stay immutable. All three share the
+> same idioms: per-record quality `flags`/`has_*`, a `CleanReport`, full-run stale-delete
+> convergence, and a source/destination collision guard.
+> - **Google** — `services/transform/google_clean` (`uv run google-clean`): projects lean
+>   fields out of the raw `details` blob, normalizes name/city, lifts structured address
+>   parts, copies the authoritative coordinates (never re-geocoded), and classifies dining
+>   relevance (`is_dining` / `category_tier`).
+> - **Tripadvisor** — `services/transform/tripadvisor_clean` (`uv run tripadvisor-clean`):
+>   type-repairs the Italian display strings, structures price/cuisine/hours/reviews,
+>   lifts `ta_location_id`, and **geocodes** the cleaned address (Tripadvisor ships no
+>   coordinates).
+> - **TheFork** — `services/transform/thefork_clean` (`uv run thefork-clean`): parses the
+>   1NF-violation fields (already typed and geocoded upstream, so no type-repair/geocoding).
+>
+> See each service's README + `eda-report.md`, and `specs/google-places-elt-transform.md` /
+> `specs/thefork-elt-transform.md` / `specs/tripadvisor-clean-parity.md`.
 
 ---
 
@@ -110,26 +122,31 @@ Each platform generates its **own table**, without assuming perfect name or addr
 
 ---
 
-## Step 2b – Transform (Clean + Geocode)
+## Step 2b – Transform (Clean / Structure / Geocode / Flag)
 
 Before entity resolution, raw per-platform records are transformed **Mongo → Mongo**
-(the raw collections stay immutable). The first transform implemented is the
-**Tripadvisor transform** (`services/transform/tripadvisor_clean`, `uv run tripadvisor-clean`):
+(the raw collections stay immutable). **All three transforms are implemented** and share
+the same idioms — per-record `flags`/`has_*`, a `CleanReport` of before/after counts,
+full-run stale-delete convergence, and a source/destination collision guard:
 
-* reads `restaurants_raw_tripadvisor`;
-* cleans each record with pure functions — rating `"5,0" → 5.0`, review count
-  `"(1.234 recensioni)" → 1234`, `"NaN"`-sentinel → `null`, name/address normalization,
-  best-effort `postal_code` / `street` / `city` extraction;
-* **geocodes the cleaned address** via Nominatim/OpenStreetMap as a sub-step (clean-first
-  for higher hit-rate; resumable — already-geocoded records are skipped; `--skip-geocode`
-  gives a fast clean-only pass);
-* upserts **one** document (clean fields + `latitude`/`longitude`) into
-  `restaurants_clean_tripadvisor`, keyed on `source_url`.
+* **`google_clean`** (`uv run google-clean`) → `restaurants_clean_google`: projects lean
+  fields out of the raw `details` blob, normalizes name/city, lifts structured address
+  parts, copies the authoritative coordinates (**never** re-geocoded), and flags dining
+  relevance (`is_dining` / `category_tier`).
+* **`tripadvisor_clean`** (`uv run tripadvisor-clean`) → `restaurants_clean_tripadvisor`:
+  type-repairs the Italian display strings (`"5,0" → 5.0`, `"(1.234 recensioni)" → 1234`,
+  `"NaN"` → `null`), normalizes name/address/contacts, **structures** the 1NF-violation
+  fields (`price_range` → tier, `cuisine_type` → `cuisines`, `working_days_hours` →
+  `opening_hours`, `review` → slim capped `reviews`), lifts `ta_location_id`, and
+  **geocodes** the cleaned address via Nominatim/OpenStreetMap as a sub-step (resumable;
+  `--skip-geocode` for a fast clean-only pass) — Tripadvisor ships no coordinates.
+* **`thefork_clean`** (`uv run thefork-clean`) → `restaurants_clean_thefork`: parses the
+  1NF-violation fields (price/cuisine/discount/hours), normalizes name/city/address, lifts
+  `tf_id`, and slims reviews. TheFork arrives already typed and geocoded, so there is no
+  type-repair or geocoding.
 
-It returns a `CleanReport` of before/after counts (parsed/nulled ratings & reviews,
-NaN coercions, normalizations, low-review count, geocoding outcomes) — evidence for the
-Step-5 quality assessment. This single combined transform is the template the other two
-sources will copy. Geocoding is part of the transform, **not** a separate stage.
+Each returns a `CleanReport` feeding the Step-5 quality assessment. Geocoding (Tripadvisor
+only) is part of that transform, **not** a separate stage.
 
 ---
 

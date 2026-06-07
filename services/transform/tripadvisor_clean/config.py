@@ -29,6 +29,7 @@ class CleanSettings(BaseSettings):
 
     # Transform knobs.
     low_review_threshold: int = 10  # informational count only; records are not removed
+    review_cap: int = 20  # max nested reviews kept per record (scrape order ≈ recency)
     batch_size: int = 1000
 
     # Nominatim geocoding.

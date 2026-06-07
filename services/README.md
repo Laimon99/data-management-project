@@ -6,7 +6,7 @@ Services are grouped by **pipeline stage** — `extract/`, `load/`, `transform/`
 services/
   extract/   google_places_api/  tripadvisor_scraper/  thefork_scraper/
   load/      mongo/
-  transform/ tripadvisor_clean/
+  transform/ google_clean/  tripadvisor_clean/  thefork_clean/
 ```
 
 ## Implemented services
@@ -69,16 +69,40 @@ See `load/mongo/README.md` for the source registry and load semantics.
 
 ---
 
-### `transform/tripadvisor_clean` — Clean + geocode (Mongo → Mongo)
-The single Tripadvisor transform. Reads `restaurants_raw_tripadvisor`, cleans each record (rating/review-count typing, `NaN`→`null`, name/address normalization, structured address parts) and geocodes the cleaned address via Nominatim/OpenStreetMap (`geopy`, free, no key) as a sub-step, upserting one document (clean fields + `latitude`/`longitude`) into `restaurants_clean_tripadvisor`. Feeds proximity blocking in entity resolution and the geographic queries. Idempotent and resumable.
+### `transform/google_clean` — Clean + normalize + relevance-flag (Mongo → Mongo)
+The single Google transform. Reads `restaurants_raw_google`, projects the lean fields out of the heavy raw `details` blob, normalizes name/city, lifts structured address parts from `addressComponents`, copies the authoritative coordinates (**never** re-geocoded), and flags dining relevance (`is_dining` / `category_tier`) so non-dining noise (gas stations, supermarkets, hotels) can be excluded from matching. Upserts into `restaurants_clean_google`. Idempotent, with full-run stale-delete convergence.
 
 ```bash
-uv run tripadvisor-clean            # full run (clean + geocode)
+uv run google-clean                 # full run
+uv run google-clean --limit 20      # quick test slice
+```
+
+See `transform/google_clean/README.md` and `transform/google_clean/clean-dataset-schema.md`.
+
+---
+
+### `transform/tripadvisor_clean` — Clean + structure + geocode + flag (Mongo → Mongo)
+The single Tripadvisor transform. Reads `restaurants_raw_tripadvisor`, type-repairs the Italian display strings (`"5,0"`→float, `"(1.234 recensioni)"`→int, `NaN`→`null`), normalizes name/address/contacts, structures the 1NF-violation fields (`price_range`→tier, `cuisine_type`→`cuisines`, `working_days_hours`→`opening_hours`, `review`→slim capped `reviews`), lifts `ta_location_id`, geocodes the cleaned address via Nominatim/OpenStreetMap (`geopy`, free, no key) as a sub-step, and derives per-record quality flags. Upserts into `restaurants_clean_tripadvisor`. Idempotent, resumable, with full-run stale-delete convergence.
+
+```bash
+uv run tripadvisor-clean            # full run (clean + structure + geocode)
 uv run tripadvisor-clean --limit 20 # quick test slice
 uv run tripadvisor-clean --skip-geocode  # fast clean-only pass
 ```
 
-See `transform/tripadvisor_clean/README.md` for details and coverage notes.
+See `transform/tripadvisor_clean/README.md`, `clean-dataset-schema.md`, and `drop-policy.md`.
+
+---
+
+### `transform/thefork_clean` — Parse + structure + flag (Mongo → Mongo)
+The single TheFork transform. Reads `restaurants_raw_thefork` (already typed and geocoded), so it does **parse + structure + flag**, not type-repair or geocoding: parses the 1NF-violation fields (`price_range`→`avg_price_eur`, `cuisine_type`→`cuisines`+`dietary_options`, `discount`→`discount_pct`, hours→`opening_hours`), normalizes name/city/address, lifts `tf_id`, slims reviews, and derives count-only flags. Upserts into `restaurants_clean_thefork`. Idempotent, with full-run stale-delete convergence.
+
+```bash
+uv run thefork-clean                # full run
+uv run thefork-clean --limit 20     # quick test slice
+```
+
+See `transform/thefork_clean/README.md` and `extract/thefork_scraper/eda-report.md`.
 
 ---
 

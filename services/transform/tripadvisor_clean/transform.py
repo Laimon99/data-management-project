@@ -55,6 +55,8 @@ class CleanReport:
     written: int = 0
     duplicates_collapsed: int = 0
     missing_key: int = 0
+    stale_deleted: int = 0
+    # Type repair (activity counters).
     ratings_parsed: int = 0
     ratings_nulled: int = 0
     reviews_parsed: int = 0
@@ -62,7 +64,23 @@ class CleanReport:
     nan_coerced: int = 0
     names_normalized: int = 0
     addresses_normalized: int = 0
+    # Rich-field parsing coverage.
+    photo_count_parsed: int = 0
+    price_parsed: int = 0
+    cuisines_present: int = 0
+    multi_cuisine: int = 0
+    opening_hours_parsed: int = 0
+    with_reviews: int = 0
+    with_phone: int = 0
+    with_website: int = 0
+    with_email: int = 0
+    # Quality-flag coverage.
+    with_rating: int = 0
+    without_rating: int = 0
+    missing_review_count: int = 0
     low_review: int = 0
+    rating_with_zero_reviews: int = 0
+    # Geocoding.
     geocode_found: int = 0
     geocode_not_found: int = 0
     geocode_skipped_null_addr: int = 0
@@ -109,30 +127,63 @@ def _prepare(
     if key is None or (isinstance(key, str) and key.strip() == ""):
         return None
 
-    cleaned = clean_record(raw)
+    cleaned = clean_record(
+        raw,
+        low_review_threshold=settings.low_review_threshold,
+        review_cap=settings.review_cap,
+    )
 
-    if cleaned.get("rating") is not None:
+    # Rating: coverage (with/without) + repair activity (present-but-unparseable -> null).
+    if cleaned["rating"] is not None:
         report.ratings_parsed += 1
-    elif not geocode_mod.is_nan(raw.get("rating")):
-        report.ratings_nulled += 1
+        report.with_rating += 1
+    else:
+        report.without_rating += 1
+        if not geocode_mod.is_nan(raw.get("rating")):
+            report.ratings_nulled += 1
 
-    if cleaned.get("total_review") is not None:
+    # Review count: coverage (missing) + repair activity.
+    if cleaned["total_review"] is not None:
         report.reviews_parsed += 1
-    elif not geocode_mod.is_nan(raw.get("total_review")):
-        report.reviews_nulled += 1
+    else:
+        report.missing_review_count += 1
+        if not geocode_mod.is_nan(raw.get("total_review")):
+            report.reviews_nulled += 1
 
     report.nan_coerced += sum(1 for value in raw.values() if geocode_mod.is_nan(value))
 
-    name = cleaned.get("restaurant_name")
+    name = cleaned["restaurant_name"]
     if name is not None and name != raw.get("restaurant_name"):
         report.names_normalized += 1
-    address = cleaned.get("address")
+    address = cleaned["address"]
     if address is not None and address != raw.get("address"):
         report.addresses_normalized += 1
 
-    reviews = cleaned.get("total_review")
-    if reviews is not None and reviews < settings.low_review_threshold:
+    # Rich-field parsing coverage.
+    if cleaned["photo_count"] is not None:
+        report.photo_count_parsed += 1
+    if cleaned["price_band"] is not None:
+        report.price_parsed += 1
+    if cleaned["cuisines"]:
+        report.cuisines_present += 1
+        if len(cleaned["cuisines"]) > 1:
+            report.multi_cuisine += 1
+    if cleaned["opening_hours"]:
+        report.opening_hours_parsed += 1
+    if cleaned["has_reviews"]:
+        report.with_reviews += 1
+    if cleaned["has_phone"]:
+        report.with_phone += 1
+    if cleaned["has_website"]:
+        report.with_website += 1
+    if cleaned["has_email"]:
+        report.with_email += 1
+
+    # Quality flags.
+    if cleaned["low_review"]:
         report.low_review += 1
+    if "rating_with_zero_reviews" in cleaned["flags"]:
+        report.rating_with_zero_reviews += 1
 
     doc = dict(cleaned)
     doc["_id"] = key
@@ -156,9 +207,19 @@ def clean_collection(
 
     Each raw record is cleaned, its cleaned address geocoded (unless skipped or
     already done), and upserted as one document keyed on ``source_url``. Re-running
-    converges to the same contents with no duplicates. Geocoding is resumable: a
-    record that already holds non-null coordinates is not re-geocoded.
+    converges to the same **key set and content**: on a full run (``limit is None``)
+    any destination doc whose ``source_url`` is no longer in the source is deleted
+    (``stale_deleted``); a ``--limit`` run is intentionally partial and never
+    sync-deletes. Geocoding is resumable: a record that already holds non-null
+    coordinates is not re-geocoded. Raises ``ValueError`` if the source and
+    destination collection names collide (refusing to read and write one collection).
     """
+    if settings.source_collection == settings.destination_collection:
+        raise ValueError(
+            "source_collection and destination_collection must differ "
+            f"(both are {settings.source_collection!r}) — refusing to read and write the "
+            "same collection."
+        )
     if not skip_geocode and geocoder is None:
         # A missing geocoder is a caller wiring bug, not a legitimate geocode miss
         # (geocode_address would otherwise swallow the AttributeError as not_found).
@@ -222,12 +283,28 @@ def clean_collection(
                 report.geocode_found += 1
             else:
                 report.geocode_not_found += 1
+                doc["flags"].append("geocode_not_found")
             time.sleep(settings.delay_seconds)  # Nominatim rate limit (>= 1 req/s)
+
+        # Coordinate-derived quality flags (the clean_record pure layer cannot see coords).
+        doc["has_coordinates"] = _has_coords(doc["latitude"], doc["longitude"])
+        if not doc["has_coordinates"]:
+            doc["flags"].append("missing_coordinates")
 
         pending[doc["_id"]] = doc  # coalesce by key (last write wins)
         if len(pending) >= settings.batch_size:
             flush()
     flush()
+
+    # Rerun convergence: on a full run, delete destination docs whose source_url vanished
+    # from the source (venues delisted upstream). Skipped for a partial --limit run, which
+    # is intentionally incomplete and must not delete the records it didn't read. This
+    # layer is flag-first (only missing-key records are skipped), so `seen` is exactly the
+    # set of keys that should survive a full run.
+    if limit is None:
+        result = dest.delete_many({"_id": {"$nin": list(seen)}})
+        report.stale_deleted = result.deleted_count
+
     return report
 
 

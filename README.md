@@ -273,6 +273,34 @@ load metadata, flags, and edge-case behaviour. The wider pipeline design lives i
 [`docs/etl-design.md`](docs/etl-design.md) and the candidate DBMS evaluation in
 [`docs/storage-design.md`](docs/storage-design.md).
 
+### Transform (clean) layer — all three sources implemented
+
+After loading, each source is cleaned **Mongo → Mongo** (the `restaurants_raw_*`
+collections stay immutable) into a `restaurants_clean_*` product. All three transforms
+share the same idioms: per-record quality `flags`/`has_*`, a `CleanReport` of before/after
+counts, full-run stale-delete convergence, and a source/destination collision guard.
+
+```bash
+uv run google-clean        # restaurants_raw_google      → restaurants_clean_google
+uv run tripadvisor-clean   # restaurants_raw_tripadvisor → restaurants_clean_tripadvisor
+uv run thefork-clean       # restaurants_raw_thefork     → restaurants_clean_thefork
+```
+
+* **Google** ([`google_clean`](services/transform/google_clean/README.md)) — projects lean
+  fields out of the raw `details` blob, normalizes name/city, lifts structured address
+  parts, copies the authoritative coordinates (**never** re-geocoded), and flags dining
+  relevance so non-dining venues can be excluded.
+* **Tripadvisor** ([`tripadvisor_clean`](services/transform/tripadvisor_clean/README.md)) —
+  type-repairs the Italian display strings, structures price/cuisine/hours/reviews, lifts
+  `ta_location_id`, and **geocodes** the cleaned address via Nominatim (Tripadvisor ships
+  no coordinates). Resumable; `--skip-geocode` for a fast clean-only pass.
+* **TheFork** ([`thefork_clean`](services/transform/thefork_clean/README.md)) — parses the
+  1NF-violation fields (price/cuisine/discount/hours) and slims reviews; already typed and
+  geocoded upstream, so no type-repair or geocoding.
+
+See [`docs/PIPELINE.md`](docs/PIPELINE.md) (Step 2b) and each service's `eda-report.md` /
+`clean-dataset-schema.md`.
+
 ### Storage shape
 
 The `restaurants_raw_*` collections are populated by the load step above as a **raw
