@@ -36,6 +36,7 @@ thefork-merge-outputs = "extract.thefork_scraper.merge_outputs:main"
 dataman-load = "load.mongo.cli:app"
 tripadvisor-clean = "transform.tripadvisor_clean.cli:app"
 google-clean = "transform.google_clean.cli:app"
+thefork-clean = "transform.thefork_clean.cli:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -48,6 +49,7 @@ build-backend = "hatchling.build"
 "services/load/mongo" = "load/mongo"
 "services/transform/tripadvisor_clean" = "transform/tripadvisor_clean"
 "services/transform/google_clean" = "transform/google_clean"
+"services/transform/thefork_clean" = "transform/thefork_clean"
 
 [tool.ruff]
 line-length = 100
