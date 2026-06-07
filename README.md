@@ -147,7 +147,8 @@ the full venue profile.
 
 All values are stored as strings exactly as rendered on the page (Italian locale):
 comma decimal separators, parenthesised review counts, euro-glyph price bands.
-Parsing is deferred to the integration stage.
+Parsing is deferred to the pre-integration schema transformation
+([`tripadvisor_clean`](services/transform/tripadvisor_clean/README.md)).
 
 #### Running the Tripadvisor scraper
 
@@ -172,23 +173,42 @@ deprecated alias.)
 ### Source C — TheFork
 
 * **Type**: Web scraping via Playwright
-* **Data**:
+* **Data**: restaurant name, URL/source id, address, coordinates, rating, review count,
+  cuisine, price range, discounts, opening hours, and review snippets when exposed
+* **Why**: restaurant-specific booking/review platform; useful comparison against
+  review-heavy general platforms
 
-  * Scraped restaurant name
-  * Address
-  * Rating
-  * Review count
-  * Optional booking/price metadata
-* **Why**:
+#### How the current dataset was collected
 
-  * Restaurant-specific platform
-  * Useful comparison against review-heavy general platforms
+The current shareable dataset is
+`data/raw/thefork/thefork_milan_restaurants_enriched.json`. It was collected by scraping
+Milan listing pages, deduplicating restaurant URLs/source ids, then enriching each venue
+from its detail page. Detail extraction prioritizes JSON-LD, embedded JSON, visible HTML,
+links/attributes, and finally listing fallback data. For interrupted or blocked detail
+runs, the scraper supports resume, delay, proxy/CDP, and GraphQL-over-CDP recovery
+workflows; completed shards can be merged with `uv run thefork-merge-outputs`.
+
+<!-- TODO: replace/extend this with teammate-provided run history:
+     listing pages/ranges, detail-enrichment mode(s), retries/proxies/CDP usage,
+     merge inputs, and final validation command/report. -->
+
+| Field | Coverage |
+|---|---|
+| Venues scraped | **1,344** |
+| Unique `source_id` | 100% |
+| Detail page enriched | 100% |
+| Address | 100% |
+| Coordinates | 100% |
+| Rating | 94.1% |
+| Review count | 98.1% |
+| Review snippets / reviews | 96.7% |
+| Structured opening hours | 63.6% |
 
 #### Running the TheFork scraper
 
 The scraper is packaged as `services/extract/thefork_scraper`. It collects Milan
 listings, then optionally enriches each restaurant from its detail page, writing
-the normalized dataset under `data/raw/thefork/`. It tries the installed Chrome
+the raw enriched JSON output under `data/raw/thefork/`. It tries the installed Chrome
 channel, then Edge, then Playwright's bundled Chromium. See
 `services/extract/thefork_scraper/README.md` for the full CLI reference and
 `docs/antibot-comparison.md` for detail-page anti-bot behaviour.
@@ -224,29 +244,38 @@ Downloaded/acquired data is treated as raw acquisition output and kept under
   to delete this folder; the scraper just recreates a fresh profile on the next
   run. Only delete it while the scraper is **not** running.
 
+**TheFork: `data/raw/thefork/`**
+
+* `thefork_milan_restaurants_enriched.json`: final listing + detail output loaded to MongoDB
+* `thefork_milan_restaurants_normalized_partial.json`: resumable partial snapshot
+* `thefork_milan_restaurants_normalized_partial.merge_report.json`: merge/audit report
+* optional runtime folders such as `brave_automation_profile/`, `calibration/`, and
+  `runs/` may be created during anti-bot recovery or distributed scraping
+
 ### Storage infrastructure
 
 The project's stateful databases now run as reproducible **Docker** infrastructure,
 defined in [`docker-compose.yml`](docker-compose.yml) so they behave identically on
 macOS, Windows, and Linux:
 
-* **MongoDB** (`mongo:7`) — the document **system of records** for the raw nested seed
-  and, later, per-platform records. Starts on a plain `docker compose up`.
+* **MongoDB** (`mongo:7`) — current document **system of record** for raw and clean
+  per-source collections. Starts on a plain `docker compose up`.
 * **ClickHouse** (`clickhouse/clickhouse-server:26.3`, LTS) — the columnar engine for
-  the future integrated ratings table and analytical queries. Scaffolded behind the
-  opt-in `analytics` profile, so a plain `up` runs Mongo only.
+  the future integrated ratings table and analytical queries. It is scaffolded behind
+  the opt-in `analytics` profile, so a plain `up` runs Mongo only.
 
 Both services persist their data in **named volumes**, so it survives
 `docker compose down` and is removed only by an explicit `docker compose down -v`.
 Health checks and host-port overrides (for when `27017`/`8123` are already taken) are
 configured, and [`.env.example`](.env.example) works out-of-the-box for local dev
-(no auth, localhost-only).
+(no auth, localhost-only). The DBMS evaluation and rationale live in
+[`docs/storage-design.md`](docs/storage-design.md).
 
 ### Loading raw data into MongoDB
 
 The **Load** layer of the ELT pipeline is implemented as
-`services/load/mongo`. It moves the raw extractor files from `data/raw/` into the MongoDB
-collections below as a **pure raw passthrough** (no transformation), keyed on each
+[`services/load/mongo`](services/load/mongo/README.md). It moves the raw extractor files
+from `data/raw/` into MongoDB as a **pure raw passthrough** (no transformation), keyed on each
 source's natural identifier (`place_id`, `source_url`, `source_id`) so loads are
 **idempotent** — re-running never creates duplicates.
 
@@ -267,105 +296,19 @@ The `docker compose` and `uv run` commands above are identical on macOS, Windows
 (PowerShell), and Linux.
 
 Each source is also loadable on its own (`uv run dataman-load google|tripadvisor|thefork`),
-and `--reset` clears a collection before loading. See
-[`services/load/mongo/README.md`](services/load/mongo/README.md) for the source registry,
-load metadata, flags, and edge-case behaviour. The wider pipeline design lives in
-[`docs/etl-design.md`](docs/etl-design.md) and the candidate DBMS evaluation in
-[`docs/storage-design.md`](docs/storage-design.md).
+and `--reset` clears a collection before loading.
 
-### Transform (clean) layer — all three sources implemented
+| Source | Raw file | Natural key | MongoDB raw collection |
+|---|---|---|---|
+| Google | `data/raw/google_places/restaurants_seed.jsonl` | `place_id` | `restaurants_raw_google` |
+| Tripadvisor | `data/raw/tripadvisor/tripadvisor_scraper_results.json` | `source_url` | `restaurants_raw_tripadvisor` |
+| TheFork | `data/raw/thefork/thefork_milan_restaurants_enriched.json` | `source_id` | `restaurants_raw_thefork` |
 
-After loading, each source is cleaned **Mongo → Mongo** (the `restaurants_raw_*`
-collections stay immutable) into a `restaurants_clean_*` product. All three transforms
-share the same idioms: per-record quality `flags`/`has_*`, a `CleanReport` of before/after
-counts, full-run stale-delete convergence, and a source/destination collision guard.
-
-```bash
-uv run google-clean        # restaurants_raw_google      → restaurants_clean_google
-uv run tripadvisor-clean   # restaurants_raw_tripadvisor → restaurants_clean_tripadvisor
-uv run thefork-clean       # restaurants_raw_thefork     → restaurants_clean_thefork
-```
-
-* **Google** ([`google_clean`](services/transform/google_clean/README.md)) — projects lean
-  fields out of the raw `details` blob, normalizes name/city, lifts structured address
-  parts, copies the authoritative coordinates (**never** re-geocoded), and flags dining
-  relevance so non-dining venues can be excluded.
-* **Tripadvisor** ([`tripadvisor_clean`](services/transform/tripadvisor_clean/README.md)) —
-  type-repairs the Italian display strings, structures price/cuisine/hours/reviews, lifts
-  `ta_location_id`, and **geocodes** the cleaned address via Nominatim (Tripadvisor ships
-  no coordinates). Resumable; `--skip-geocode` for a fast clean-only pass.
-* **TheFork** ([`thefork_clean`](services/transform/thefork_clean/README.md)) — parses the
-  1NF-violation fields (price/cuisine/discount/hours) and slims reviews; already typed and
-  geocoded upstream, so no type-repair or geocoding.
-
-See [`docs/PIPELINE.md`](docs/PIPELINE.md) (Step 2b) and each service's `eda-report.md` /
-`clean-dataset-schema.md`.
-
-### Storage shape
-
-The `restaurants_raw_*` collections are populated by the load step above as a **raw
-passthrough**: each document holds the source's fields **exactly as the extractor wrote
-them** (field names differ per source), plus three reserved load-metadata keys (`_id`,
-`_loaded_at`, `_source_file`). The `_id` is the source's natural key — `place_id`
-(Google), `source_url` (Tripadvisor), `source_id` (TheFork). There is no normalization at
-this stage; that is the job of the upcoming Transform step. Values are stored exactly as
-the scraper wrote them, so they still look raw — e.g. Tripadvisor ratings are text like
-`"5,0"` (Italian comma) and missing fields show up as the text `"NaN"`, while TheFork uses
-real numbers and empty (`null`) values.
-
-The indicative fields below show what each source carries — see
-[`services/load/mongo/README.md`](services/load/mongo/README.md) for the exact keys.
-
-**restaurants_raw_google** — keyed on `place_id`
-
-* place_id
-* name
-* formatted_address, city
-* latitude, longitude
-* rating, user_rating_count
-* types / primary_type
-* details (raw Places details document)
-
-**restaurants_raw_tripadvisor** — keyed on `source_url`
-
-* source_url
-* restaurant_name
-* address
-* rating, total_review
-* cuisine_type, price_range
-* review (raw scraped payload)
-
-**restaurants_raw_thefork** — keyed on `source_id`
-
-* source_id
-* restaurant_name
-* address, city, latitude, longitude
-* rating, review_count
-* cuisine_type, price_range
-* reviews (raw scraped payload)
-
-`restaurants_integrated` is the upcoming integration target.
-
-**restaurants_integrated**
-
-* unified_restaurant_id
-* google_place_id
-* tripadvisor_id
-* thefork_id
-* canonical_name
-* canonical_address
-* lat, lon
-* google_rating
-* tripadvisor_rating
-* thefork_rating
-* rating_difference
-* data_quality_score
-
-### Mandatory queries (examples)
-
-* Restaurants with **rating difference > 1 star**
-* Average rating per platform by area
-* Correlation between review count and rating variance
+Raw MongoDB documents keep the source fields exactly as the extractor wrote them, plus
+`_id`, `_loaded_at`, and `_source_file` load metadata. Exact raw keys, loader flags, and
+edge-case behaviour are documented in
+[`services/load/mongo/README.md`](services/load/mongo/README.md); the wider load/ETL
+design lives in [`docs/etl-design.md`](docs/etl-design.md).
 
 ---
 
@@ -404,32 +347,75 @@ For each source:
 
 ## 5️⃣ Data integration & enrichment
 
-### Core challenge: entity matching (record linkage)
+The integration stage follows the following workflow: first create clean source schemas, then discover correspondences, then build the integrated schema and mapping rules.
 
-Restaurants do **not share IDs** → you must resolve them.
+### 01. Schema transformation / pre-integration
 
-### Matching strategy (automated)
+* **Input**: `n` source schemas from Google, Tripadvisor, and TheFork raw collections.
+* **Output**: `n` source schemas **homogeneized** into comparable clean collections.
+* **Methods used**: model transformation + reverse engineering of the raw extractor
+  outputs and EDA findings.
 
-1. **Blocking**:
+This is implemented as the clean transform layer. After loading, each source is cleaned
+**Mongo → Mongo** while the `restaurants_raw_*` collections stay immutable.
 
-   * Same city
-   * Distance < 200 meters
-2. **Similarity metrics**:
+```bash
+uv run google-clean        # restaurants_raw_google      → restaurants_clean_google
+uv run tripadvisor-clean   # restaurants_raw_tripadvisor → restaurants_clean_tripadvisor
+uv run thefork-clean       # restaurants_raw_thefork     → restaurants_clean_thefork
+```
 
-   * Name similarity (Levenshtein / Jaro-Winkler)
-   * Address similarity
-3. **Composite matching score**
-4. **Threshold-based decision**:
+* **Google** ([`google_clean`](services/transform/google_clean/README.md)) — projects lean
+  fields out of the raw `details` blob, normalizes name/city, lifts structured address
+  parts, copies the authoritative coordinates (**never** re-geocoded), and flags dining
+  relevance so non-dining venues can be excluded.
+* **Tripadvisor** ([`tripadvisor_clean`](services/transform/tripadvisor_clean/README.md)) —
+  type-repairs the Italian display strings, structures price/cuisine/hours/reviews, lifts
+  `ta_location_id`, and **geocodes** the cleaned address via Nominatim (Tripadvisor ships
+  no coordinates). Resumable; `--skip-geocode` for a fast clean-only pass.
+* **TheFork** ([`thefork_clean`](services/transform/thefork_clean/README.md)) — parses the
+  1NF-violation fields (price/cuisine/discount/hours), normalizes name/city/address,
+  lifts `tf_id`, and slims reviews; already typed and geocoded upstream, so no type-repair
+  or geocoding.
 
-   * Match
-   * No match
-   * Uncertain
+Each transform returns a `CleanReport` for the quality-assessment stage and documents its
+homogeneized output schema in the service README, `eda-report.md`, and where present
+`clean-dataset-schema.md`.
 
-### Measuring integration errors
+### 02. Correspondences investigation
 
-* False matches
-* Missed matches
-* Ambiguous matches
+* **Input**: `n` homogeneized source schemas.
+* **Output**: homogeneized source schemas plus candidate correspondences between Google, Tripadvisor, and TheFork records.
+* **Methods used**: techniques to discover correspondences, starting with blocking and similarity scoring before any expensive matching step.
+
+Restaurants do **not share IDs**, so integration depends on record linkage. The planned matching workflow is:
+
+1. **Blocking** by city and geographic proximity, e.g. distance under 200 meters.
+2. **Similarity metrics** over normalized names and addresses, e.g. Levenshtein / Jaro-Winkler.
+3. **Composite matching score** combining distance, name similarity, address similarity, and platform-specific evidence.
+4. **Decision labels**: match, no match, uncertain.
+
+Integration quality is measured with false matches, missed matches, and ambiguous
+matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
+
+### 03. Schemas integration and mapping generation
+
+* **Input**: homogeneized source schemas plus discovered correspondences.
+* **Output**: an integrated schema plus mapping rules between the integrated schema and the input source schemas.
+* **Methods used**: conflict classification and conflict-resolution transformations.
+
+The planned integrated target is `restaurants_integrated`: one resolved restaurant per
+row/document with source ids, canonical name/address, coordinates, per-platform ratings,
+review counts, rating differences, match provenance, and data-quality flags. Mapping
+rules must resolve naming/address conflicts, source-id conflicts, missing fields, rating
+scale conflicts (TheFork 0-10 vs Google/Tripadvisor 0-5), and coordinate authority
+(Google coordinates as backbone; Tripadvisor geocoded only for proximity blocking).
+
+Mandatory query examples for the integrated dataset:
+
+* Restaurants with **rating difference > 1 star**
+* Average rating per platform by area
+* Correlation between review count and rating variance
 
 
 ---
