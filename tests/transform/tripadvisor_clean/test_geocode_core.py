@@ -96,7 +96,8 @@ def test_geocode_one_null_address_makes_no_call():
 def test_build_query_structured_when_parts_present():
     query = build_query(
         {
-            "street": "Via Vela, 14",
+            "street": "Via Vela",
+            "house_number": "14",
             "postal_code": "20133",
             "city": "Milano",
             "address": "Via Vela, 14, 20133 Milano",

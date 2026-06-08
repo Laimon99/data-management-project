@@ -60,7 +60,7 @@ Following the classic schema-integration conflict classification:
 
 | Conflict | Definition | Example in this project |
 |---|---|---|
-| **Naming — synonym** | Different attribute names, same concept. | `name` / `restaurant_name`; `review_count` / `total_review`; `phone` / `phone_number`; `street_number` / `house_number`. |
+| **Naming — synonym** | Different attribute names, same concept. | `name` / `restaurant_name`; `review_count` / `total_review`. |
 | **Naming — homonym** | Same attribute name, different concept or representation. | `rating` (1–5 vs 0–10); `price_range` (numeric object in Google vs euro-band string in TA vs raw price string in TheFork); `reviews` (different nested shapes). |
 | **Scaling / unit** | Same concept, different scale or unit. | `rating` 0–10 (TheFork) vs 1–5 (Google, TA). |
 | **Structural (incl. 1NF)** | Same concept modeled with a different structure or decomposition. | `address` (single string) vs decomposed `street`/`house_number`/`postal_code`/`city`; nested-review object shapes; coordinates present as attributes (Google/TheFork) vs absent and geocoded (TA). |
@@ -109,8 +109,8 @@ All figures in §7 are read from the live Mongo `restaurants_clean_*` collection
 |---|---|---|---|---|---|---|
 | `name` | `≡` | `name` | `restaurant_name` | `restaurant_name` | naming-synonym | Primary similarity field; not a key. |
 | `address` | `≡` | `address` | `address` | `address` | structural | Full normalized line; formatting still differs by source. |
-| `street` | `≡` | `street` | `street` | `street` | structural | Google/TheFork ≈ route name; TA is parsed from the full line before the CAP and may keep extra tokens. |
-| `house_number` | `≡` | `street_number` | (embedded in `address`/`street`) | `house_number` | naming-synonym + structural | Standardize to `house_number`; parse out of TA if needed. |
+| `street` | `≡` | `street` | `street` | `street` | structural | All three clean transforms expose route/street name without the civic number. |
+| `house_number` | `≡` | `house_number` | `house_number` | `house_number` | — | Civic number is consistently named and separated in all three clean schemas. |
 | `postal_code` | `≡` | `postal_code` | `postal_code` | `postal_code` | — | High-value blocking key (Italian 5-digit CAP). |
 | `city` | `≡` | `city` | `city` | `city` | semantic | All transforms fold `Milan → Milano`. |
 | `locality` | `⊑` | `locality` | — | — | semantic-granularity | Google-only sub-city locality; IS-A the city concept. Keep as Google evidence. |
@@ -169,8 +169,8 @@ All figures in §7 are read from the live Mongo `restaurants_clean_*` collection
 
 | Integrated concept | Relation | Google | Tripadvisor | TheFork | Conflict | Note |
 |---|---|---|---|---|---|---|
-| `website` | `≡` | `website` | `website` | — (deleted, 0%) | coverage | Strong match evidence after URL normalization. |
-| `phone` | `≡` | `phone` | `phone_number` | — (deleted, 0%) | naming-synonym + coverage | Strong match evidence after phone normalization. |
+| `website` | `≡` | `website` | `website` | — (deleted, 0%) | coverage | Strong match evidence; values are normalized upstream in the clean transforms. |
+| `phone` | `≡` | `phone` | `phone` | — (deleted, 0%) | coverage | Strong match evidence; values are normalized upstream in the clean transforms. |
 | `email` | `⊑` | — | `email` | — | coverage | TA-only contact evidence. |
 | `opening_hours` | `≡` | — (not in clean) | `opening_hours` | `opening_hours` | structural | Both tidy `{day, opens, closes}`; TheFork adds `closes_next_day`. |
 | `has_hours` | `≡` (avail. sources) | — | `has_hours` | `has_hours` | coverage | Structured-hours completeness. |

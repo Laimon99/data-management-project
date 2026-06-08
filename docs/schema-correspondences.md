@@ -49,8 +49,8 @@ named fields mean.
 | Source URL | Equivalence | none in clean schema | `source_url` | `restaurant_url` | Platform detail URL. Google can expose a URL only if added later from raw/details or derived externally. |
 | Display name | Equivalence | `name` | `restaurant_name` | `restaurant_name` | Primary name similarity field and display candidate. |
 | Full address | Equivalence | `address` | `address` | `address` | Primary address similarity field and display candidate. |
-| Street text | Equivalence, partial | `street` | `street` | `street` | Blocking and address similarity. Tripadvisor `street` may be less structured than Google/TheFork. |
-| Civic number | IS-A | `street_number` | embedded in `street`/`address` | `house_number` | Address matching evidence. Extract from Tripadvisor if needed; do not assume `street` is civic-number-free. |
+| Street text | Equivalence | `street` | `street` | `street` | Blocking and address similarity; all clean transforms expose route/street name separately from civic number. |
+| Civic number | Equivalence | `house_number` | `house_number` | `house_number` | Address matching evidence, consistently separated and named by the clean transforms. |
 | Postal code | Equivalence | `postal_code` | `postal_code` | `postal_code` | Strong blocking evidence for Milan-area records. |
 | City | Equivalence | `city` | `city` | `city` | Blocking, scope checks, and area-level analysis after canonicalization. |
 | Coordinates | Equivalence with provenance caveat | `latitude`, `longitude` | `latitude`, `longitude` | `latitude`, `longitude` | Matching evidence. Final canonical coordinates should prefer Google after a Google match. |
@@ -61,7 +61,7 @@ named fields mean.
 | Review-count availability | Equivalence, derived for Google | derive from `review_count is not null` | `has_review_count` | `has_review_count` | Completeness metric. Google does not currently store the explicit flag. |
 | Photos | Equivalence | `photo_count` | `photo_count` | `photo_count` | Source richness evidence, not a restaurant-quality metric by itself. |
 | Website | Equivalence | `website` | `website` | none in clean schema | High-confidence matching evidence when normalized. |
-| Phone | Equivalence | `phone` | `phone_number` | none in clean schema | High-confidence matching evidence when normalized. |
+| Phone | Equivalence | `phone` | `phone` | none in clean schema | High-confidence matching evidence; values are normalized by the clean transforms. |
 | Email | IS-A contact evidence | none | `email` | none in clean schema | Tripadvisor-only enrichment; useful for audit, not cross-platform comparison. |
 | Opening hours | Equivalence for available sources | none in clean schema | `opening_hours` | `opening_hours` | Optional matching/quality evidence. Google clean schema currently omits hours. |
 | Review sample | Equivalence with nested-shape differences | `reviews` | `reviews` | `reviews` | Keep per-source arrays; do not merge into one undifferentiated review list. |
@@ -96,8 +96,8 @@ explicitly Google-seeded and every row is guaranteed to have a Google match.
 |---|---|---|---|---|---|
 | `name` | Equivalence | `name` | `restaurant_name` | `restaurant_name` | Normalized display names. Use for similarity, not as a unique key. |
 | `address` | Equivalence | `address` | `address` | `address` | Full normalized address. Strong evidence but formatting still differs by source. |
-| `street` | Equivalence, partial | `street` | `street` | `street` | Google and TheFork are closer to route/street name; Tripadvisor is parsed from full address before CAP and may include extra tokens. |
-| `house_number` | IS-A | `street_number` | derive from `address` or `street` if needed | `house_number` | Standardize name to `house_number` in the integrated schema. |
+| `street` | Equivalence | `street` | `street` | `street` | All clean transforms expose route/street name separately from civic number. |
+| `house_number` | Equivalence | `house_number` | `house_number` | `house_number` | Civic number already standardized in the clean schemas. |
 | `postal_code` | Equivalence | `postal_code` | `postal_code` | `postal_code` | High-value blocking field in Italy because CAP has stable 5-digit format. |
 | `city` | Equivalence | `city` | `city` | `city` | All transforms normalize `Milan` to `Milano` where applicable. |
 | `locality` | IS-A geography component | `locality` | none | none | Google-only raw locality before canonical city fallback. Keep only as Google evidence. |
@@ -158,8 +158,8 @@ and `tripadvisor_price_tier`.
 
 | Canonical concept | Relation | Google | Tripadvisor | TheFork | Notes |
 |---|---|---|---|---|---|
-| `website` | Equivalence | `website` | `website` | none | Strong match evidence after URL normalization. |
-| `phone` | Equivalence | `phone` | `phone_number` | none | Strong match evidence after phone normalization. |
+| `website` | Equivalence | `website` | `website` | none | Strong match evidence; values are normalized by the clean transforms. |
+| `phone` | Equivalence | `phone` | `phone` | none | Strong match evidence; values are normalized by the clean transforms. |
 | `email` | IS-A | none | `email` | none | Tripadvisor-only contact field. |
 | `opening_hours` | Equivalence for available sources | none | `opening_hours` | `opening_hours` | Shapes are both tidy `{day, opens, closes}` objects, with TheFork optionally adding `closes_next_day`. |
 | `has_hours` | Equivalence for available sources | none | `has_hours` | `has_hours` | Completeness flag for structured hours. |
@@ -236,7 +236,7 @@ integration-oriented, not a replacement for the clean source collections.
 | `canonical_name` | str | Prefer Google `name` when Google matched; otherwise best available matched source name. |
 | `canonical_address` | str | Prefer Google `address` when Google matched; otherwise best available matched source address. |
 | `canonical_street` | str or null | Prefer Google `street`; fallback TheFork `street`; fallback parsed Tripadvisor `street`. |
-| `canonical_house_number` | str or null | Prefer Google `street_number`; fallback TheFork `house_number`; optionally parse Tripadvisor address. |
+| `canonical_house_number` | str or null | Prefer Google `house_number`; fallback Tripadvisor/TheFork `house_number`. |
 | `canonical_postal_code` | str or null | Prefer Google `postal_code`; fallback agreed source value. |
 | `canonical_city` | str or null | Prefer Google `city`; fallback agreed source value. |
 | `latitude` | float or null | Prefer Google `latitude`; fallback TheFork native coordinate; fallback Tripadvisor geocoded coordinate. |
@@ -331,4 +331,3 @@ The schema correspondences imply this matching order:
 | Treatment of non-Google-only restaurants | Decide whether the integrated dataset is strictly Google-seeded or whether TheFork/Tripadvisor-only entities are allowed. |
 | Cuisine normalization vocabulary | Needed if cuisine becomes an analytical dimension rather than only matching evidence. |
 | Area/neighborhood mapping | Needed for "average rating by area" and center-vs-periphery quality analysis. |
-

@@ -20,6 +20,8 @@ import re
 from datetime import date
 from typing import Any
 
+from transform.common.contacts import normalize_phone, normalize_website
+
 from .geocode import is_nan
 
 _WS_RE = re.compile(r"\s+")
@@ -336,21 +338,36 @@ def clean_optional_text(value: Any) -> str | None:
 
 
 def extract_address_parts(value: Any) -> dict[str, str | None]:
-    """Best-effort structured extraction of postal_code / street / city.
+    """Best-effort structured extraction of postal_code / street / house_number / city.
 
     Conservative: any sub-field that cannot be confidently parsed is ``None``.
     The normalized full ``address`` remains the source of truth.
     """
-    parts: dict[str, str | None] = {"postal_code": None, "street": None, "city": None}
+    parts: dict[str, str | None] = {
+        "postal_code": None,
+        "street": None,
+        "house_number": None,
+        "city": None,
+    }
     text = normalize_address(value)
     if not text:
         return parts
 
+    def split_street_house_number(prefix: str) -> tuple[str | None, str | None]:
+        tokens = prefix.strip().strip(",").split()
+        for idx, token in enumerate(tokens):
+            cleaned_token = token.strip(" ,")
+            if cleaned_token and cleaned_token[0].isdigit():
+                street = " ".join(tokens[:idx]).strip().strip(",").strip()
+                return street or None, cleaned_token
+        street = prefix.strip().strip(",").strip()
+        return street or None, None
+
     cap = _CAP_RE.search(text)
     if cap:
         parts["postal_code"] = cap.group(1)
-        street = text[: cap.start()].strip().rstrip(",").strip()
-        parts["street"] = street or None
+        street_prefix = text[: cap.start()].strip().rstrip(",").strip()
+        parts["street"], parts["house_number"] = split_street_house_number(street_prefix)
         tail = text[cap.end() :].strip().lstrip(",").strip()
         if tail:
             city = tail.split(",")[0]
@@ -358,7 +375,7 @@ def extract_address_parts(value: Any) -> dict[str, str | None]:
             parts["city"] = city or None
     else:
         # No CAP found: best-effort street = first comma-separated chunk.
-        parts["street"] = text.split(",")[0].strip() or None
+        parts["street"], parts["house_number"] = split_street_house_number(text.split(",")[0])
     return parts
 
 
@@ -389,6 +406,8 @@ def clean_record(
     website = clean_optional_text(raw.get("website"))
     phone = clean_optional_text(raw.get("phone_number"))
     email = clean_optional_text(raw.get("email"))
+    website = normalize_website(website)
+    phone = normalize_phone(phone)
 
     has_rating = rating is not None
     has_review_count = total_review is not None
@@ -425,6 +444,7 @@ def clean_record(
         "total_review": total_review,
         "address": address,
         "street": parts["street"],
+        "house_number": parts["house_number"],
         "postal_code": parts["postal_code"],
         "city": parts["city"],
         "photo_count": parse_photo_count(raw.get("number_photo_uploaded")),
@@ -435,7 +455,7 @@ def clean_record(
         "reviews": reviews,
         "sample_size": len(reviews),
         "website": website,
-        "phone_number": phone,
+        "phone": phone,
         "email": email,
         "has_rating": has_rating,
         "has_review_count": has_review_count,

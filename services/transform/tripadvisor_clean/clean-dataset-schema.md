@@ -22,12 +22,12 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 |---|---|
 | Identity | `_id`, `source_url`, `ta_location_id`, `restaurant_name` |
 | Coordinates | `latitude`, `longitude`, `has_coordinates` |
-| Address | `address`, `street`, `postal_code`, `city`, `has_address` |
+| Address | `address`, `street`, `house_number`, `postal_code`, `city`, `has_address` |
 | Ratings | `rating`, `total_review`, `has_rating`, `has_review_count`, `low_review` |
 | Price and cuisine | `price_band`, `price_tier_level`, `cuisines` |
 | Source richness | `photo_count`, `opening_hours`, `has_hours` |
 | Review sample | `reviews`, `sample_size`, `has_reviews` |
-| Contacts | `website`, `phone_number`, `email`, `has_website`, `has_phone`, `has_email` |
+| Contacts | `website`, `phone`, `email`, `has_website`, `has_phone`, `has_email` |
 | Quality flags | `flags` |
 | Transform metadata | `_transformed_at`, `_source_collection` |
 
@@ -48,7 +48,8 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 | `longitude` | float \| null | 0% | Created by geocoding the cleaned `address`; current Mongo collection was run with `--skip-geocode`, so all values are null. | Estimated longitude field because Tripadvisor has no native coordinates. |
 | `has_coordinates` | bool | 100% | Created from both `latitude` and `longitude` being present; false for the current skip-geocode collection. | Coordinate coverage flag. |
 | `address` | str \| null | 99.1% | Normalized from raw `address`: `NaN`/blank to null; whitespace and separators normalized. | Clean full address line. |
-| `street` | str \| null | 99.1% | Parsed from the normalized `address` before the postal code. | Street/address prefix for matching. |
+| `street` | str \| null | 99.1% | Parsed from the normalized `address` before the first digit-starting civic-number token. | Route/street name for matching. |
+| `house_number` | str \| null | TBD after rerun | Parsed as the first digit-starting token after the route/street name. | Civic number for address matching. |
 | `postal_code` | str \| null | 95.9% | Extracted as a 5-digit Italian CAP from `address`. | Postal code for blocking and consistency checks. |
 | `city` | str \| null | 95.9% | Parsed from `address` after the postal code, with country stripped. | City string for blocking and consistency checks. |
 | `has_address` | bool | 100% | Created from `address is not null`. | Address coverage flag. |
@@ -66,11 +67,11 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 | `sample_size` | int | 100% | Created as `len(reviews)`. | Number of retained sample reviews; not the same as `total_review`. |
 | `has_reviews` | bool | 100% | Created from `reviews` being non-empty. | Review-sample coverage flag. |
 | `has_hours` | bool | 100% | Created from `opening_hours` being non-empty. | Opening-hours coverage flag. |
-| `website` | str \| null | 79.9% | Normalized from raw `website`: `NaN`/blank to null; whitespace trimmed. | Venue website used as matching evidence. |
-| `phone_number` | str \| null | 90.1% | Normalized from raw `phone_number`: `NaN`/blank to null; whitespace trimmed. | Phone number used as matching evidence. |
+| `website` | str \| null | 79.9% | Normalized from raw `website`: `NaN`/blank to null; scheme, leading `www.`, and trailing `/` stripped. | Normalized venue website used as matching evidence. |
+| `phone` | str \| null | 90.1% | Normalized from raw `phone_number`: `NaN`/blank to null; formatting stripped; Italian national numbers get `+39`. | Normalized phone number used as matching evidence. |
 | `email` | str \| null | 46.9% | Normalized from raw `email`: `NaN`/blank to null; whitespace trimmed. | Contact email for audit/enrichment. |
 | `has_website` | bool | 100% | Created from `website is not null`. | Website coverage flag. |
-| `has_phone` | bool | 100% | Created from `phone_number is not null`. | Phone coverage flag. |
+| `has_phone` | bool | 100% | Created from `phone is not null`. | Phone coverage flag. |
 | `has_email` | bool | 100% | Created from `email is not null`. | Email coverage flag. |
 | `flags` | list[str] | 100% | Created as a reason list from quality checks and geocoding outcome. | May include `no_rating`, `missing_review_count`, `low_review`, `missing_address`, `geocode_not_found`, `missing_coordinates`, `rating_with_zero_reviews`, `no_reviews`, `no_hours`. |
 | `_transformed_at` | datetime | 100% | Added by transform at write time. | UTC transform timestamp. |
@@ -85,3 +86,4 @@ Raw-only inputs such as `number_photo_uploaded`, `price_range`, `cuisine_type`,
 | `cuisine_type` | str | 77.7% | `cuisines` | Replaced by a trimmed/de-duplicated cuisine list. |
 | `working_days_hours` | str | 67.6% | `opening_hours` | Replaced by structured opening-hours objects. |
 | `review` | list[obj] \| str | 88.6% | `reviews`, `sample_size`, `has_reviews` | Replaced by capped slim review objects and sample features. |
+| `phone_number` | str \| null | 90.1% | `phone` | Replaced by canonical normalized clean phone; original source value remains in raw. |

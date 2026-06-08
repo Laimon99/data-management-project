@@ -75,7 +75,8 @@ def test_extract_address_parts_full():
     parts = extract_address_parts("Via Vincenzo Vela, 14, 20133 Milano Italia")
     assert parts == {
         "postal_code": "20133",
-        "street": "Via Vincenzo Vela, 14",
+        "street": "Via Vincenzo Vela",
+        "house_number": "14",
         "city": "Milano",
     }
 
@@ -84,10 +85,36 @@ def test_extract_address_parts_no_cap():
     parts = extract_address_parts("Via Roma, Milano")
     assert parts["postal_code"] is None
     assert parts["street"] == "Via Roma"
+    assert parts["house_number"] is None
 
 
 def test_extract_address_parts_nan():
-    assert extract_address_parts("NaN") == {"postal_code": None, "street": None, "city": None}
+    assert extract_address_parts("NaN") == {
+        "postal_code": None,
+        "street": None,
+        "house_number": None,
+        "city": None,
+    }
+
+
+@pytest.mark.parametrize(
+    "address,street,house_number",
+    [
+        ("Via Carlo Pascal 6, 20133 Milano Italia", "Via Carlo Pascal", "6"),
+        (
+            "Via Pastrengo 16 Il bistrot del Teatro Verdi, 20159 Milano Italia",
+            "Via Pastrengo",
+            "16",
+        ),
+        ("Piazza del Duomo, 20121 Milano Italia", "Piazza del Duomo", None),
+        ("Via Roma 12/A, 20121 Milano Italia", "Via Roma", "12/A"),
+        ("Via XX Settembre 8, 20121 Milano Italia", "Via XX Settembre", "8"),
+    ],
+)
+def test_extract_address_parts_street_house_number_split(address, street, house_number):
+    parts = extract_address_parts(address)
+    assert parts["street"] == street
+    assert parts["house_number"] == house_number
 
 
 def test_extract_location_id():
@@ -266,13 +293,16 @@ def test_clean_record_flags_and_has_fields():
 
 def test_clean_record_typed_and_normalized():
     raw = {
-        "source_url": "https://www.tripadvisor.it/Restaurant_Review-g187849-d28119476-Reviews-X.html",
+        "source_url": (
+            "https://www.tripadvisor.it/Restaurant_Review-g187849-d28119476-Reviews-X.html"
+        ),
         "restaurant_name": "  Dop20 ",
         "address": "Via Vincenzo Vela, 14, 20133 Milano Italia",
         "rating": "5,0",
         "total_review": "(0 recensioni)",
         "cuisine_type": "NaN",
         "phone_number": "+39 320",
+        "website": "https://www.dop20.it/",
     }
     out = clean_record(raw)
 
@@ -281,9 +311,12 @@ def test_clean_record_typed_and_normalized():
     assert out["total_review"] == 0
     assert "cuisine_type" not in out  # replaced by parsed `cuisines`
     assert out["cuisines"] == []  # NaN sentinel -> empty list
-    assert out["phone_number"] == "+39 320"  # real value preserved
+    assert out["phone"] == "+39320"
+    assert out["website"] == "dop20.it"
+    assert "phone_number" not in out
     assert out["postal_code"] == "20133"
-    assert out["street"] == "Via Vincenzo Vela, 14"
+    assert out["street"] == "Via Vincenzo Vela"
+    assert out["house_number"] == "14"
     assert out["city"] == "Milano"
     assert out["ta_location_id"] == "28119476"
     assert "NaN" not in out.values()

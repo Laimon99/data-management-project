@@ -22,7 +22,8 @@ For each raw record (pure functions in `cleaners.py`):
 1. **Type-repair** — `rating` `"5,0"` → float `5.0` (range `[0,5]`), `total_review`
    `"(1.234 recensioni)"` → int `1234`, `"NaN"`/empty → real `null` across all fields.
 2. **Normalize** — `restaurant_name` / `address` whitespace + separators; contacts
-   (`website`/`phone_number`/`email`) `"NaN"`/blank → `null`.
+   (`website`/`phone`/`email`) `"NaN"`/blank → `null`, with `phone` and `website`
+   canonicalized for direct ER comparison.
 3. **Structure the 1NF-violation fields** —
    - `number_photo_uploaded` → `photo_count` (int);
    - `price_range` → `price_band` + ordinal `price_tier_level` (€→1, €€-€€€→2, €€€€→4);
@@ -35,7 +36,8 @@ For each raw record (pure functions in `cleaners.py`):
      (`"Scopri di più"` read-more suffix stripped, Italian date → ISO) + `sample_size`.
    - The replaced raw fields are **dropped** from the clean document.
 4. **Lift `ta_location_id`** (the `-d<n>-` URL token) as a stable join/blocking key; `_id`
-   stays `source_url`. Best-effort structured address parts (`street`/`postal_code`/`city`).
+   stays `source_url`. Best-effort structured address parts (`street`/`house_number`/
+   `postal_code`/`city`).
 5. **Geocode the cleaned address** (`geocode.py`, Nominatim/OpenStreetMap) into
    `latitude`/`longitude` — clean-first for higher hit-rate; structured query when address
    parts were extracted, else the free-text address. Geocoding is a **sub-step**, not a

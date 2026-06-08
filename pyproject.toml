@@ -50,6 +50,7 @@ build-backend = "hatchling.build"
 "services/transform/tripadvisor_clean" = "transform/tripadvisor_clean"
 "services/transform/google_clean" = "transform/google_clean"
 "services/transform/thefork_clean" = "transform/thefork_clean"
+"services/transform/common" = "transform/common"
 
 [tool.ruff]
 line-length = 100

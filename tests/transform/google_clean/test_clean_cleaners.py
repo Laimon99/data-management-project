@@ -76,7 +76,7 @@ class TestExtractAddressParts:
     def test_lifts_structured_parts(self):
         parts = extract_address_parts(_ADDRESS_COMPONENTS)
         assert parts["street"] == "Via Gaetano Osculati"
-        assert parts["street_number"] == "2"
+        assert parts["house_number"] == "2"
         assert parts["postal_code"] == "20161"
         assert parts["locality"] == "Milano"
         assert parts["province"] == "MI"
@@ -287,8 +287,12 @@ class TestCleanRecord:
         assert doc["city"] == "Milano"  # canonicalized from addressComponents locality
         assert doc["latitude"] == 45.5167 and doc["longitude"] == 9.1692
         assert doc["street"] == "Via Gaetano Osculati"
+        assert doc["house_number"] == "2"
+        assert "street_number" not in doc
         assert doc["postal_code"] == "20161"
         assert doc["province"] == "MI"
+        assert doc["website"] == "x.example"
+        assert doc["phone"] == "+39021234567"
         assert doc["category_tier"] == "restaurant"
         assert doc["is_dining"] is True
         assert doc["photo_count"] == 3

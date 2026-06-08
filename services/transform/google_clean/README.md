@@ -15,13 +15,13 @@ The clean doc is keyed on `place_id` (→ `_id`) and **drops the heavy raw `deta
 Beyond the passthrough/normalized core (`name`, `latitude`/`longitude`, `address`,
 `rating`, `review_count`, `types`), the **new/derived** fields are:
 
-- **Structured address** (from `details.addressComponents`): `street`, `street_number`,
+- **Structured address** (from `details.addressComponents`): `street`, `house_number`,
   `postal_code`, `locality`, `province`, `country`, canonical `city`, `city_out_of_area`.
 - **Classification:** `category_tier`, `is_dining`.
 - **Quality flags:** `has_rating`, `low_review`, `is_operational`, `name_is_geographic`,
   `flags[]` (reason list).
 - **Features:** `photo_count`, `price_range` (`{start,end,currency}`), `has_website`,
-  `has_phone`, `website`, `phone`, the present-only amenity booleans (`dine_in`,
+  `has_phone`, normalized `website`, normalized `phone`, the present-only amenity booleans (`dine_in`,
   `takeout`, `delivery`, `reservable`, `outdoor_seating`, `serves_*`, `good_for_*`, …),
   and slimmed `reviews` (≤5 × `{rating, text, language, publish_time, author}`).
 - **Metadata:** `_transformed_at`, `_source_collection`.
@@ -37,15 +37,16 @@ typed). It does **projection + normalization + relevance flagging** instead:
    bytes; a lean projection drops ~94%, mostly `photos` + `reviews`).
 2. **Normalizes** `name` (whitespace + recase ALL-CAPS) and `city` (derived from the
    structured `addressComponents.locality`, recased, EN→IT `Milan`→`Milano`).
-3. **Lifts structured address** (`street`, `street_number`, `postal_code`, `locality`,
+3. **Lifts structured address** (`street`, `house_number`, `postal_code`, `locality`,
    `province`, `country`) — a reliable lookup, not a regex parse.
 4. **Classifies dining relevance** into `category_tier`
    (`restaurant` / `cafe_bar_bakery` / `non_dining` / `unknown`); `is_dining` = the first
    two (cafes, bars, bakeries, gelaterie are in scope).
 5. **Flags** quality issues without deleting: `is_operational`, `has_rating`,
    `low_review`, `name_is_geographic`, `city_out_of_area`, plus a `flags[]` reason list.
-6. **Derives features**: `photo_count`, `price_level`, `price_range`, amenity/service
-   booleans (`dine_in`, `takeout`, `serves_*`, …), `has_website`/`has_phone`.
+6. **Derives features**: `photo_count`, `price_level`, `price_range`, normalized
+   `website`/`phone`, amenity/service booleans (`dine_in`, `takeout`, `serves_*`, …),
+   `has_website`/`has_phone`.
 7. **Slims reviews** to ≤5 × `{rating, text, language, publish_time, author}` (full
    reviews stay in the raw collection for the optional LLM extension).
 

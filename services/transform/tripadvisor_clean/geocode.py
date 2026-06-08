@@ -33,16 +33,19 @@ def is_nan(value: object) -> bool:
 def build_query(record: dict[str, Any]) -> str | dict[str, str] | None:
     """Build a Nominatim query for a cleaned record.
 
-    Prefers a structured query (street + postcode + city + country) when the
-    cleaner extracted those parts — structured queries are more accurate than
-    free-text. Falls back to the normalized free-text ``address``.
+    Prefers a structured query (street + house number + postcode + city + country)
+    when the cleaner extracted those parts — structured queries are more accurate
+    than free-text. Falls back to the normalized free-text ``address``.
     """
     street = record.get("street")
     postal_code = record.get("postal_code")
     if not is_nan(street) or not is_nan(postal_code):
         query: dict[str, str] = {"country": "Italy"}
         if not is_nan(street):
-            query["street"] = str(street)
+            house_number = record.get("house_number")
+            query["street"] = (
+                f"{street}, {house_number}" if not is_nan(house_number) else str(street)
+            )
         if not is_nan(postal_code):
             query["postalcode"] = str(postal_code)
         city = record.get("city")

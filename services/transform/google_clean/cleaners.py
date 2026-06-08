@@ -12,6 +12,8 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from transform.common.contacts import normalize_phone, normalize_website
+
 _WS_RE = re.compile(r"\s+")
 
 # --- dining-relevance vocabulary (curated from the seed's 175 distinct primary_types) ---
@@ -323,13 +325,13 @@ def extract_address_parts(address_components: Any) -> dict[str, str | None]:
     """Lookup structured address parts from Google's ``addressComponents`` list.
 
     Each component carries a ``types`` list and ``longText``/``shortText``. Returns a
-    dict with street / street_number / postal_code / locality / province / country; any
+    dict with street / house_number / postal_code / locality / province / country; any
     part not present is ``None``. A reliable lookup (components present ~100%), not a
     free-text parse.
     """
     parts: dict[str, str | None] = {
         "street": None,
-        "street_number": None,
+        "house_number": None,
         "postal_code": None,
         "locality": None,
         "province": None,
@@ -344,7 +346,7 @@ def extract_address_parts(address_components: Any) -> dict[str, str | None]:
         long_text = comp.get("longText")
         short_text = comp.get("shortText")
         if "street_number" in types:
-            parts["street_number"] = long_text
+            parts["house_number"] = long_text
         elif "route" in types:
             parts["street"] = long_text
         elif "postal_code" in types:
@@ -538,6 +540,8 @@ def clean_record(raw: dict[str, Any], *, low_review_threshold: int = 10) -> dict
     phone = _clean_optional_text(
         details.get("internationalPhoneNumber") or details.get("nationalPhoneNumber")
     )
+    website = normalize_website(website)
+    phone = normalize_phone(phone)
 
     flags: list[str] = []
     if category_tier == "non_dining":
@@ -558,7 +562,7 @@ def clean_record(raw: dict[str, Any], *, low_review_threshold: int = 10) -> dict
         "longitude": raw.get("longitude"),
         "address": normalize_address(raw.get("formatted_address")),
         "street": parts["street"],
-        "street_number": parts["street_number"],
+        "house_number": parts["house_number"],
         "postal_code": parts["postal_code"],
         "locality": locality,
         "province": parts["province"],
