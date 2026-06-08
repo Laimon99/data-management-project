@@ -17,7 +17,7 @@ full `details` blob, `details_fetched_at`, and `seed_collected_at` remain in
 |---|---|
 | Identity | `_id`, `place_id`, `name` |
 | Coordinates | `latitude`, `longitude` |
-| Address | `address`, `street`, `street_number`, `postal_code`, `locality`, `province`, `country`, `city`, `city_out_of_area` |
+| Address | `address`, `street`, `house_number`, `postal_code`, `locality`, `province`, `country`, `city`, `city_out_of_area` |
 | Ratings | `rating`, `review_count`, `has_rating`, `low_review` |
 | Classification | `primary_type`, `types`, `category_tier`, `is_dining` |
 | Operational quality | `business_status`, `is_operational`, `name_is_geographic`, `flags` |
@@ -44,7 +44,7 @@ full `details` blob, `details_fetched_at`, and `seed_collected_at` remain in
 | `name` | str \| null | 100% | Normalized from raw `name`: whitespace collapsed, ALL-CAPS recased best-effort. | Clean display name for matching and reporting. |
 | `address` | str \| null | 100% | Normalized from raw `formatted_address`. | Full clean address string. |
 | `street` | str \| null | 98.2% | Derived from `details.addressComponents` route component. | Street name. |
-| `street_number` | str \| null | 92.4% | Derived from `details.addressComponents` street-number component. | Civic number. |
+| `house_number` | str \| null | 92.4% | Derived from `details.addressComponents` street-number component. | Civic number. |
 | `postal_code` | str \| null | 100% | Derived from `details.addressComponents` postal-code component. | Italian CAP. |
 | `locality` | str \| null | 97.2% | Derived from `details.addressComponents` locality component. | Raw locality before city canonicalization. |
 | `province` | str \| null | 100% | Derived from `details.addressComponents` administrative-area component. | Province code, usually `MI`. |
@@ -64,8 +64,8 @@ full `details` blob, `details_fetched_at`, and `seed_collected_at` remain in
 | `photo_count` | int | 100% | Created as `len(details.photos)`. | Photo metadata count, a source-richness feature. |
 | `price_level` | str \| null | 44.7% | Lifted and renamed from `details.priceLevel`. | Google categorical price tier. |
 | `price_range` | obj \| null | 73.9% | Parsed from `details.priceRange` into `{start, end, currency}`. | Numeric EUR price range. |
-| `website` | str \| null | 53.3% | Lifted from `details.websiteUri`; trimmed; blanks to null. | Venue website used as matching evidence when available. |
-| `phone` | str \| null | 83.7% | Lifted from `details.internationalPhoneNumber` with national fallback; trimmed; blanks to null. | Venue phone used as matching evidence when available. |
+| `website` | str \| null | 53.3% | Lifted from `details.websiteUri`; scheme, leading `www.`, and trailing `/` stripped; blanks to null. | Normalized venue website used as matching evidence when available. |
+| `phone` | str \| null | 83.7% | Lifted from `details.internationalPhoneNumber` with national fallback; formatting stripped; Italian national numbers get `+39`. | Normalized venue phone used as matching evidence when available. |
 | `has_website` | bool | 100% | Created from `website is not null`. | Website coverage flag. |
 | `has_phone` | bool | 100% | Created from `phone is not null`. | Phone coverage flag. |
 | `dine_in` | bool | 89.1% | Snake-cased from `details.dineIn`; emitted only when supplied. | Service flag; missing means unknown, not false. |

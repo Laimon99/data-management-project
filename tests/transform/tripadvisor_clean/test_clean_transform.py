@@ -269,6 +269,9 @@ def test_rich_fields_written_and_raw_fields_dropped(db):
         {"day": "monday", "opens": "19:00", "closes": "23:00"},
     ]
     assert doc["reviews"][0]["text"] == "Buonissimo" and doc["sample_size"] == 1
+    assert doc["website"] == "da-mario.it"
+    assert doc["phone"] == "+39021234"
+    assert "phone_number" not in doc
     assert doc["has_phone"] and doc["has_website"] and doc["has_email"]
     # Replaced raw fields are gone.
     for dead in (

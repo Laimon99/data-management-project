@@ -83,6 +83,8 @@ def test_happy_path_lean_normalized(db):
     assert doc["rating"] == 4.3 and doc["review_count"] == 200  # from details.*
     assert doc["category_tier"] == "restaurant" and doc["is_dining"] is True
     assert doc["photo_count"] == 2
+    assert doc["house_number"] == "2"
+    assert "street_number" not in doc
     assert doc["postal_code"] == "20161" and doc["province"] == "MI"
     assert "details" not in doc  # heavy blob projected out
     assert doc["_source_collection"] == "restaurants_raw_google"
