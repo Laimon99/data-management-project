@@ -188,16 +188,25 @@ deprecated alias.)
 #### How the current dataset was collected
 
 The current shareable dataset is
-`data/raw/thefork/thefork_milan_restaurants_enriched.json`. It was collected by scraping
-Milan listing pages, deduplicating restaurant URLs/source ids, then enriching each venue
-from its detail page. Detail extraction prioritizes JSON-LD, embedded JSON, visible HTML,
-links/attributes, and finally listing fallback data. For interrupted or blocked detail
-runs, the scraper supports resume, delay, proxy/CDP, and GraphQL-over-CDP recovery
-workflows; completed shards can be merged with `uv run thefork-merge-outputs`.
+`data/raw/thefork/thefork_milan_restaurants_enriched.json`. Milan listing pages were
+scraped first to collect restaurant URLs/source ids and listing fallback fields, then
+deduplicated and enriched from detail pages using JSON-LD, embedded JSON, visible HTML,
+links/attributes, and fallbacks. The final run was produced on **2026-06-06** by
+splitting detail enrichment across two machines with the GraphQL/CDP parallel proxy
+workflow; the merged output was completed with a targeted run for 2 missing records,
+yielding **1,344 unique restaurants**, all with `detail_scraped=true`.
 
-<!-- TODO: replace/extend this with teammate-provided run history:
-     listing pages/ranges, detail-enrichment mode(s), retries/proxies/CDP usage,
-     merge inputs, and final validation command/report. -->
+| Detail run | Value |
+|---|---|
+| Date | **2026-06-06** |
+| Workers | Windows slots 0-6; Mac Mini slots 7-13 |
+| Saved reviews cap | 15 per restaurant |
+| Final validation | 1,344 unique restaurants, all detail enriched |
+
+Collection caveats are documented in
+[`DATASET_CHANGES.md`](docs/the_fork_migration/DATASET_CHANGES.md):
+`website`, `social_links`, `phone_number`, and `email` are empty in the final file,
+and `discount` only reflects offers visible at collection time.
 
 | Field | Coverage |
 |---|---|
