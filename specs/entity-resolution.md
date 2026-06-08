@@ -87,23 +87,17 @@ TheFork phone and website were deleted from the clean schema (0% coverage in scr
 - Phone: 1,095 / 1,103 (99.3%) — nearly all have a phone
 - Website: 1,027 / 1,103 (93.1%) — nearly all have a website
 
-A spot-check of 5 random TA no-coords records against Google by exact (unnormalized) phone
-string found 2 direct matches (`The Fish Ristopescheria`, `Stessa Direzione`). After phone
-normalization the match rate is expected to be higher.
+A spot-check of 5 random TA no-coords records against Google by exact phone string found
+2 direct matches (`The Fish Ristopescheria`, `Stessa Direzione`). Phones are now
+normalized by the clean transform; the actual fast-path match rate should be higher.
 
 ### TA `street` field structure
 
-Random sampling revealed that `restaurants_clean_tripadvisor.street` embeds the civic
-number and sometimes a venue-description suffix:
-
-```
-"Via Carlo Pascal 6"
-"Piazza San Materno 8 Zona Casoretto, Lambrate"
-"Via Pastrengo 16 Il bistrot del Teatro Verdi"
-```
-
-Google and TheFork `street` fields are clean route names (`Via Carlo Pascal`,
-`Via Pastrengo`). Street similarity must account for this before comparison.
+As of the `clean-transforms-er-prep` migration, `restaurants_clean_tripadvisor.street`
+contains only the route name — the civic number and any venue-description suffix are
+stripped by the transform and stored separately in `house_number`. All three clean
+collections now emit a consistent route-only `street` field; no ER-level extraction
+is needed.
 
 ---
 
@@ -181,9 +175,9 @@ For each candidate pair (not fast-pathed) compute:
 |---|---|---|---|---|
 | `name_sim` | `name` | `restaurant_name` | `restaurant_name` | `token_set_ratio` (rapidfuzz) / 100.0 → [0,1] |
 | `geo_dist_m` | `lat`, `lon` | `lat`, `lon` | `lat`, `lon` | Haversine in metres; `None` when either side lacks coords |
-| `street_sim` | `street` | `street` (route-only, see preprocessing) | `street` | `token_set_ratio` / 100.0 → [0,1] |
+| `street_sim` | `street` | `street` | `street` | `token_set_ratio` / 100.0 → [0,1] — all three sources emit a clean route-only value |
 | `phone_match` | `phone` | `phone` | n/a | 1.0 if equal, 0.0 otherwise (null on either side → 0.0) |
-| `website_match` | `website` | `website` | n/a | 1.0 if normalized equal, 0.0 otherwise |
+| `website_match` | `website` | `website` | n/a | 1.0 if equal, 0.0 otherwise (null on either side → 0.0) |
 | `postal_code_match` | `postal_code` | `postal_code` | `postal_code` | 1.0 if equal, 0.0 otherwise |
 
 `cuisine_jaccard` (normalized Jaccard on cuisine token sets) is **diagnostic only** — stored in `components` but excluded from the composite score.
@@ -292,10 +286,9 @@ them at runtime with `--dmin` / `--dmax`.
 
 ## Possible Edge Cases
 
-- **TA street embeds house number**: `token_set_ratio` is robust to extra tokens, but
-  explicit route extraction (strip from first standalone digit) is more principled and
-  avoids inflating similarity when Google's `street` is a short token (e.g., `Via Roma`)
-  and TA's is `Via Roma 14 Trattoria dei Sapori`.
+- **TA street is pre-cleaned**: civic number and venue-description suffix are stripped by
+  the `tripadvisor_clean` transform before ER runs. All three `street` fields are
+  route-only; no extra extraction needed at ER time.
 - **Dense postal-code blocks**: CAP 20121 alone has 591 Google × 120 TA no-coords records
   = 70,920 pairs. The name-token filter must fire before Haversine/score computation,
   not after — otherwise the computational cost is paid anyway.
@@ -334,8 +327,9 @@ them at runtime with `--dmin` / `--dmax`.
 - [ ] For Google × TA: phone and website components are included in the composite score.
 - [ ] `postal_code` block is **only** applied to TA records with `has_coordinates=false`;
   TA records with coordinates go through the geo block exclusively.
-- [ ] TA `street` preprocessing strips the civic number and any suffix before computing
-  `street_sim`.
+- [ ] `street_sim` is computed directly against the `street` field from all three clean
+  collections — no ER-level extraction is applied (civic number stripping is done by the
+  `tripadvisor_clean` transform).
 - [ ] A second run on unchanged input does not overwrite a document where `llm_label` is
   non-null.
 - [ ] `--source thefork` produces no TA candidates; `--source tripadvisor` produces no TF
