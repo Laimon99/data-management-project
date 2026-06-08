@@ -51,6 +51,12 @@ Windows (PowerShell):
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
+If the current PowerShell session does not recognize `uv` immediately after install,
+refresh the session `PATH` before continuing:
+```powershell
+$env:Path = "$HOME\.local\bin;$env:Path"
+```
+
 * Any **Chromium-based browser** — Brave, Chrome, Edge, Vivaldi, Opera, or Chromium
   (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
   Chromium if none is found)

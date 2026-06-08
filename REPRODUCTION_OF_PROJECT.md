@@ -118,10 +118,12 @@ cd data-management-project
 
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+$env:Path = "$HOME\.local\bin;$env:Path"
 uv sync
 ```
 
-> Restart your terminal after installing `uv` if the command isn't found.
+> The `PATH` line makes `uv` available in the current PowerShell session. Restarting
+> the terminal after installing `uv` has the same effect.
 
 ### 3. Create your `.env`
 
@@ -195,7 +197,8 @@ Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_ra
 
 ## Notes
 
-- The only real OS differences are the `uv` installer (step 2) and the copy command (step 3).
+- The OS-specific differences are the `uv` installer/PATH refresh (step 2) and the
+  copy command (step 3).
 - If `docker compose` isn't recognized, your Docker is older — use `docker-compose` (hyphen).
 - To stop Mongo: `docker compose down` (keeps data). **Never** use `down -v` unless you want
   to delete all loaded data.
