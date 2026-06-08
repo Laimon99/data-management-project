@@ -114,18 +114,22 @@ Google and TheFork `street` fields are clean route names (`Via Carlo Pascal`,
 Preprocessing produces in-memory normalized strings for comparison; original document
 fields are never mutated.
 
+**Fields already normalized by the clean transforms (no ER-level work needed):**
+
+- **Phone** (`restaurants_clean_google.phone`, `restaurants_clean_tripadvisor.phone`):
+  already in compact E.164 format (formatting stripped; Italian national numbers prefixed
+  with `+39`). Use directly for comparison — do not re-normalize.
+- **Website** (`restaurants_clean_google.website`, `restaurants_clean_tripadvisor.website`):
+  already scheme-stripped, `www.`-stripped, and trailing-slash-stripped. Use directly.
+- **Street** (`restaurants_clean_tripadvisor.street`): the clean transform now extracts the
+  route name before the first civic-number token. `street` is a clean route-only value
+  in all three collections — no TA quirk to handle at ER time.
+
+**Fields normalized at ER time (in-memory only):**
+
 - **Name**: lowercase, collapse whitespace, strip punctuation (keep accented chars),
   expand common Italian abbreviations: `rist.` → `ristorante`, `trat.` → `trattoria`,
-  `p.za`/`pza` → `piazza`, `via` → `via` (no-op, kept to catch tokenization only).
-- **Phone**: strip spaces, dashes, dots, parentheses; prepend `+39` if the value starts
-  with `0` (landline) or `3` (mobile). Empty result after stripping → null.
-- **Website**: strip scheme (`http://`/`https://`), strip `www.`, strip trailing slash.
-  Empty result → null.
-- **Street (TA quirk)**: `restaurants_clean_tripadvisor.street` embeds the civic number
-  and sometimes a venue description suffix (e.g., `Via Carlo Pascal 6`,
-  `Via Pastrengo 16 Il bistrot del Teatro Verdi`). For street comparison, extract only the
-  portion before the first standalone digit token — treat the remainder as noise.
-- **Street (Google, TF)**: already a clean route name; lowercase and strip punctuation.
+  `p.za`/`pza` → `piazza`.
 - **Postal code**: no normalization needed — all three sources emit a 5-digit Italian CAP.
 
 ### Blocking
@@ -162,9 +166,9 @@ written to the output collection with `label="UNBLOCKABLE"` so they are auditabl
 
 For TA records without coordinates (relying on Strategy B), phone and website carry
 strong evidence. Before computing the composite score, check:
-- If normalized `phone` (Google) == normalized `phone_number` (TA) → set `score=1.0`,
+- If `phone` (Google) == `phone` (TA) → set `score=1.0`,
   `label=MATCH`, record `fast_path="phone"`.
-- Else if normalized `website` (Google) == normalized `website` (TA) → same, `fast_path="website"`.
+- Else if `website` (Google) == `website` (TA) → same, `fast_path="website"`.
 
 Fast-path pairs skip the composite score calculation. A fast-path MATCH still goes into
 `entity_resolution_candidates` with all component fields for auditability.
@@ -178,7 +182,7 @@ For each candidate pair (not fast-pathed) compute:
 | `name_sim` | `name` | `restaurant_name` | `restaurant_name` | `token_set_ratio` (rapidfuzz) / 100.0 → [0,1] |
 | `geo_dist_m` | `lat`, `lon` | `lat`, `lon` | `lat`, `lon` | Haversine in metres; `None` when either side lacks coords |
 | `street_sim` | `street` | `street` (route-only, see preprocessing) | `street` | `token_set_ratio` / 100.0 → [0,1] |
-| `phone_match` | `phone` | `phone_number` | n/a | 1.0 if normalized equal, 0.0 otherwise (null on either side → 0.0) |
+| `phone_match` | `phone` | `phone` | n/a | 1.0 if equal, 0.0 otherwise (null on either side → 0.0) |
 | `website_match` | `website` | `website` | n/a | 1.0 if normalized equal, 0.0 otherwise |
 | `postal_code_match` | `postal_code` | `postal_code` | `postal_code` | 1.0 if equal, 0.0 otherwise |
 
@@ -262,6 +266,27 @@ only when `llm_label` is null (i.e., no LLM resolution has been applied yet). If
 
 `services/transform/entity_resolution/` — same PEP 420 namespace package pattern as the
 other transforms (`transform.entity_resolution`).
+
+### Service README
+
+`services/transform/entity_resolution/README.md` must document the end-to-end operational
+workflow so anyone running the service for the first time knows what is manual and what is
+automatic:
+
+1. **First run — dry-run** (`uv run dataman-entity-resolve --dry-run`): automatic.
+   Prints candidate counts by block strategy and projected label distribution for both
+   pairings without writing to Mongo.
+2. **Threshold calibration** — manual, one-time. Pull a sample of candidate pairs from the
+   dry-run output, hand-label ≥ 50 known MATCHes and ≥ 50 known NON_MATCHes, inspect the
+   score distribution, and choose `dmin` / `dmax`. Document the chosen values and the
+   labeled sample size in the README.
+3. **Production run** (`uv run dataman-entity-resolve`): automatic. Writes MATCH,
+   NON_MATCH, UNCERTAIN, and UNBLOCKABLE records to `entity_resolution_candidates`.
+4. **UNCERTAIN resolution** — separate LLM step (out of scope here). UNCERTAIN pairs sit
+   in `entity_resolution_candidates` with `llm_label=null` until that step runs.
+
+The README must also document where `dmin`/`dmax` are stored in config and how to override
+them at runtime with `--dmin` / `--dmax`.
 
 ---
 
@@ -356,13 +381,12 @@ other transforms (`transform.entity_resolution`).
 
 Create `tests/transform/test_entity_resolution.py`. Cover without going heavy:
 
+Note: phone/website normalization and TA street extraction are tested in
+`tests/transform/test_er_prep.py` (clean-transform layer). ER tests focus on
+blocking, scoring, labelling, and output semantics.
+
 - **Name preprocessing**: ALL-CAPS recased, abbreviations expanded (`rist.` → `ristorante`),
   punctuation stripped, whitespace collapsed.
-- **Phone normalization**: `+39 02 1234 5678` → `+390212345678`; `02-1234567` → `+39021234567`;
-  `339 000 1111` → `+39339001111`.
-- **Website normalization**: `https://www.example.it/` → `example.it`.
-- **TA street extraction**: `Via Carlo Pascal 6` → `Via Carlo Pascal`;
-  `Via Pastrengo 16 Il bistrot del Teatro Verdi` → `Via Pastrengo`.
 - **Geo blocking**: two records within 150 m produce a candidate pair; at 200 m they do not;
   records with null coordinates are excluded from geo block.
 - **Postal-code + name-token block**: same CAP and shared 4+ char token → candidate pair;
