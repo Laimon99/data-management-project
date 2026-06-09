@@ -6558,196 +6558,230 @@ Tripadvisor,https://www.tripadvisor.it/Restaurant_Review-g187849-d32880515-Revie
 Tripadvisor,https://www.tripadvisor.it/Restaurant_Review-g187849-d32872040-Reviews-KATEI_Robata_Sushi-Milan_Lombardy.html,possible_duplicate_name_address,"name,address",katei robata sushi|via giovanni battista fauche 11 20154 milano italia,Normalized name+address appears more than once; inspect before deduplication.
 Tripadvisor,https://www.tripadvisor.it/Restaurant_Review-g187849-d29010919-Reviews-Pescherie_Riunite_San_Marco-Milan_Lombardy.html,possible_duplicate_name_address,"name,address",pescherie riunite san marco|via san marco 29 20121 milano italia,Normalized name+address appears more than once; inspect before deduplication.
 Tripadvisor,https://www.tripadvisor.it/Restaurant_Review-g187849-d8413183-Reviews-Drogheria_Milanese_San_Marco-Milan_Lombardy.html,possible_duplicate_name_address,"name,address",pescherie riunite san marco|via san marco 29 20121 milano italia,Normalized name+address appears more than once; inspect before deduplication.
-TheFork,yum-ramen-r862215,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,garden-restaurant-r827070,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
+TheFork,barcollando-cafe-r348769,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,yum-ramen-r862215,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,yum-ramen-r862215,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,vesper-milano-r862459,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
 TheFork,santa-sofia-bistrot-r857919,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
-TheFork,da-nonna-la-puglia-a-milano-r860382,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
-TheFork,vesper-milano-r862459,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,sale-nero-ristorante-r862446,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,bob-the-other-side-r859272,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,oasi-ohwell-r838735,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
-TheFork,combo-milano-r856490,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
+TheFork,da-nonna-la-puglia-a-milano-r860382,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
 TheFork,da-angelo-social-brunch-pasta-bar-r855436,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
-TheFork,sushi-milano-island-r857390,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
-TheFork,tikka-land-cucina-autentica-dell-india-sri-lanka-r862758,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
+TheFork,perla-blu-r857697,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
+TheFork,spuzzuliamm-r863570,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,spuzzuliamm-r863570,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,casa-festa-pizzeria-alcolica-r862892,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,casa-festa-pizzeria-alcolica-r862892,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,oro-pizza-r862764,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,oro-pizza-r862764,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,gastronomia-italiana-da-isabel-r862627,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,gastronomia-italiana-da-isabel-r862627,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,ristorante-nice-bistrot-r860497,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-nice-bistrot-r860497,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-nice-bistrot-r860497,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,bistrhome-ristoro-di-quartiere-r859042,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
-TheFork,via-pasteria-piazzale-archinto-r861081,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
-TheFork,miro-osteria-del-cinema-r859431,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
-TheFork,al-andalus-r806103,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,genuino-turati-r461725,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,tikka-land-cucina-autentica-dell-india-sri-lanka-r862758,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,sale-nero-ristorante-r862446,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,sale-nero-ristorante-r862446,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
 TheFork,wadi-rum-viale-tunisia-r861680,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
+TheFork,via-pasteria-piazzale-archinto-r861081,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
+TheFork,bistro-vico-38-restaurant-cafe-r851411,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
 TheFork,club-house-cimiano-r854223,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
-TheFork,dasein-pane-champagne-r649965,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
 TheFork,trattoria-pizzeria-l-angelo-bianco-r857090,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
 TheFork,nobabi-bhoj-r862811,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,nobabi-bhoj-r862811,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
-TheFork,ecooking-bistrot-corso-italia-r857895,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
-TheFork,cook-window-r809234,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,cook-window-r809234,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
-TheFork,bistro-vico-38-restaurant-cafe-r851411,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
+TheFork,ecooking-bistrot-corso-italia-r857895,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
 TheFork,nori-noir-sushi-r859491,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
 TheFork,the-king-bistrot-r845715,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
 TheFork,fratelli-diversi-r54458,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
 TheFork,temakinho-milano-garibaldi-aqua-r860228,low_review_count,review_count,7,Review count is below 20; ratings are less reliable.
-TheFork,mia-sushi-poke-r858657,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
-TheFork,sorsi-sorrisi-r846010,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
-TheFork,roadside-american-bbq-beer-r847411,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
-TheFork,tripstillery-navigli-r846011,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
-TheFork,tavernacolo-milano-affori-r860464,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
-TheFork,ristorante-di-kashmir-indiano-r856923,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
-TheFork,osteria-di-brera-r817732,missing_critical_field,latitude,,Critical field is missing after source-specific missing-value normalization.
-TheFork,osteria-di-brera-r817732,missing_critical_field,longitude,,Critical field is missing after source-specific missing-value normalization.
-TheFork,spadari-restaurant-r853243,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
-TheFork,sire-raul-r857239,low_review_count,review_count,14,Review count is below 20; ratings are less reliable.
 TheFork,ciapa-su-bistrot-r812459,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,ciapa-su-bistrot-r812459,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,mia-sushi-poke-r858657,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
+TheFork,al-andalus-r806103,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-di-kashmir-indiano-r856923,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
+TheFork,sorsi-sorrisi-r846010,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
+TheFork,temakinho-milano-porta-romana-tierra-r860231,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,ginza-sushi-loreto-milano-r859373,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
 TheFork,a-nicchia-milano-fusion-food-experience-r853905,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
 TheFork,tusa-isola-cocktail-bar-r850671,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
-TheFork,temakinho-milano-porta-romana-tierra-r860231,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,temakinho-milano-cadorna-fuego-r860230,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
 TheFork,la-jungle-de-plein-bistrot-garden-r859941,low_review_count,review_count,5,Review count is below 20; ratings are less reliable.
 TheFork,osteria-la-lupa-r859451,low_review_count,review_count,7,Review count is below 20; ratings are less reliable.
-TheFork,ramen-bar-akira-milano-assago-r859270,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
-TheFork,i-love-poke-milano-filzi-r839796,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
-TheFork,desco-milano-r858120,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
 TheFork,temakinho-milano-duomo-arya-r860229,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
-TheFork,marro-milano-r860829,low_review_count,review_count,9,Review count is below 20; ratings are less reliable.
-TheFork,ginza-sushi-loreto-milano-r859373,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
-TheFork,risomi-r846945,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,ramen-bar-akira-milano-assago-r859270,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
+TheFork,garden-restaurant-r827070,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
+TheFork,sire-raul-r857239,low_review_count,review_count,14,Review count is below 20; ratings are less reliable.
 TheFork,lobos-and-more-company-r841348,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
-TheFork,milanostyle-ristorante-cinese-alla-griglia-r828072,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
 TheFork,gastronomia-bar-enoteca-tarante-napoli-r829025,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
-TheFork,temakinho-milano-cadorna-fuego-r860230,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
+TheFork,the-public-house-r857467,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,the-public-house-r857467,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,ristorante-pizzeria-la-carrozza-r863759,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-pizzeria-la-carrozza-r863759,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-pizzeria-del-vento-r863545,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-pizzeria-del-vento-r863545,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,mao-bowl-r863214,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,mao-bowl-r863214,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,puglia-mia-milano-braceria-e-bottega-r862549,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,puglia-mia-milano-braceria-e-bottega-r862549,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,carmelina-caffe-bistrot-r862539,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,carmelina-caffe-bistrot-r862539,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,caffe-amore-bistrot-r862152,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,caffe-amore-bistrot-r862152,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,sea-signora-milano-r859662,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,sea-signora-milano-r859662,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,sapori-beef-noodles-r859559,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,bob-the-other-side-r859272,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,bob-the-other-side-r859272,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
 TheFork,blend-the-wine-feeling-r858979,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
 TheFork,cucina-triennale-r858633,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,cucina-triennale-r858633,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,amalfitana-specialita-pesce-e-carne-r858089,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
-TheFork,club-80-milano-r857304,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,club-80-milano-r857304,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,club-80-milano-r857304,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,ristorante-eritrea-effata-r854381,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,ristorante-eritrea-effata-r854381,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,black-r853171,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,black-r853171,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
-TheFork,la-bella-colomba-r852984,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
 TheFork,elisir-r844359,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,elisir-r844359,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,maison-milano-dinnershow-cena-con-spettacolo-r48829,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,maison-milano-dinnershow-cena-con-spettacolo-r48829,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,la-cuccagnina-r842795,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,la-cuccagnina-r842795,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,oasi-ohwell-r838735,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,organic-pizza-and-food-morigi-r354995,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,organic-pizza-and-food-morigi-r354995,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,organic-pizza-and-food-de-castilla-r264017,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,organic-pizza-and-food-de-castilla-r264017,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,il-castello-ristorante-pizzeria-r860631,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
-TheFork,l-incoronata-r860774,low_review_count,review_count,5,Review count is below 20; ratings are less reliable.
-TheFork,la-scarpetta-ristorante-pizzeria-r858455,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,sushi-milano-island-r857390,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,ioi-bistrot-milano-r856987,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
 TheFork,sapori-romaneschi-r853278,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
-TheFork,ristorante-coreano-hanya-r853165,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
-TheFork,tre-gazzelle-bistrot-r841583,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
 TheFork,bellavista-r835792,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
-TheFork,genuino-turati-r461725,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,santa-margherita-r862189,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,santa-margherita-r862189,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
-TheFork,atmosfera-bistrot-r858935,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,atmosfera-bistrot-r858935,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
-TheFork,pizzeria-francolino-r857828,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,vecchio-mulino-milano-r857093,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
+TheFork,pizzeria-francolino-r857828,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,pizzeria-francolino-r857828,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,ristorante-clorofilla-r838529,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
 TheFork,ristorante-shams-beirut-gourmet-r857948,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
-TheFork,l-ecurie-restaurant-more-r850629,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
-TheFork,chuangxiangshifu-ristorante-cinese-r825508,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
-TheFork,perla-blu-r857697,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
+TheFork,sapori-uiguri-cucina-e-griglia-alla-brace-r860799,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
+TheFork,risomi-r846945,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,gallura-r53538,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,al-baraka-griglieria-r838273,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
-TheFork,salsamenteria-delle-coppelle-milano-r813789,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,l-ecurie-restaurant-more-r850629,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
+TheFork,cook-window-r809234,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,cook-window-r809234,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
+TheFork,lord-r733663,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,lord-r733663,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,massina-heaven-ristorante-sri-lanka-r855729,low_review_count,review_count,7,Review count is below 20; ratings are less reliable.
-TheFork,the-public-house-r857467,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,ta-bueno-navigli-r854472,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
+TheFork,zaia-r755843,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,combo-milano-r856490,low_review_count,review_count,14,Review count is below 20; ratings are less reliable.
+TheFork,roadside-american-bbq-beer-r847411,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
+TheFork,tripstillery-navigli-r846011,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
+TheFork,tavernacolo-milano-affori-r860464,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
 TheFork,vertigo-r858012,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,vertigo-r858012,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,il-luogo-aimo-e-nadia-r857768,low_review_count,review_count,9,Review count is below 20; ratings are less reliable.
-TheFork,sapori-uiguri-cucina-e-griglia-alla-brace-r860799,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
 TheFork,ristorante-pizzeria-teresa-e-patrizia-r859938,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,ristorante-pizzeria-teresa-e-patrizia-r859938,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,spadari-restaurant-r853243,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
 TheFork,ammu-delizie-siciliane-r851841,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
 TheFork,luca-e-andrea-cafe-bar-r828349,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,luca-e-andrea-cafe-bar-r828349,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,marro-milano-r860829,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,miro-osteria-del-cinema-r859431,low_review_count,review_count,16,Review count is below 20; ratings are less reliable.
+TheFork,ta-bueno-navigli-r854472,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
 TheFork,rotonda-bistro-r856157,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
+TheFork,i-love-poke-milano-filzi-r839796,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,dasein-pane-champagne-r649965,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
+TheFork,desco-milano-r858120,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
 TheFork,hyper-pizza-r848788,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,hyper-pizza-r848788,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
-TheFork,experience-wine-milano-r860756,missing_critical_field,latitude,,Critical field is missing after source-specific missing-value normalization.
-TheFork,experience-wine-milano-r860756,missing_critical_field,longitude,,Critical field is missing after source-specific missing-value normalization.
-TheFork,experience-wine-milano-r860756,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,experience-wine-milano-r860756,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,soprattutto-r464093,missing_critical_field,latitude,,Critical field is missing after source-specific missing-value normalization.
-TheFork,soprattutto-r464093,missing_critical_field,longitude,,Critical field is missing after source-specific missing-value normalization.
+TheFork,l-incoronata-r860774,low_review_count,review_count,5,Review count is below 20; ratings are less reliable.
+TheFork,milanostyle-ristorante-cinese-alla-griglia-r828072,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
+TheFork,next-gen-lab-temporary-food-court-by-identita-milano-r862847,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,next-gen-lab-temporary-food-court-by-identita-milano-r862847,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,amalfitana-specialita-pesce-e-carne-r858089,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
+TheFork,la-bella-colomba-r852984,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
 TheFork,isiwara-lanka-r756128,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,ioi-bistrot-milano-r856987,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
 TheFork,leucosia-bistrot-r856149,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,la-scarpetta-ristorante-pizzeria-r858455,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,la-scarpetta-ristorante-pizzeria-r858455,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,ristorante-coreano-hanya-r853165,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
+TheFork,tre-gazzelle-bistrot-r841583,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
 TheFork,i-love-poke-milano-assago-r839798,low_review_count,review_count,7,Review count is below 20; ratings are less reliable.
+TheFork,pizzacoteca-di-brera-r362459,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,santa-margherita-r862189,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,santa-margherita-r862189,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
+TheFork,miro-by-rugantino-r854352,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
 TheFork,eppolino-r836838,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,atmosfera-bistrot-r858935,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,atmosfera-bistrot-r858935,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
 TheFork,la-costenita-r852572,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
-TheFork,ristorante-clorofilla-r838529,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
 TheFork,el-porteno-arena-r837970,low_review_count,review_count,5,Review count is below 20; ratings are less reliable.
 TheFork,tuya-milano-r834826,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,tuya-milano-r834826,low_review_count,review_count,7,Review count is below 20; ratings are less reliable.
+TheFork,chuangxiangshifu-ristorante-cinese-r825508,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
+TheFork,pellico-3-milano-r56920,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,porcao-churrascaria-r855883,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
-TheFork,vecchio-mulino-milano-r857093,low_review_count,review_count,17,Review count is below 20; ratings are less reliable.
-TheFork,miro-by-rugantino-r854352,low_review_count,review_count,8,Review count is below 20; ratings are less reliable.
-TheFork,gran-baguttin-r861276,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
-TheFork,next-gen-lab-temporary-food-court-by-identita-milano-r862847,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,next-gen-lab-temporary-food-court-by-identita-milano-r862847,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,salsamenteria-delle-coppelle-milano-r813789,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
 TheFork,conterpizza-r857010,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,conterpizza-r857010,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
-TheFork,la-cuccagnina-r842795,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,la-cuccagnina-r842795,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-acero-r855185,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,ristorante-acero-r855185,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,etereo-r841485,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,etereo-r841485,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,waska-naviglio-r837455,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,organic-pizza-and-food-morigi-r354995,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,organic-pizza-and-food-morigi-r354995,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,waska-naviglio-r837455,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,waska-naviglio-r837455,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
+TheFork,giacomo-rosticceria-r752167,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,giacomo-rosticceria-r752167,zero_reviews,review_count,0,No reviews available.
+TheFork,maison-milano-dinnershow-cena-con-spettacolo-r48829,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,maison-milano-dinnershow-cena-con-spettacolo-r48829,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,il-milleluci-trattoria-pop-r849246,low_review_count,review_count,11,Review count is below 20; ratings are less reliable.
 TheFork,yanso-korean-bbq-r843439,low_review_count,review_count,13,Review count is below 20; ratings are less reliable.
-TheFork,dongbeiciaga-r839740,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,dongbeiciaga-r839740,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,dongbeiciaga-r839740,low_review_count,review_count,10,Review count is below 20; ratings are less reliable.
+TheFork,gran-baguttin-r861276,low_review_count,review_count,3,Review count is below 20; ratings are less reliable.
 TheFork,reiwa-r697449,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,da-giacomo-arengario-r752163,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,da-giacomo-arengario-r752163,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
-TheFork,draft-r819798,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,pizzacoteca-di-brera-r362459,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,draft-r819798,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,fx-r688117,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,mirage-cafe-restaurant-r835290,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,mirage-cafe-restaurant-r835290,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,mirage-cafe-restaurant-r835290,low_review_count,review_count,6,Review count is below 20; ratings are less reliable.
 TheFork,featbarona-r849582,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,sapore-indiano-krishna-milano-r850845,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
 TheFork,refeel-reload-r843887,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
 TheFork,maison-gourmet-r843227,low_review_count,review_count,18,Review count is below 20; ratings are less reliable.
 TheFork,vasiliki-kouzina-r570731,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,vasiliki-kouzina-r570731,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,sapore-indiano-krishna-milano-r850845,low_review_count,review_count,4,Review count is below 20; ratings are less reliable.
 TheFork,siloe-bistrot-r848415,low_review_count,review_count,15,Review count is below 20; ratings are less reliable.
 TheFork,pizzeria-ciccio-matto-1-r842640,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,pizzeria-ciccio-matto-1-r842640,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,pizzeria-naviglio-r839844,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,pizzeria-naviglio-r839844,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,pizzeria-naviglio-r839844,low_review_count,review_count,12,Review count is below 20; ratings are less reliable.
 TheFork,archie-s-r842592,low_review_count,review_count,5,Review count is below 20; ratings are less reliable.
 TheFork,green-chilli-r847359,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,green-chilli-r847359,low_review_count,review_count,1,Review count is below 20; ratings are less reliable.
 TheFork,chinese-township-168-r489977,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
-TheFork,tasty-bite-cucina-indiana-r854464,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,tasty-bite-cucina-indiana-r854464,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,tasty-bite-cucina-indiana-r854464,low_review_count,review_count,2,Review count is below 20; ratings are less reliable.
 TheFork,gattopardo-procaccini-r655555,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,la-massaria-r480455,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,desinolento-pizzeria-r323517,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,eden-bistrot-milano-r844091,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
 TheFork,ultra-milano-r828198,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,ultra-milano-r828198,zero_reviews,review_count,0,No reviews available.
 TheFork,gesto-milano-r828187,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,gesto-milano-r828187,zero_reviews,review_count,0,No reviews available.
-TheFork,trattoria-della-gloria-r828180,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,trattoria-della-gloria-r828180,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,trattoria-della-gloria-r828180,zero_reviews,review_count,0,No reviews available.
 TheFork,sogni-r828177,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,sogni-r828177,zero_reviews,review_count,0,No reviews available.
 TheFork,ristorante-nobuya-r828164,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,ristorante-nobuya-r828164,zero_reviews,review_count,0,No reviews available.
-TheFork,silvano-vini-e-cibi-al-banco-r828052,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
-TheFork,jamm-unlimited-pizza-porta-romana-r836738,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
+TheFork,silvano-vini-e-cibi-al-banco-r828052,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
+TheFork,silvano-vini-e-cibi-al-banco-r828052,zero_reviews,review_count,0,No reviews available.
+TheFork,jamm-unlimited-pizza-porta-romana-r836738,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,osteria-la-carbonella-r64134,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,xxx-cantinetta-belle-donne-r67991,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,xxx-cantinetta-belle-donne-r67991,low_review_count,review_count,19,Review count is below 20; ratings are less reliable.
+TheFork,sandi-r848105,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,sandi-r848105,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.
 TheFork,muku-kyoto-r848098,missing_critical_field,rating,,Critical field is missing after source-specific missing-value normalization.
 TheFork,muku-kyoto-r848098,missing_critical_field,review_count,,Critical field is missing after source-specific missing-value normalization.

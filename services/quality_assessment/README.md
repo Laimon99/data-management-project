@@ -70,7 +70,7 @@ Default input files:
 |---|---|---|
 | Google Places | `data/raw/google_places/restaurants_seed.jsonl` | JSONL |
 | Tripadvisor | `data/raw/tripadvisor/tripadvisor_scraper_results.json` | JSON |
-| TheFork | `data/raw/thefork/thefork_milan_restaurants_normalized.json` | JSON |
+| TheFork | `data/raw/thefork/thefork_milan_restaurants_enriched.json` | JSON |
 
 Notes:
 
@@ -88,7 +88,7 @@ Notes:
 From the repository root, with the project environment:
 
 ```powershell
-uv run quality-assessment profile
+uv run quality-assessment
 ```
 
 Fallback command when `uv` or the project entry point is not available in the
@@ -106,7 +106,7 @@ $env:PYTHONPATH='services'
 python -m quality_assessment profile `
   --google-path data/raw/google_places/restaurants_seed.jsonl `
   --tripadvisor-path data/raw/tripadvisor/tripadvisor_scraper_results.json `
-  --thefork-path data/raw/thefork/thefork_milan_restaurants_normalized.json `
+  --thefork-path data/raw/thefork/thefork_milan_restaurants_enriched.json `
   --low-review-threshold 20
 ```
 
@@ -166,7 +166,7 @@ Latest generated values at the time this README was written:
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Google Places | 10,808 | 93.16% | 93.79% | 98.15% | 100.00% | 100.00% | 67.23% | 2,937 |
 | Tripadvisor | 7,539 | 72.28% | 84.34% | 99.78% | 99.99% | 0.00% | 43.75% | 3,622 |
-| TheFork | 1,344 | 97.69% | 81.16% | 99.04% | 100.00% | 99.78% | 95.83% | 195 |
+| TheFork | 1,344 | 97.63% | 76.15% | 98.88% | 100.00% | 100.00% | 95.83% | 229 |
 
 Regenerate the report instead of trusting this table if any raw dataset changes.
 
@@ -177,8 +177,9 @@ Regenerate the report instead of trusting this table if any raw dataset changes.
 - Tripadvisor has a lower raw score for expected reasons: no coordinates, no
   record-level timestamps, and many sparse/zero-review or low-review records.
   It is therefore a clear candidate for cleaning and geocoding enrichment.
-- TheFork is already suitable for spatial matching, but contact fields such as
-  phone, email, and website have weak coverage.
+- TheFork is already suitable for spatial matching, but the latest enriched
+  scrape has empty contact fields (`website`, `social_links`, `phone_number`,
+  and `email`), so they should not be used as match evidence.
 - Low-review records should not be removed automatically. They should be kept
   but flagged, because they are useful for studying whether sparse data affects
   rating consistency.

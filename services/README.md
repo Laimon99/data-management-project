@@ -113,7 +113,7 @@ report-ready quality artifacts: structured metrics, weighted quality scores,
 field coverage, anomalies, Markdown notes, and LaTeX tables.
 
 ```bash
-uv run quality-assessment profile
+uv run quality-assessment
 ```
 
 Outputs are written under `data/quality/`, `docs/data-quality-assessment.md`,

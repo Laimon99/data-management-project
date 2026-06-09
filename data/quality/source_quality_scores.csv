@@ -1,4 +1,4 @@
 source,overall_quality_score_pct,completeness_score_pct,critical_completeness_score_pct,validity_score_pct,spatial_readiness_score_pct,uniqueness_score_pct,timeliness_score_pct,timestamp_coverage_pct,collection_duration_hours,refresh_target_hours,reliability_score_pct,anomaly_count,record_count
 Google Places,93.16,93.79,98.15,100.0,100.0,99.85,67.23,100.0,15.73,48.0,79.5,2937,10808
 Tripadvisor,72.28,84.34,99.78,99.99,0.0,99.97,43.75,0.0,27.0,48.0,53.1,3622,7539
-TheFork,97.69,81.16,99.04,100.0,99.78,100.0,95.83,100.0,2.0,48.0,89.21,195,1344
+TheFork,97.63,76.15,98.88,100.0,100.0,100.0,95.83,100.0,2.0,48.0,88.84,229,1344

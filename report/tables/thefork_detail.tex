@@ -8,24 +8,24 @@ TheFork is the smallest source but is highly restaurant-specific and already con
 Metric & Value \\
 \midrule
 Records assessed & 1344 \\
-Overall quality score & 97.69\% \\
-Average field completeness & 81.16\% \\
-Critical-field completeness & 99.04\% \\
+Overall quality score & 97.63\% \\
+Average field completeness & 76.15\% \\
+Critical-field completeness & 98.88\% \\
 Validity score & 100.00\% \\
 Uniqueness score & 100.00\% \\
 Timeliness score & 95.83\% \\
 Collection duration & 2.00 h \\
 Timestamp coverage & 100.00\% \\
-Reliability score & 89.21\% \\
-Format values checked & 21815 / 21815 valid \\
-Native rating average & 8.85 \\
-Comparable rating average 0--5 & 4.42 \\
-Valid review counts & 1304 (97.02\%) \\
-Low-review records & 101 (7.75\%) \\
-Valid coordinate pairs & 1341 (99.78\%) \\
-Latest source timestamp & 2026-06-04T14:19:50+00:00 \\
-Data age in days & 1.77 \\
-Quality flags & 195 (14.5 per 100 records) \\
+Reliability score & 88.84\% \\
+Format values checked & 21493 / 21493 valid \\
+Native rating average & 8.86 \\
+Comparable rating average 0--5 & 4.43 \\
+Valid review counts & 1318 (98.07\%) \\
+Low-review records & 117 (8.88\%) \\
+Valid coordinate pairs & 1344 (100.00\%) \\
+Latest source timestamp & 2026-06-06T20:35:04+00:00 \\
+Data age in days & 2.55 \\
+Quality flags & 229 (17.0 per 100 records) \\
 \bottomrule
 \end{tabular}
 
@@ -36,11 +36,11 @@ Field & Present & Missing & Coverage \\
 \midrule
 email & 0 & 1344 & 0.00\% \\
 phone\_number & 0 & 1344 & 0.00\% \\
-website & 25 & 1319 & 1.86\% \\
-opening\_hours & 853 & 491 & 63.47\% \\
-discount & 949 & 395 & 70.61\% \\
-reviews & 1280 & 64 & 95.24\% \\
-rating & 1300 & 44 & 96.73\% \\
+social\_links & 0 & 1344 & 0.00\% \\
+website & 0 & 1344 & 0.00\% \\
+discount & 650 & 694 & 48.36\% \\
+opening\_hours & 855 & 489 & 63.62\% \\
+rating & 1265 & 79 & 94.12\% \\
 \bottomrule
 \end{tabular}
 
@@ -49,19 +49,19 @@ rating & 1300 & 44 & 96.73\% \\
 \toprule
 Issue type & Count \\
 \midrule
-low\_review\_count & 101 \\
-missing\_critical\_field & 90 \\
-zero\_reviews & 4 \\
+low\_review\_count & 117 \\
+missing\_critical\_field & 105 \\
+zero\_reviews & 7 \\
 \bottomrule
 \end{tabular}
 
 \paragraph{Interpretation}
 \begin{itemize}
-\item The weighted source quality score is 97.69\%; the score is driven by integration-critical fields rather than optional metadata.
-\item The weakest fields are email (0.00\%), phone\_number (0.00\%), website (1.86\%); downstream logic should avoid treating them as mandatory matching keys.
-\item Format validity checks 21815 present values; 0 fail the expected source-specific format.
-\item The sparse-review threshold flags 101 records, so rating comparisons should account for review-count reliability.
+\item The weighted source quality score is 97.63\%; the score is driven by integration-critical fields rather than optional metadata.
+\item The weakest fields are email (0.00\%), phone\_number (0.00\%), social\_links (0.00\%); downstream logic should avoid treating them as mandatory matching keys.
+\item Format validity checks 21493 present values; 0 fail the expected source-specific format.
+\item The sparse-review threshold flags 117 records, so rating comparisons should account for review-count reliability.
 \item Timeliness score is 95.83\%, based on collection duration 2.00 h against a 48.00 h refresh target; timestamp coverage is 100.00\%.
-\item The source has 195 generated quality flags, equal to 14.51 flags per 100 records.
-\item TheFork is suitable for geospatial matching now, but its missing contact fields limit its usefulness for website or phone-based validation.
+\item The source has 229 generated quality flags, equal to 17.04 flags per 100 records.
+\item TheFork is suitable for geospatial matching now, but its missing contact fields (website, social links, phone, and email) limit its usefulness for contact-based validation.
 \end{itemize}

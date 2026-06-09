@@ -113,7 +113,30 @@ uv run dataman-entity-resolve --replace-destination \
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
-### 9. Verify
+### 9. Generate the quality report PDF
+
+The profiling command regenerates `data/quality/`, `docs/data-quality-assessment.md`,
+and `report/tables/`; the LaTeX commands then rebuild `report/main.pdf`.
+
+On macOS, PDF compilation requires `pdflatex`. Install it once with:
+
+```bash
+brew install --cask mactex-no-gui
+```
+
+After installing, open a new terminal. If `pdflatex` is still not found, add:
+
+```bash
+export PATH="/Library/TeX/texbin:$PATH"
+```
+
+From the repository root, generate the full report with one command:
+
+```bash
+uv run quality-assessment && (cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
+```
+
+### 10. Verify
 
 ```bash
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -245,7 +268,18 @@ uv run dataman-entity-resolve --replace-destination `
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
-### 9. Verify
+### 9. Generate the quality report PDF
+
+The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
+`report/tables/`, and `report/main.pdf`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+```
+
+This requires a LaTeX distribution with `pdflatex` available on `PATH`.
+
+### 10. Verify
 
 ```powershell
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"

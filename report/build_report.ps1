@@ -16,7 +16,7 @@ try {
     python -m quality_assessment profile `
         --google-path data/raw/google_places/restaurants_seed.jsonl `
         --tripadvisor-path data/raw/tripadvisor/tripadvisor_scraper_results.json `
-        --thefork-path data/raw/thefork/thefork_milan_restaurants_normalized.json `
+        --thefork-path data/raw/thefork/thefork_milan_restaurants_enriched.json `
         --output-dir data/quality `
         --markdown-report docs/data-quality-assessment.md `
         --latex-tables-dir report/tables

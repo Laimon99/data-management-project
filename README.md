@@ -61,6 +61,21 @@ $env:Path = "$HOME\.local\bin;$env:Path"
   (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
   Chromium if none is found)
 
+* **`pdflatex`** — optional, only needed to compile `report/main.pdf`.
+  On macOS, install it with:
+  ```bash
+  brew install --cask mactex-no-gui
+  ```
+  On Windows, install a TeX distribution such as
+  [MiKTeX](https://miktex.org/download) or [TeX Live](https://tug.org/texlive/windows.html),
+  then open a new PowerShell session so `pdflatex` is on `PATH`.
+
+  On macOS, after installation, open a new terminal. If `pdflatex` is still not
+  found, add:
+  ```bash
+  export PATH="/Library/TeX/texbin:$PATH"
+  ```
+
 ### Install
 
 ```bash
@@ -339,10 +354,22 @@ design lives in [`docs/etl-design.md`](docs/etl-design.md).
 Pre-integration baseline profiling is implemented as [`services/quality_assessment`](services/quality_assessment/README.md). It reads the three raw MongoDB collections and produces structured quality metrics, weighted scores, field-coverage tables, anomaly logs, a Markdown report, and LaTeX tables for the PDF report.
 
 ```bash
-uv run quality-assessment profile
+uv run quality-assessment
 ```
 
 Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/tables/`.
+
+To regenerate the full quality report PDF from the current raw datasets, run:
+
+```bash
+uv run quality-assessment && cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex
+```
+
+Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+```
 
 ### Quality dimensions
 
@@ -362,7 +389,7 @@ Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
 | Google Places | 10 808 | 93.16% | 93.79% | 98.15% | 100.00% | 100.00% | 67.23% | 79.50% |
 | Tripadvisor | 7 539 | 72.28% | 84.34% | 99.78% | 99.99% | 0.00% | 43.75% | 53.10% |
-| TheFork | 1 344 | 97.69% | 81.16% | 99.04% | 100.00% | 99.78% | 95.83% | 89.21% |
+| TheFork | 1 344 | 97.63% | 76.15% | 98.88% | 100.00% | 100.00% | 95.83% | 88.84% |
 
 Tripadvisor's 0% spatial readiness is expected — the raw scraper ships no coordinates; geocoding is added by the `tripadvisor_clean` transform.
 

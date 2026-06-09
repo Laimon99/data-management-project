@@ -24,7 +24,7 @@ def main() -> None:
     profile.add_argument(
         "--thefork-path",
         type=Path,
-        default=Path("data/raw/thefork/thefork_milan_restaurants_normalized.json"),
+        default=Path("data/raw/thefork/thefork_milan_restaurants_enriched.json"),
     )
     profile.add_argument("--output-dir", type=Path, default=Path("data/quality"))
     profile.add_argument(

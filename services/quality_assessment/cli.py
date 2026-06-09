@@ -21,8 +21,8 @@ def profile(
         help="Tripadvisor raw JSON dataset.",
     ),
     thefork_path: Path = typer.Option(
-        Path("data/raw/thefork/thefork_milan_restaurants_normalized.json"),
-        help="TheFork normalized JSON dataset.",
+        Path("data/raw/thefork/thefork_milan_restaurants_enriched.json"),
+        help="TheFork final enriched JSON dataset.",
     ),
     output_dir: Path = typer.Option(
         Path("data/quality"),

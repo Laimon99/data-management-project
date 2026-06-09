@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-06T08:45:59.912576+00:00",
+  "generated_at": "2026-06-09T09:44:15.283695+00:00",
   "low_review_threshold": 20,
   "sources": [
     {
       "source": "Google Places",
-      "input_path": "data\\raw\\google_places\\restaurants_seed.jsonl",
-      "generated_at": "2026-06-06T08:45:51.377913+00:00",
+      "input_path": "data/raw/google_places/restaurants_seed.jsonl",
+      "generated_at": "2026-06-09T09:44:12.672798+00:00",
       "record_count": 10808,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -186,7 +186,7 @@
         "timeliness_score_pct": 67.23,
         "oldest_timestamp": "2026-05-24T18:31:49.107218+00:00",
         "latest_timestamp": "2026-05-25T10:15:47.447928+00:00",
-        "data_age_days": 11.94,
+        "data_age_days": 14.98,
         "format_checked_value_count": 192603,
         "format_valid_value_count": 192603,
         "format_invalid_value_count": 0,
@@ -23696,8 +23696,8 @@
     },
     {
       "source": "Tripadvisor",
-      "input_path": "data\\raw\\tripadvisor\\tripadvisor_scraper_results.json",
-      "generated_at": "2026-06-06T08:45:57.466540+00:00",
+      "input_path": "data/raw/tripadvisor/tripadvisor_scraper_results.json",
+      "generated_at": "2026-06-09T09:44:14.575930+00:00",
       "record_count": 7539,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -52828,8 +52828,8 @@
     },
     {
       "source": "TheFork",
-      "input_path": "data\\raw\\thefork\\thefork_milan_restaurants_normalized.json",
-      "generated_at": "2026-06-06T08:45:59.637259+00:00",
+      "input_path": "data/raw/thefork/thefork_milan_restaurants_enriched.json",
+      "generated_at": "2026-06-09T09:44:15.174767+00:00",
       "record_count": 1344,
       "invalid_json_lines": 0,
       "field_coverage": [
@@ -52871,37 +52871,37 @@
         {
           "source": "TheFork",
           "field": "latitude",
-          "present": 1341,
-          "missing": 3,
-          "coverage_pct": 99.78
+          "present": 1344,
+          "missing": 0,
+          "coverage_pct": 100.0
         },
         {
           "source": "TheFork",
           "field": "longitude",
-          "present": 1341,
-          "missing": 3,
-          "coverage_pct": 99.78
+          "present": 1344,
+          "missing": 0,
+          "coverage_pct": 100.0
         },
         {
           "source": "TheFork",
           "field": "rating",
-          "present": 1300,
-          "missing": 44,
-          "coverage_pct": 96.73
+          "present": 1265,
+          "missing": 79,
+          "coverage_pct": 94.12
         },
         {
           "source": "TheFork",
           "field": "review_count",
-          "present": 1304,
-          "missing": 40,
-          "coverage_pct": 97.02
+          "present": 1318,
+          "missing": 26,
+          "coverage_pct": 98.07
         },
         {
           "source": "TheFork",
           "field": "cuisine_type",
-          "present": 1330,
-          "missing": 14,
-          "coverage_pct": 98.96
+          "present": 1323,
+          "missing": 21,
+          "coverage_pct": 98.44
         },
         {
           "source": "TheFork",
@@ -52913,23 +52913,30 @@
         {
           "source": "TheFork",
           "field": "discount",
-          "present": 949,
-          "missing": 395,
-          "coverage_pct": 70.61
+          "present": 650,
+          "missing": 694,
+          "coverage_pct": 48.36
         },
         {
           "source": "TheFork",
           "field": "photo_count",
-          "present": 1340,
-          "missing": 4,
-          "coverage_pct": 99.7
+          "present": 1343,
+          "missing": 1,
+          "coverage_pct": 99.93
         },
         {
           "source": "TheFork",
           "field": "website",
-          "present": 25,
-          "missing": 1319,
-          "coverage_pct": 1.86
+          "present": 0,
+          "missing": 1344,
+          "coverage_pct": 0.0
+        },
+        {
+          "source": "TheFork",
+          "field": "social_links",
+          "present": 0,
+          "missing": 1344,
+          "coverage_pct": 0.0
         },
         {
           "source": "TheFork",
@@ -52948,16 +52955,16 @@
         {
           "source": "TheFork",
           "field": "opening_hours",
-          "present": 853,
-          "missing": 491,
-          "coverage_pct": 63.47
+          "present": 855,
+          "missing": 489,
+          "coverage_pct": 63.62
         },
         {
           "source": "TheFork",
           "field": "reviews",
-          "present": 1280,
-          "missing": 64,
-          "coverage_pct": 95.24
+          "present": 1299,
+          "missing": 45,
+          "coverage_pct": 96.65
         },
         {
           "source": "TheFork",
@@ -52975,72 +52982,88 @@
         }
       ],
       "summary": {
-        "completeness_score_pct": 81.16,
-        "critical_completeness_score_pct": 99.04,
+        "completeness_score_pct": 76.15,
+        "critical_completeness_score_pct": 98.88,
         "unique_identifier_count": 1344,
         "duplicate_identifier_count": 0,
         "possible_duplicate_name_address_count": 0,
         "uniqueness_score_pct": 100.0,
         "rating_scale": 10.0,
-        "valid_rating_count": 1300,
-        "valid_rating_pct": 96.73,
-        "rating_min": 2.0,
+        "valid_rating_count": 1265,
+        "valid_rating_pct": 94.12,
+        "rating_min": 3.3,
         "rating_max": 10.0,
-        "rating_avg": 8.847,
-        "valid_review_count": 1304,
-        "valid_review_count_pct": 97.02,
+        "rating_avg": 8.863,
+        "valid_review_count": 1318,
+        "valid_review_count_pct": 98.07,
         "review_count_min": 0,
         "review_count_max": 14391,
-        "review_count_avg": 847.4,
-        "zero_review_records": 4,
+        "review_count_avg": 838.2,
+        "zero_review_records": 7,
         "low_review_threshold": 20,
-        "low_review_records": 101,
-        "low_review_pct_of_valid_reviews": 7.75,
-        "reliable_review_records": 1199,
-        "reliability_score_pct": 89.21,
-        "coordinates_present_count": 1341,
-        "valid_coordinate_pair_count": 1341,
-        "valid_coordinate_pair_pct": 99.78,
-        "coordinates_in_milan_area_count": 1341,
+        "low_review_records": 117,
+        "low_review_pct_of_valid_reviews": 8.88,
+        "reliable_review_records": 1194,
+        "reliability_score_pct": 88.84,
+        "coordinates_present_count": 1344,
+        "valid_coordinate_pair_count": 1344,
+        "valid_coordinate_pair_pct": 100.0,
+        "coordinates_in_milan_area_count": 1344,
         "coordinates_in_milan_area_pct": 100.0,
-        "spatial_readiness_score_pct": 99.78,
+        "spatial_readiness_score_pct": 100.0,
         "timestamp_field_count": 1,
         "timestamp_present_count": 1344,
         "timestamp_parseable_count": 1344,
         "records_with_timestamp_count": 1344,
         "timestamp_coverage_pct": 100.0,
         "timestamp_parseable_pct": 100.0,
-        "timestamp_window_hours": 139.99,
+        "timestamp_window_hours": 2.58,
         "collection_duration_hours": 2.0,
         "collection_duration_source": "configured scraper runtime estimate",
         "refresh_target_hours": 48.0,
         "timeliness_score_pct": 95.83,
-        "oldest_timestamp": "2026-05-29T18:20:32+00:00",
-        "latest_timestamp": "2026-06-04T14:19:50+00:00",
-        "data_age_days": 1.77,
-        "format_checked_value_count": 21815,
-        "format_valid_value_count": 21815,
+        "oldest_timestamp": "2026-06-06T18:00:05+00:00",
+        "latest_timestamp": "2026-06-06T20:35:04+00:00",
+        "data_age_days": 2.55,
+        "format_checked_value_count": 21493,
+        "format_valid_value_count": 21493,
         "format_invalid_value_count": 0,
         "format_invalid_fields": {},
         "validity_score_pct": 100.0,
-        "overall_quality_score_pct": 97.69,
-        "anomaly_count": 195
+        "overall_quality_score_pct": 97.63,
+        "anomaly_count": 229
       },
       "anomalies": [
         {
           "source": "TheFork",
-          "record_id": "yum-ramen-r862215",
+          "record_id": "barcollando-cafe-r348769",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
-          "record_id": "garden-restaurant-r827070",
+          "record_id": "yum-ramen-r862215",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "yum-ramen-r862215",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "8",
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "vesper-milano-r862459",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "3",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53056,46 +53079,6 @@
           "record_id": "da-nonna-la-puglia-a-milano-r860382",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "12",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "vesper-milano-r862459",
-          "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "sale-nero-ristorante-r862446",
-          "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "bob-the-other-side-r859272",
-          "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "oasi-ohwell-r838735",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "4",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "combo-milano-r856490",
-          "issue_type": "low_review_count",
-          "field": "review_count",
           "value": "13",
           "detail": "Review count is below 20; ratings are less reliable."
         },
@@ -53109,19 +53092,67 @@
         },
         {
           "source": "TheFork",
-          "record_id": "sushi-milano-island-r857390",
+          "record_id": "perla-blu-r857697",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "4",
+          "value": "12",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "tikka-land-cucina-autentica-dell-india-sri-lanka-r862758",
+          "record_id": "spuzzuliamm-r863570",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "spuzzuliamm-r863570",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "casa-festa-pizzeria-alcolica-r862892",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "casa-festa-pizzeria-alcolica-r862892",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "3",
+          "value": "1",
           "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "oro-pizza-r862764",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "oro-pizza-r862764",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "gastronomia-italiana-da-isabel-r862627",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
@@ -53135,9 +53166,17 @@
           "source": "TheFork",
           "record_id": "ristorante-nice-bistrot-r860497",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-nice-bistrot-r860497",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -53145,6 +53184,46 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "3",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "genuino-turati-r461725",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "tikka-land-cucina-autentica-dell-india-sri-lanka-r862758",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "4",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sale-nero-ristorante-r862446",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sale-nero-ristorante-r862446",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "2",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "wadi-rum-viale-tunisia-r861680",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "13",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53157,26 +53236,10 @@
         },
         {
           "source": "TheFork",
-          "record_id": "miro-osteria-del-cinema-r859431",
+          "record_id": "bistro-vico-38-restaurant-cafe-r851411",
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "15",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "al-andalus-r806103",
-          "issue_type": "missing_critical_field",
-          "field": "rating",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "wadi-rum-viale-tunisia-r861680",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "13",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53185,14 +53248,6 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "6",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "dasein-pane-champagne-r649965",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "18",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53224,31 +53279,7 @@
           "record_id": "ecooking-bistrot-corso-italia-r857895",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "11",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "cook-window-r809234",
-          "issue_type": "missing_critical_field",
-          "field": "rating",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "cook-window-r809234",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "16",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "bistro-vico-38-restaurant-cafe-r851411",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "15",
+          "value": "12",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53285,86 +53316,6 @@
         },
         {
           "source": "TheFork",
-          "record_id": "mia-sushi-poke-r858657",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "3",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "sorsi-sorrisi-r846010",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "11",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "roadside-american-bbq-beer-r847411",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "16",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "tripstillery-navigli-r846011",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "15",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "tavernacolo-milano-affori-r860464",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "11",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "ristorante-di-kashmir-indiano-r856923",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "18",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "osteria-di-brera-r817732",
-          "issue_type": "missing_critical_field",
-          "field": "latitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "osteria-di-brera-r817732",
-          "issue_type": "missing_critical_field",
-          "field": "longitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "spadari-restaurant-r853243",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "6",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "sire-raul-r857239",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "14",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "ciapa-su-bistrot-r812459",
           "issue_type": "missing_critical_field",
           "field": "rating",
@@ -53377,6 +53328,54 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "19",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "mia-sushi-poke-r858657",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "3",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "al-andalus-r806103",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-di-kashmir-indiano-r856923",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "18",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sorsi-sorrisi-r846010",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "11",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "temakinho-milano-porta-romana-tierra-r860231",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ginza-sushi-loreto-milano-r859373",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53397,10 +53396,10 @@
         },
         {
           "source": "TheFork",
-          "record_id": "temakinho-milano-porta-romana-tierra-r860231",
+          "record_id": "temakinho-milano-cadorna-fuego-r860230",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "10",
+          "value": "16",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53421,30 +53420,6 @@
         },
         {
           "source": "TheFork",
-          "record_id": "ramen-bar-akira-milano-assago-r859270",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "17",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "i-love-poke-milano-filzi-r839796",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "10",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "desco-milano-r858120",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "8",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "temakinho-milano-duomo-arya-r860229",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -53453,26 +53428,26 @@
         },
         {
           "source": "TheFork",
-          "record_id": "marro-milano-r860829",
+          "record_id": "ramen-bar-akira-milano-assago-r859270",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "9",
+          "value": "17",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "ginza-sushi-loreto-milano-r859373",
+          "record_id": "garden-restaurant-r827070",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "10",
+          "value": "8",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "risomi-r846945",
+          "record_id": "sire-raul-r857239",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "19",
+          "value": "14",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53485,14 +53460,6 @@
         },
         {
           "source": "TheFork",
-          "record_id": "milanostyle-ristorante-cinese-alla-griglia-r828072",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "11",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "gastronomia-bar-enoteca-tarante-napoli-r829025",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -53501,11 +53468,59 @@
         },
         {
           "source": "TheFork",
-          "record_id": "temakinho-milano-cadorna-fuego-r860230",
+          "record_id": "the-public-house-r857467",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "the-public-house-r857467",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "16",
+          "value": "1",
           "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-pizzeria-la-carrozza-r863759",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-pizzeria-la-carrozza-r863759",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-pizzeria-del-vento-r863545",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-pizzeria-del-vento-r863545",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "mao-bowl-r863214",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
@@ -53551,6 +53566,14 @@
           "source": "TheFork",
           "record_id": "caffe-amore-bistrot-r862152",
           "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "caffe-amore-bistrot-r862152",
+          "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
@@ -53581,6 +53604,22 @@
         },
         {
           "source": "TheFork",
+          "record_id": "bob-the-other-side-r859272",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "bob-the-other-side-r859272",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "2",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
           "record_id": "blend-the-wine-feeling-r858979",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -53605,19 +53644,19 @@
         },
         {
           "source": "TheFork",
-          "record_id": "amalfitana-specialita-pesce-e-carne-r858089",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "15",
-          "detail": "Review count is below 20; ratings are less reliable."
+          "record_id": "club-80-milano-r857304",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
           "record_id": "club-80-milano-r857304",
-          "issue_type": "missing_critical_field",
+          "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -53653,15 +53692,47 @@
         },
         {
           "source": "TheFork",
-          "record_id": "la-bella-colomba-r852984",
+          "record_id": "elisir-r844359",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "elisir-r844359",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "la-cuccagnina-r842795",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "la-cuccagnina-r842795",
+          "issue_type": "missing_critical_field",
+          "field": "review_count",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "oasi-ohwell-r838735",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "8",
+          "value": "4",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "elisir-r844359",
+          "record_id": "organic-pizza-and-food-morigi-r354995",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -53669,7 +53740,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "elisir-r844359",
+          "record_id": "organic-pizza-and-food-morigi-r354995",
           "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
@@ -53677,7 +53748,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "maison-milano-dinnershow-cena-con-spettacolo-r48829",
+          "record_id": "organic-pizza-and-food-de-castilla-r264017",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -53685,7 +53756,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "maison-milano-dinnershow-cena-con-spettacolo-r48829",
+          "record_id": "organic-pizza-and-food-de-castilla-r264017",
           "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
@@ -53701,19 +53772,19 @@
         },
         {
           "source": "TheFork",
-          "record_id": "l-incoronata-r860774",
+          "record_id": "sushi-milano-island-r857390",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "5",
+          "value": "4",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "la-scarpetta-ristorante-pizzeria-r858455",
-          "issue_type": "missing_critical_field",
+          "record_id": "ioi-bistrot-milano-r856987",
+          "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "value": "11",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -53721,22 +53792,6 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "12",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "ristorante-coreano-hanya-r853165",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "17",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "tre-gazzelle-bistrot-r841583",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "10",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53749,51 +53804,35 @@
         },
         {
           "source": "TheFork",
-          "record_id": "genuino-turati-r461725",
-          "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "santa-margherita-r862189",
-          "issue_type": "missing_critical_field",
-          "field": "rating",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "santa-margherita-r862189",
+          "record_id": "vecchio-mulino-milano-r857093",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "2",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "atmosfera-bistrot-r858935",
-          "issue_type": "missing_critical_field",
-          "field": "rating",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "atmosfera-bistrot-r858935",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "2",
+          "value": "17",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
           "record_id": "pizzeria-francolino-r857828",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "pizzeria-francolino-r857828",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-clorofilla-r838529",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "6",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -53801,6 +53840,38 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "8",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sapori-uiguri-cucina-e-griglia-alla-brace-r860799",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "3",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "risomi-r846945",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "19",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "gallura-r53538",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "al-baraka-griglieria-r838273",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "6",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53813,34 +53884,34 @@
         },
         {
           "source": "TheFork",
-          "record_id": "chuangxiangshifu-ristorante-cinese-r825508",
+          "record_id": "cook-window-r809234",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "cook-window-r809234",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "4",
+          "value": "16",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "perla-blu-r857697",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "12",
-          "detail": "Review count is below 20; ratings are less reliable."
+          "record_id": "lord-r733663",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
-          "record_id": "al-baraka-griglieria-r838273",
+          "record_id": "lord-r733663",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "6",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "salsamenteria-delle-coppelle-milano-r813789",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "10",
+          "value": "1",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53853,18 +53924,42 @@
         },
         {
           "source": "TheFork",
-          "record_id": "the-public-house-r857467",
+          "record_id": "zaia-r755843",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
-          "record_id": "ta-bueno-navigli-r854472",
+          "record_id": "combo-milano-r856490",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "14",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "roadside-american-bbq-beer-r847411",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "16",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "tripstillery-navigli-r846011",
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "15",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "tavernacolo-milano-affori-r860464",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "12",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53893,14 +53988,6 @@
         },
         {
           "source": "TheFork",
-          "record_id": "sapori-uiguri-cucina-e-griglia-alla-brace-r860799",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "3",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "ristorante-pizzeria-teresa-e-patrizia-r859938",
           "issue_type": "missing_critical_field",
           "field": "rating",
@@ -53914,6 +54001,14 @@
           "field": "review_count",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "spadari-restaurant-r853243",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "6",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -53941,10 +54036,58 @@
         },
         {
           "source": "TheFork",
+          "record_id": "marro-milano-r860829",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "miro-osteria-del-cinema-r859431",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "16",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ta-bueno-navigli-r854472",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "15",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
           "record_id": "rotonda-bistro-r856157",
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "12",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "i-love-poke-milano-filzi-r839796",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "dasein-pane-champagne-r649965",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "18",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "desco-milano-r858120",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "8",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -53965,23 +54108,23 @@
         },
         {
           "source": "TheFork",
-          "record_id": "experience-wine-milano-r860756",
-          "issue_type": "missing_critical_field",
-          "field": "latitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "record_id": "l-incoronata-r860774",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "5",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "experience-wine-milano-r860756",
-          "issue_type": "missing_critical_field",
-          "field": "longitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "record_id": "milanostyle-ristorante-cinese-alla-griglia-r828072",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "11",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "experience-wine-milano-r860756",
+          "record_id": "next-gen-lab-temporary-food-court-by-identita-milano-r862847",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -53989,7 +54132,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "experience-wine-milano-r860756",
+          "record_id": "next-gen-lab-temporary-food-court-by-identita-milano-r862847",
           "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
@@ -53997,19 +54140,19 @@
         },
         {
           "source": "TheFork",
-          "record_id": "soprattutto-r464093",
-          "issue_type": "missing_critical_field",
-          "field": "latitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "record_id": "amalfitana-specialita-pesce-e-carne-r858089",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "15",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "soprattutto-r464093",
-          "issue_type": "missing_critical_field",
-          "field": "longitude",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
+          "record_id": "la-bella-colomba-r852984",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "8",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -54021,18 +54164,42 @@
         },
         {
           "source": "TheFork",
-          "record_id": "ioi-bistrot-milano-r856987",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "11",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "leucosia-bistrot-r856149",
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "4",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "la-scarpetta-ristorante-pizzeria-r858455",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "la-scarpetta-ristorante-pizzeria-r858455",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "ristorante-coreano-hanya-r853165",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "17",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "tre-gazzelle-bistrot-r841583",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -54045,6 +54212,38 @@
         },
         {
           "source": "TheFork",
+          "record_id": "pizzacoteca-di-brera-r362459",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "santa-margherita-r862189",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "santa-margherita-r862189",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "2",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "miro-by-rugantino-r854352",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "8",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
           "record_id": "eppolino-r836838",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -54053,18 +54252,26 @@
         },
         {
           "source": "TheFork",
-          "record_id": "la-costenita-r852572",
+          "record_id": "atmosfera-bistrot-r858935",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "atmosfera-bistrot-r858935",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "10",
+          "value": "2",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
-          "record_id": "ristorante-clorofilla-r838529",
+          "record_id": "la-costenita-r852572",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "6",
+          "value": "10",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -54093,6 +54300,22 @@
         },
         {
           "source": "TheFork",
+          "record_id": "chuangxiangshifu-ristorante-cinese-r825508",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "4",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "pellico-3-milano-r56920",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
           "record_id": "porcao-churrascaria-r855883",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -54101,43 +54324,11 @@
         },
         {
           "source": "TheFork",
-          "record_id": "vecchio-mulino-milano-r857093",
+          "record_id": "salsamenteria-delle-coppelle-milano-r813789",
           "issue_type": "low_review_count",
           "field": "review_count",
-          "value": "17",
+          "value": "10",
           "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "miro-by-rugantino-r854352",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "8",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "gran-baguttin-r861276",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "3",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "next-gen-lab-temporary-food-court-by-identita-milano-r862847",
-          "issue_type": "missing_critical_field",
-          "field": "rating",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "next-gen-lab-temporary-food-court-by-identita-milano-r862847",
-          "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
@@ -54157,7 +54348,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "la-cuccagnina-r842795",
+          "record_id": "ristorante-acero-r855185",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -54165,7 +54356,7 @@
         },
         {
           "source": "TheFork",
-          "record_id": "la-cuccagnina-r842795",
+          "record_id": "ristorante-acero-r855185",
           "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
@@ -54191,13 +54382,21 @@
           "source": "TheFork",
           "record_id": "waska-naviglio-r837455",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
-          "record_id": "organic-pizza-and-food-morigi-r354995",
+          "record_id": "waska-naviglio-r837455",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "1",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "giacomo-rosticceria-r752167",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -54205,7 +54404,23 @@
         },
         {
           "source": "TheFork",
-          "record_id": "organic-pizza-and-food-morigi-r354995",
+          "record_id": "giacomo-rosticceria-r752167",
+          "issue_type": "zero_reviews",
+          "field": "review_count",
+          "value": "0",
+          "detail": "No reviews available."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "maison-milano-dinnershow-cena-con-spettacolo-r48829",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "maison-milano-dinnershow-cena-con-spettacolo-r48829",
           "issue_type": "missing_critical_field",
           "field": "review_count",
           "value": "",
@@ -54231,9 +54446,25 @@
           "source": "TheFork",
           "record_id": "dongbeiciaga-r839740",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "dongbeiciaga-r839740",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "10",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "gran-baguttin-r861276",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "3",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -54263,14 +54494,6 @@
           "source": "TheFork",
           "record_id": "draft-r819798",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
-          "value": "",
-          "detail": "Critical field is missing after source-specific missing-value normalization."
-        },
-        {
-          "source": "TheFork",
-          "record_id": "pizzacoteca-di-brera-r362459",
-          "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
@@ -54287,9 +54510,17 @@
           "source": "TheFork",
           "record_id": "mirage-cafe-restaurant-r835290",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "mirage-cafe-restaurant-r835290",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "6",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -54297,6 +54528,14 @@
           "issue_type": "low_review_count",
           "field": "review_count",
           "value": "19",
+          "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sapore-indiano-krishna-milano-r850845",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "4",
           "detail": "Review count is below 20; ratings are less reliable."
         },
         {
@@ -54333,14 +54572,6 @@
         },
         {
           "source": "TheFork",
-          "record_id": "sapore-indiano-krishna-milano-r850845",
-          "issue_type": "low_review_count",
-          "field": "review_count",
-          "value": "4",
-          "detail": "Review count is below 20; ratings are less reliable."
-        },
-        {
-          "source": "TheFork",
           "record_id": "siloe-bistrot-r848415",
           "issue_type": "low_review_count",
           "field": "review_count",
@@ -54367,9 +54598,17 @@
           "source": "TheFork",
           "record_id": "pizzeria-naviglio-r839844",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "pizzeria-naviglio-r839844",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "12",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -54407,9 +54646,17 @@
           "source": "TheFork",
           "record_id": "tasty-bite-cucina-indiana-r854464",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "tasty-bite-cucina-indiana-r854464",
+          "issue_type": "low_review_count",
+          "field": "review_count",
+          "value": "2",
+          "detail": "Review count is below 20; ratings are less reliable."
         },
         {
           "source": "TheFork",
@@ -54422,6 +54669,14 @@
         {
           "source": "TheFork",
           "record_id": "la-massaria-r480455",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "desinolento-pizzeria-r323517",
           "issue_type": "missing_critical_field",
           "field": "rating",
           "value": "",
@@ -54471,9 +54726,17 @@
           "source": "TheFork",
           "record_id": "trattoria-della-gloria-r828180",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "trattoria-della-gloria-r828180",
+          "issue_type": "zero_reviews",
+          "field": "review_count",
+          "value": "0",
+          "detail": "No reviews available."
         },
         {
           "source": "TheFork",
@@ -54511,15 +54774,23 @@
           "source": "TheFork",
           "record_id": "silvano-vini-e-cibi-al-banco-r828052",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",
+          "record_id": "silvano-vini-e-cibi-al-banco-r828052",
+          "issue_type": "zero_reviews",
+          "field": "review_count",
+          "value": "0",
+          "detail": "No reviews available."
+        },
+        {
+          "source": "TheFork",
           "record_id": "jamm-unlimited-pizza-porta-romana-r836738",
           "issue_type": "missing_critical_field",
-          "field": "review_count",
+          "field": "rating",
           "value": "",
           "detail": "Critical field is missing after source-specific missing-value normalization."
         },
@@ -54546,6 +54817,14 @@
           "field": "review_count",
           "value": "19",
           "detail": "Review count is below 20; ratings are less reliable."
+        },
+        {
+          "source": "TheFork",
+          "record_id": "sandi-r848105",
+          "issue_type": "missing_critical_field",
+          "field": "rating",
+          "value": "",
+          "detail": "Critical field is missing after source-specific missing-value normalization."
         },
         {
           "source": "TheFork",

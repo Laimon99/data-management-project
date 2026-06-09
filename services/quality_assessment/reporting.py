@@ -1041,7 +1041,8 @@ def interpretation_notes(source: dict[str, Any]) -> list[str]:
     elif source["source"] == "TheFork":
         notes.append(
             "TheFork is suitable for geospatial matching now, but its missing contact "
-            "fields limit its usefulness for website or phone-based validation."
+            "fields (website, social links, phone, and email) limit its usefulness for "
+            "contact-based validation."
         )
     return notes
 
@@ -1095,6 +1096,26 @@ def improvement_actions(payload: dict[str, Any]) -> list[tuple[int, str, str, st
                     source["source"],
                     "Inspect duplicate normalized name/address keys before integration.",
                     "Prevents false entity matches and duplicated restaurants.",
+                )
+            )
+    thefork = sources_by_name.get("TheFork")
+    if thefork:
+        zero_contact_fields = {
+            item["field"]
+            for item in thefork["field_coverage"]
+            if item["coverage_pct"] == 0.0
+            and item["field"] in {"website", "social_links", "phone_number", "email"}
+        }
+        if zero_contact_fields:
+            actions.append(
+                (
+                    3,
+                    "TheFork",
+                    "Fix or document the empty contact fields from the latest scrape.",
+                    (
+                        "Prevents website, social-link, phone, or email fields from "
+                        "being used as match evidence."
+                    ),
                 )
             )
     if not actions:
