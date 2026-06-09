@@ -566,8 +566,18 @@ restaurants.
 needed for rating comparison at the top level: canonical name/address/coordinates,
 normalized per-platform ratings, review counts, `rating_avg_5`, `rating_range_5`,
 platform-membership booleans, top-level website/phone evidence, and normalized
-`price_level`. The Spark-style schema is documented in
+`price_level`. The Spark-style schema, and the conflict-handling strategy applied to each
+top-level field (mapped to the Bleiholder & Naumann ignoring/avoiding/resolution
+taxonomy), are documented in
 [`integrated-dataset-schema.md`](services/transform/unified_dataset/integrated-dataset-schema.md).
+
+Conflict resolution is chosen per field by the value's role: authoritative identity and
+geography always take Google (*Trust your friends*); per-platform ratings and review
+counts are deliberately kept side by side for comparison (*Consider all possibilities*);
+`rating_avg_5`/`rating_range_5` are mediated aggregates (*Meet in the middle*); `website`
+prefers a value over null and falls back to Google on disagreement; `phones` keeps the
+de-duplicated union; and `price_level` is decided by majority vote across the three
+normalized price signals (*Cry with the wolves*).
 
 Mandatory query examples for the integrated dataset:
 

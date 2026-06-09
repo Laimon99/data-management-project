@@ -38,6 +38,30 @@ as the canonical value and all values stay in `website_evidence`.
 Top-level `phones` is the de-duplicated list of all matched Google/Tripadvisor phone
 values. No scalar top-level `phone` is emitted.
 
+## Conflict-Handling Strategies per Top-Level Field
+
+When two or more platforms describe the same canonical entity, each top-level field
+applies one of the conflict-handling strategies from the Bleiholder & Naumann taxonomy
+(ignoring / avoiding / resolution). The strategy is chosen per field according to whether
+the value is authoritative (identity), comparative (ratings/counts), or reconcilable
+(contacts/price).
+
+| Top-level field(s) | Sources combined | Strategy | Classification | How we apply it |
+|---|---|---|---|---|
+| `canonical_name`, `canonical_address`, `canonical_*`, `latitude`, `longitude`, `coordinate_source` | google (preferred) | **Trust your friends** | avoiding, metadata based | Google is the geographic backbone and authoritative seed, so canonical identity/geography always takes Google's value. Source names/addresses/coords are preserved untouched under `sources.*`. |
+| `google_rating_5`, `tripadvisor_rating_5`, `thefork_rating_5`, `thefork_rating_raw_10`, `google_review_count`, `tripadvisor_review_count`, `thefork_review_count` | google, tripadvisor, thefork | **Consider all possibilities** | ignoring | Ratings/counts are the comparison subject, so we deliberately do *not* resolve them — every source value is kept in its own column for the mandatory discrepancy queries. (TheFork's 0–10 scale is normalized to a parallel `_5` column for comparability.) |
+| `rating_avg_5` | google, tripadvisor, thefork | **Meet in the middle** | resolution, instance based, mediating | Mean of the available `_5` ratings — a single mediated value that exists in no source. |
+| `rating_range_5` | google, tripadvisor, thefork | **Meet in the middle** (dispersion) | resolution, instance based, mediating | Max − min of the `_5` ratings; a derived spread used to surface conflicts rather than hide them. |
+| `website`, `website_source`, `website_match_status`, `website_evidence` | google, tripadvisor | **Take the information** + **Trust your friends** | avoiding, instance + metadata based | If only one source has a website we take it (prefer value over null). If both agree (exact or same host) we keep the shared value. On genuine disagreement we fall back to Google (preferred source); all raw values stay in `website_evidence`. |
+| `phones`, `phone_match_status`, `phone_evidence` | google, tripadvisor | **Consider all possibilities** | ignoring | We keep the de-duplicated union of every matched phone value rather than picking one, since a venue legitimately has multiple lines. `phone_match_status` records whether sources agreed. |
+| `price_level`, `price_level_source`, `price_evidence` | google, tripadvisor, thefork | **Cry with the wolves** | resolution, instance based, deciding | Each source's native price signal is mapped to a common 4-level label, then majority vote wins. A tie keeps the tied labels as a list (`price_level_source = "tie"`) — falling back to **consider all possibilities**. All raw signals stay in `price_evidence`. |
+| `integration_flags`, `has_*`, `platform_count`, `rating_platform_count` | derived | — (provenance/aggregation) | n/a | Not conflict resolution: membership flags, counts, and audit flags (`multiple_*_matches`, `llm_override`, `missing_*_source_doc`) record how the integration was performed. |
+
+Two strategies from the taxonomy are intentionally **not** used: *Pass it on* (escalate to a
+user) has no place in a batch pipeline, and *Roll the dice* / *Keep up to date* are unsuitable
+because source values lack reliable, comparable timestamps and a random pick would be
+non-reproducible.
+
 ## Spark-Style `printSchema()`
 
 MongoDB is schemaless, so this is the effective schema emitted by

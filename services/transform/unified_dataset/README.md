@@ -34,3 +34,7 @@ The integrated collection is hybrid nested: canonical identity/geography and com
 ratings are top-level, while source-specific evidence remains under `sources.google`,
 `sources.tripadvisor`, and `sources.thefork`.
 
+The full effective schema, and the conflict-handling strategy applied to each top-level
+field (mapped to the Bleiholder & Naumann ignoring/avoiding/resolution taxonomy), are
+documented in [`integrated-dataset-schema.md`](integrated-dataset-schema.md).
+
