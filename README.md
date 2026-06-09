@@ -11,7 +11,28 @@
 ![Image](https://www.thetrainline.com/cms/media/5793/empty-seats-at-restaurant-in-milan-italy.jpg?height=440\&mode=crop\&quality=70\&width=660)
 
 ---
-
+## TODO:
+- [x] - [Find datasets and come up with research questions](#1️⃣-domain--research-questions)
+- [x] - [Data Acquisition](#2️⃣-data-sources-faq-5--acquisition):
+  - [x] - [Google Maps](services/extract/google_places_api/)
+  - [x] - [TripAdvisor](services/extract/tripadvisor_scraper/)
+  - [x] - [The Fork](services/extract/thefork_scraper/)
+- [x] - [Store in Mongo](services/load/mongo/)
+- [x] - [Enrich TripAdvisor with geo data](services/transform/tripadvisor_clean/)
+- [x] - [Integrate 3 datasets](#5️⃣-data-integration--enrichment):
+  - [x] - [schemas transformation](services/transform/) ([google_clean](services/transform/google_clean/), [tripadvisor_clean](services/transform/tripadvisor_clean/), [thefork_clean](services/transform/thefork_clean/))
+  - [x] - [schemas matching](services/transform/entity_resolution/) ([schema-matching.md](docs/schema-matching.md), [schema-correspondences.md](docs/schema-correspondences.md))
+  - [x] - [schemas integration](services/transform/unified_dataset/)
+- [ ] - [Data profiling / data quality](services/quality_assessment/)
+  - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
+  - [ ] - [post integration](report/post_integration/)
+- [ ] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml)
+- [ ] - Make atleast 2 queries on final dataset to answer some questions
+- [ ] - Submit a project:
+  - [ ] - Write a [report](report/) ([final](report/final/))
+  - [ ] - Create a presentation
+  - [ ] - Create operational guide for reproduction of the project
+  - [ ] - Upload to Google Drive and send to the professor 
 
 ## 1️⃣ Domain & research questions
 
@@ -61,7 +82,7 @@ $env:Path = "$HOME\.local\bin;$env:Path"
   (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
   Chromium if none is found)
 
-* **`pdflatex`** — optional, only needed to compile `report/main.pdf`.
+* **`pdflatex`** — optional, only needed to compile `report/pre_integration/main.pdf`.
   On macOS, install it with:
   ```bash
   brew install --cask mactex-no-gui
@@ -357,18 +378,18 @@ Pre-integration baseline profiling is implemented as [`services/quality_assessme
 uv run quality-assessment
 ```
 
-Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/tables/`.
+Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/pre_integration/tables/`.
 
 To regenerate the full quality report PDF from the current raw datasets, run:
 
 ```bash
-uv run quality-assessment && cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex
+uv run quality-assessment && cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 
 Windows PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
 ### Quality dimensions

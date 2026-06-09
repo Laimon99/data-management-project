@@ -1,6 +1,6 @@
 # Data Quality Assessment
 
-Generated at: `2026-06-09T09:44:15.283695+00:00`
+Generated at: `2026-06-09T14:46:18.252039+00:00`
 
 This document is generated from the raw acquisition outputs. It is intended as a
 reproducible basis for the final project report; conclusions and narrative should
@@ -144,7 +144,7 @@ Google Places is treated as the broad geographic seed and reference source. Its 
 | Low-review records | 1515 (14.99%) |
 | Valid coordinate pairs | 10808 (100.00%) |
 | Latest source timestamp | 2026-05-25T10:15:47.447928+00:00 |
-| Data age in days | 14.98 |
+| Data age in days | 15.19 |
 | Quality flags | 2937 (27.17 per 100 records) |
 
 Weakest field coverage:
@@ -259,7 +259,7 @@ TheFork is the smallest source but is highly restaurant-specific and already con
 | Low-review records | 117 (8.88%) |
 | Valid coordinate pairs | 1344 (100.00%) |
 | Latest source timestamp | 2026-06-06T20:35:04+00:00 |
-| Data age in days | 2.55 |
+| Data age in days | 2.76 |
 | Quality flags | 229 (17.04 per 100 records) |
 
 Weakest field coverage:
@@ -298,18 +298,18 @@ Interpretation:
 - `data/quality/field_coverage.csv`: field-level completeness table.
 - `data/quality/anomalies.csv`: record-level quality flags.
 - `data/quality/source_quality_scores.csv`: weighted quality score components.
-- `report/tables/metric_definitions.tex`: LaTeX metric formula table.
-- `report/tables/source_summary.tex`: LaTeX source summary table.
-- `report/tables/source_quality_scores.tex`: score breakdown table.
-- `report/tables/visual_quality_scores.tex`: score bar chart.
-- `report/tables/visual_score_components.tex`: component bar chart.
-- `report/tables/visual_coverage_heatmap.tex`: core coverage heatmap.
-- `report/tables/visual_anomaly_profile.tex`: anomaly profile chart.
-- `report/tables/improvement_actions.tex`: report-ready remediation plan.
-- `report/tables/source_comparison.tex`: LaTeX comparison table.
-- `report/tables/*_detail.tex`: source-specific LaTeX sections.
-- `report/tables/*_field_coverage.tex`: source-specific field coverage tables.
-- `report/tables/field_coverage.tex`: complete LaTeX field coverage table.
+- `report/pre_integration/tables/metric_definitions.tex`: LaTeX metric formula table.
+- `report/pre_integration/tables/source_summary.tex`: LaTeX source summary table.
+- `report/pre_integration/tables/source_quality_scores.tex`: score breakdown table.
+- `report/pre_integration/tables/visual_quality_scores.tex`: score bar chart.
+- `report/pre_integration/tables/visual_score_components.tex`: component bar chart.
+- `report/pre_integration/tables/visual_coverage_heatmap.tex`: core coverage heatmap.
+- `report/pre_integration/tables/visual_anomaly_profile.tex`: anomaly profile chart.
+- `report/pre_integration/tables/improvement_actions.tex`: report-ready remediation plan.
+- `report/pre_integration/tables/source_comparison.tex`: LaTeX comparison table.
+- `report/pre_integration/tables/*_detail.tex`: source-specific LaTeX sections.
+- `report/pre_integration/tables/*_field_coverage.tex`: source-specific field coverage tables.
+- `report/pre_integration/tables/field_coverage.tex`: complete LaTeX field coverage table.
 
 ## Methodological Notes
 

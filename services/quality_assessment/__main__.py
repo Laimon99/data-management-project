@@ -32,7 +32,9 @@ def main() -> None:
         type=Path,
         default=Path("docs/data-quality-assessment.md"),
     )
-    profile.add_argument("--latex-tables-dir", type=Path, default=Path("report/tables"))
+    profile.add_argument(
+        "--latex-tables-dir", type=Path, default=Path("report/pre_integration/tables")
+    )
     profile.add_argument("--low-review-threshold", type=int, default=20)
 
     args = parser.parse_args()

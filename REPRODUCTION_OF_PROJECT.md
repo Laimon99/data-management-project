@@ -131,7 +131,8 @@ This writes `entity_resolution_links` (selected MATCH links) and `restaurants_in
 ### 10. Generate the quality report PDF
 
 The profiling command regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-and `report/tables/`; the LaTeX commands then rebuild `report/main.pdf`.
+and `report/pre_integration/tables/`; the LaTeX commands then rebuild
+`report/pre_integration/main.pdf`.
 
 On macOS, PDF compilation requires `pdflatex`. Install it once with:
 
@@ -148,7 +149,7 @@ export PATH="/Library/TeX/texbin:$PATH"
 From the repository root, generate the full report with one command:
 
 ```bash
-uv run quality-assessment && (cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
+uv run quality-assessment && (cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
 ```
 
 ### 11. Verify
@@ -300,10 +301,10 @@ This writes `entity_resolution_links` (selected MATCH links) and `restaurants_in
 ### 10. Generate the quality report PDF
 
 The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-`report/tables/`, and `report/main.pdf`:
+`report/pre_integration/tables/`, and `report/pre_integration/main.pdf`:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
 This requires a LaTeX distribution with `pdflatex` available on `PATH`.

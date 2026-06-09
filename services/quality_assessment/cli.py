@@ -33,7 +33,7 @@ def profile(
         help="Generated Markdown report section.",
     ),
     latex_tables_dir: Path = typer.Option(
-        Path("report/tables"),
+        Path("report/pre_integration/tables"),
         help="Directory where generated LaTeX tables are written.",
     ),
     low_review_threshold: int = typer.Option(

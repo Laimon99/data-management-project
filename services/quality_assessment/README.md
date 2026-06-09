@@ -43,7 +43,7 @@ To run the profiler and regenerate the report, the environment needs:
 | Project dependencies from `pyproject.toml` | CLI execution through the project environment. |
 | Development dependencies `pytest` and `ruff` | Tests and lint checks. |
 | `uv` | Recommended project/environment runner; fallback commands are listed below. |
-| `pdflatex` | Compiling `report/main.pdf` through `report/build_report.ps1`. |
+| `pdflatex` | Compiling `report/pre_integration/main.pdf` through `report/pre_integration/build_report.ps1`. |
 
 ## Metric definitions
 
@@ -121,22 +121,22 @@ The profiling command regenerates:
 | `data/quality/field_coverage.csv` | Field-level completeness table. |
 | `data/quality/anomalies.csv` | Record-level quality flags. |
 | `docs/data-quality-assessment.md` | Generated Markdown report section. |
-| `report/tables/metric_definitions.tex` | Metric formula and interpretation table. |
-| `report/tables/source_summary.tex` | LaTeX cross-source summary table. |
-| `report/tables/source_quality_scores.tex` | Weighted quality score breakdown. |
-| `report/tables/visual_quality_scores.tex` | Pre-integration quality-score bar chart. |
-| `report/tables/visual_score_components.tex` | Component-level score bar chart. |
-| `report/tables/visual_coverage_heatmap.tex` | Core-field coverage heatmap. |
-| `report/tables/visual_anomaly_profile.tex` | Top anomaly classes by source. |
-| `report/tables/improvement_actions.tex` | Prioritized data-quality improvement plan. |
-| `report/tables/source_comparison.tex` | LaTeX comparative findings table. |
-| `report/tables/google_places_detail.tex` | Google Places-specific LaTeX section. |
-| `report/tables/tripadvisor_detail.tex` | Tripadvisor-specific LaTeX section. |
-| `report/tables/thefork_detail.tex` | TheFork-specific LaTeX section. |
-| `report/tables/*_field_coverage.tex` | Full field coverage split by source for the PDF report. |
-| `report/tables/field_coverage.tex` | Complete combined LaTeX field coverage table, kept as a generated artifact. |
+| `report/pre_integration/tables/metric_definitions.tex` | Metric formula and interpretation table. |
+| `report/pre_integration/tables/source_summary.tex` | LaTeX cross-source summary table. |
+| `report/pre_integration/tables/source_quality_scores.tex` | Weighted quality score breakdown. |
+| `report/pre_integration/tables/visual_quality_scores.tex` | Pre-integration quality-score bar chart. |
+| `report/pre_integration/tables/visual_score_components.tex` | Component-level score bar chart. |
+| `report/pre_integration/tables/visual_coverage_heatmap.tex` | Core-field coverage heatmap. |
+| `report/pre_integration/tables/visual_anomaly_profile.tex` | Top anomaly classes by source. |
+| `report/pre_integration/tables/improvement_actions.tex` | Prioritized data-quality improvement plan. |
+| `report/pre_integration/tables/source_comparison.tex` | LaTeX comparative findings table. |
+| `report/pre_integration/tables/google_places_detail.tex` | Google Places-specific LaTeX section. |
+| `report/pre_integration/tables/tripadvisor_detail.tex` | Tripadvisor-specific LaTeX section. |
+| `report/pre_integration/tables/thefork_detail.tex` | TheFork-specific LaTeX section. |
+| `report/pre_integration/tables/*_field_coverage.tex` | Full field coverage split by source for the PDF report. |
+| `report/pre_integration/tables/field_coverage.tex` | Complete combined LaTeX field coverage table, kept as a generated artifact. |
 
-The files under `docs/data-quality-assessment.md` and `report/tables/` are
+The files under `docs/data-quality-assessment.md` and `report/pre_integration/tables/` are
 generated artifacts. Edit `services/quality_assessment/reporting.py` if the
 report structure must change permanently.
 
@@ -146,17 +146,17 @@ The report build script regenerates the quality artifacts and then compiles the
 PDF:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
 This compiles:
 
 ```text
-report/main.pdf
+report/pre_integration/main.pdf
 ```
 
-The LaTeX entry point is `report/main.tex`; it includes the generated tables and
-source-specific sections from `report/tables/`.
+The LaTeX entry point is `report/pre_integration/main.tex`; it includes the generated
+tables and source-specific sections from `report/pre_integration/tables/`.
 
 ## Current metric snapshot
 

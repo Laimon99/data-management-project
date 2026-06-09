@@ -117,12 +117,12 @@ uv run quality-assessment
 ```
 
 Outputs are written under `data/quality/`, `docs/data-quality-assessment.md`,
-and `report/tables/`.
+and `report/pre_integration/tables/`.
 
 The full PDF report can be regenerated from the repository root with:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File ./report/build_report.ps1
+powershell -ExecutionPolicy Bypass -File ./report/pre_integration/build_report.ps1
 ```
 
 ---

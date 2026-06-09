@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $reportDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$repoRoot = Split-Path -Parent $reportDir
+$repoRoot = Split-Path -Parent (Split-Path -Parent $reportDir)
 $servicesPath = Join-Path $repoRoot "services"
 $previousPythonPath = $env:PYTHONPATH
 $env:PYTHONPATH = if ($previousPythonPath) {
@@ -19,7 +19,7 @@ try {
         --thefork-path data/raw/thefork/thefork_milan_restaurants_enriched.json `
         --output-dir data/quality `
         --markdown-report docs/data-quality-assessment.md `
-        --latex-tables-dir report/tables
+        --latex-tables-dir report/pre_integration/tables
     if ($LASTEXITCODE -ne 0) {
         throw "quality_assessment profile failed with exit code $LASTEXITCODE"
     }
