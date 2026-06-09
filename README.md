@@ -425,9 +425,15 @@ uv run dataman-entity-resolve --dry-run
 uv run dataman-entity-resolve --replace-destination
 ```
 
-Thresholds are calibrated from hand-labeled candidate samples. Normal venues and
-chain-brand venues are sampled separately because chain branches such as McDonald's,
-La Piadineria, Spontini, and Burger King need stricter branch-level evidence.
+This writes candidate pair documents into MongoDB collection
+`dataman.entity_resolution_candidates`. Each pair is keyed by
+`<google_place_id>:<source_id>` and stores the Google id, source id, block strategy,
+score, score components, effective thresholds, provisional label, chain flags, and a
+nullable `llm_label`.
+
+Thresholds are calibrated from candidate samples. Normal venues and chain-brand venues
+are sampled separately because chain branches such as McDonald's, La Piadineria,
+Spontini, and Burger King need stricter branch-level evidence.
 
 ```bash
 # Export normal-venue candidates for hand labeling.
@@ -437,7 +443,8 @@ uv run dataman-er-calibrate export \
   --source all \
   --chain-filter non_chain
 
-# HAND LABEL this CSV: fill human_label with MATCH or NON_MATCH.
+# Manually label this CSV using the available row evidence; use web search for separate
+# ambiguous cases. Fill human_label with MATCH or NON_MATCH.
 
 uv run dataman-er-calibrate analyze \
   data/quality/entity_resolution_calibration_normal.csv
@@ -449,32 +456,54 @@ uv run dataman-er-calibrate export \
   --source all \
   --chain-filter chain
 
-# HAND LABEL this CSV: fill human_label with MATCH or NON_MATCH.
+# Manually label this CSV using the available row evidence; use web search for separate
+# ambiguous cases. Fill human_label with MATCH or NON_MATCH.
 
 uv run dataman-er-calibrate analyze \
   data/quality/entity_resolution_calibration_chains.csv
 ```
 
-The final ER rewrite combines the normal thresholds and the chain thresholds suggested
-by those two analyzer runs:
+The current calibrated thresholds are:
+
+* Tripadvisor normal: `dmin=0.58`, `dmax=0.63`
+* TheFork normal: `dmin=0.86`, `dmax=0.94`
+* Tripadvisor chain: `dmin=0.49`, `dmax=0.52`
+* TheFork chain: `dmin=0.76`, `dmax=0.79`
+
+Final calibrated rewrite:
 
 ```bash
 uv run dataman-entity-resolve --replace-destination \
-  --dmin-tripadvisor <normal-ta-dmin> \
-  --dmax-tripadvisor <normal-ta-dmax> \
-  --dmin-thefork <normal-tf-dmin> \
-  --dmax-thefork <normal-tf-dmax> \
-  --dmin-chain-tripadvisor <chain-ta-dmin> \
-  --dmax-chain-tripadvisor <chain-ta-dmax> \
-  --dmin-chain-thefork <chain-tf-dmin> \
-  --dmax-chain-thefork <chain-tf-dmax>
+  --dmin-tripadvisor 0.58 \
+  --dmax-tripadvisor 0.63 \
+  --dmin-thefork 0.86 \
+  --dmax-thefork 0.94 \
+  --dmin-chain-tripadvisor 0.49 \
+  --dmax-chain-tripadvisor 0.52 \
+  --dmin-chain-thefork 0.76 \
+  --dmax-chain-thefork 0.79
 ```
 
+The final candidate collection can be inspected with:
+
+```bash
+uv run python scripts/inspect_er_candidates.py
+```
+
+The current calibrated run produces 137,880 candidate pair documents:
+
+* `MATCH`: 5,218
+* `NON_MATCH`: 131,655
+* `UNCERTAIN`: 906
+* `UNBLOCKABLE`: 101
+
+By source, this is 4,303 Tripadvisor matches and 915 TheFork matches against the Google
+anchor pool. Remaining `UNCERTAIN` rows are the review queue for the future LLM/manual
+adjudication step.
+
 The output remains a candidate/evidence collection, not the final integrated restaurant
-collection. Each document stores `score`, score components, the effective `dmin`/`dmax`
-used for that pair, provisional `label`, chain flags when applicable, and `llm_label`
-for later review. The future LLM/manual step reads `entity_resolution_candidates` and
-updates only `llm_label`; it does not generate new source records.
+collection. The future LLM/manual step reads `entity_resolution_candidates` and updates
+only `llm_label`; it does not generate new source records.
 
 Integration quality is measured with false matches, missed matches, and ambiguous
 matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
