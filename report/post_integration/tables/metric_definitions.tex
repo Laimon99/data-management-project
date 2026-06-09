@@ -1,0 +1,28 @@
+\begin{tabular}{p{0.28\linewidth}p{0.66\linewidth}}
+\toprule
+Metric & Formula \\
+\midrule
+MATCH precision & $P_M=TP_M/(TP_M+FP_M)$ \\
+Strict MATCH recall & $R_M=TP_M/(TP_M+FN_M)$ \\
+Kept MATCH recall & $R_K=K_M/H_M$ \\
+Accuracy & $(\mathrm{TP}_{M}+\mathrm{TN}_{N})/n$ \\
+Uncertain rate & $U/n$ \\
+Human MATCH pairs & $H_M$ \\
+Classified MATCH pairs & $A_M$ \\
+Selected MATCH links & $L_M$ \\
+Integrated MATCH pairs & $I_M$ \\
+Link survival & $S_L=L_M/H_M$ \\
+Integration survival & $S_I=I_M/H_M$ \\
+Dropped by 1:1 selection & $D_M$ \\
+Linked but missing source doc & $Q_M$ \\
+Geocoding error median & $\mathrm{median}(d_i)$ \\
+Geocoding error p90 & $P_{90}(d_i)$ \\
+Geocoding error p95 & $P_{95}(d_i)$ \\
+Geocoding error max & $\max(d_i)$ \\
+Haversine term & $d_i=2R\arctan2(\sqrt{a_i},\sqrt{1-a_i})$, $a=\sin^2(\Delta\varphi/2)+\cos\varphi_g\cos\varphi_t\sin^2(\Delta\lambda/2)$ \\
+Within 100 m & $\#\{d_i \leq 100\}/m$ \\
+Coordinate coverage & $C_T=T_{coord}/T$ \\
+\midrule
+Symbols & $H_M$: human MATCH pairs; $K_M$: human MATCH rows predicted MATCH or UNCERTAIN; $A_M$: human MATCH rows classified MATCH; $L_M$: linked MATCH pairs; $I_M$: integrated MATCH pairs; $D_M$: true matches classified MATCH but not selected; $Q_M$: selected links missing from integrated; $T$: Tripadvisor records. \\
+\bottomrule
+\end{tabular}

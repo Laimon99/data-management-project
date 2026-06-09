@@ -1,0 +1,3 @@
+group_type,group,human_label,predicted_match,predicted_uncertain,predicted_non_match,total,match_precision,match_recall_strict,match_recall_kept,match_f1_strict,accuracy,uncertain_rate,missing_from_mongo
+overall,all,MATCH,0,0,0,0,,,,,,,0
+overall,all,NON_MATCH,0,0,0,0,,,,,,,0

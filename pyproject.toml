@@ -44,6 +44,7 @@ dataman-entity-resolve = "transform.entity_resolution.cli:app"
 dataman-er-calibrate = "transform.entity_resolution.calibrate:app"
 dataman-unify = "transform.unified_dataset.cli:app"
 quality-assessment = "quality_assessment.cli:app"
+integration-assessment = "integration_assessment.cli:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -62,6 +63,7 @@ build-backend = "hatchling.build"
 "services/transform/unified_dataset" = "transform/unified_dataset"
 "services/transform/common" = "transform/common"
 "services/quality_assessment" = "quality_assessment"
+"services/integration_assessment" = "integration_assessment"
 
 [tool.ruff]
 line-length = 100
@@ -71,7 +73,7 @@ target-version = "py312"
 select = ["E", "F", "I"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["extract", "load", "transform", "quality_assessment"]
+known-first-party = ["extract", "load", "transform", "quality_assessment", "integration_assessment"]
 
 [tool.pytest.ini_options]
 pythonpath = ["services"]

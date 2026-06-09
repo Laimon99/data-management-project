@@ -74,11 +74,14 @@ def write_markdown_report(payload: dict[str, Any], output_path: Path) -> None:
             "- `report/pre_integration/tables/visual_score_components.tex`: component bar chart.",
             "- `report/pre_integration/tables/visual_coverage_heatmap.tex`: core coverage heatmap.",
             "- `report/pre_integration/tables/visual_anomaly_profile.tex`: anomaly profile chart.",
-            "- `report/pre_integration/tables/improvement_actions.tex`: report-ready remediation plan.",
+            "- `report/pre_integration/tables/improvement_actions.tex`: report-ready "
+            "remediation plan.",
             "- `report/pre_integration/tables/source_comparison.tex`: LaTeX comparison table.",
             "- `report/pre_integration/tables/*_detail.tex`: source-specific LaTeX sections.",
-            "- `report/pre_integration/tables/*_field_coverage.tex`: source-specific field coverage tables.",
-            "- `report/pre_integration/tables/field_coverage.tex`: complete LaTeX field coverage table.",
+            "- `report/pre_integration/tables/*_field_coverage.tex`: source-specific field "
+            "coverage tables.",
+            "- `report/pre_integration/tables/field_coverage.tex`: complete LaTeX field "
+            "coverage table.",
             "",
             "## Methodological Notes",
             "",

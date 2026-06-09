@@ -173,7 +173,34 @@ From the repository root, generate the full report with one command:
 uv run quality-assessment && (cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
 ```
 
-### 12. Verify
+### 12. Generate the post-integration assessment PDF
+
+After entity resolution and `dataman-unify`, measure integration/enrichment error against
+the hand-labeled gold files. The two calibration files are passed separately from the
+out-of-sample gold file so the main reported scores are not evaluated on training labels:
+
+```bash
+uv run integration-assessment \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_normal.csv \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_chains.csv \
+  --gold-csv data/quality/handlabel_for_post_int_assess.csv
+```
+
+This regenerates:
+
+- `data/quality/integration_assessment/`
+- `docs/post-integration-assessment.md`
+- `report/post_integration/tables/`
+
+Compile the post-integration PDF:
+
+```bash
+(cd report/post_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
+```
+
+The final PDF is `report/post_integration/main.pdf`.
+
+### 13. Verify
 
 ```bash
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -360,7 +387,37 @@ powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.p
 
 This requires a LaTeX distribution with `pdflatex` available on `PATH`.
 
-### 12. Verify
+### 12. Generate the post-integration assessment PDF
+
+After entity resolution and `dataman-unify`, measure integration/enrichment error against
+the hand-labeled gold files. The two calibration files are passed separately from the
+out-of-sample gold file so the main reported scores are not evaluated on training labels:
+
+```powershell
+uv run integration-assessment `
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_normal.csv `
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_chains.csv `
+  --gold-csv data/quality/handlabel_for_post_int_assess.csv
+```
+
+This regenerates:
+
+- `data\quality\integration_assessment\`
+- `docs\post-integration-assessment.md`
+- `report\post_integration\tables\`
+
+Compile the post-integration PDF:
+
+```powershell
+cd report\post_integration
+pdflatex -interaction=nonstopmode -halt-on-error main.tex
+pdflatex -interaction=nonstopmode -halt-on-error main.tex
+cd ..\..
+```
+
+The final PDF is `report\post_integration\main.pdf`.
+
+### 13. Verify
 
 ```powershell
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"

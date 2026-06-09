@@ -27,7 +27,7 @@
     - [ ] LLM-based record linkage labelling on uncertain pairs
 - [ ] - [Data profiling / data quality](services/quality_assessment/)
   - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
-  - [ ] - [post integration](report/post_integration/)
+  - [x] - [post integration](docs/post-integration-assessment.md) ([report](report/post_integration/main.pdf))
 - [x] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml) ([clickhouse loader](services/load/clickhouse/))
 - [ ] - Make atleast 2 queries on final dataset to answer some questions
 - [ ] - Submit a project:
@@ -648,18 +648,57 @@ Mandatory query examples for the integrated dataset:
 
 ## 6️⃣ Data quality improvement
 
-Concrete, visible improvements:
+Post-integration quality improvement is implemented as
+[`services/integration_assessment`](services/integration_assessment/README.md). It measures
+whether the automated integration/enrichment process introduced errors, using hand-labeled
+entity-resolution gold files as ground truth.
 
-* Remove duplicates
-* Normalize restaurant names
-* Address standardization
-* Filter restaurants with too few reviews
-* Weighted ratings based on review count
+This is different from the pre-integration profiling in section 4:
 
-We can show **before vs after**:
+* pre-integration profiling measures raw-source completeness, validity, uniqueness,
+  timeliness, and reliability;
+* post-integration assessment measures **entity-resolution error**, **one-to-one link
+  survival**, and **Tripadvisor geocoding/spatial enrichment error** after the integrated
+  dataset has been built.
 
-* Rating variance
-* Number of extreme outliers
+The command separates labels used during threshold calibration from labels reserved for
+out-of-sample evaluation:
+
+```bash
+uv run integration-assessment \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_normal.csv \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_chains.csv \
+  --gold-csv data/quality/handlabel_for_post_int_assess.csv
+```
+
+Meaning:
+
+* `--in-calibration-gold-csv` — hand labels used to calibrate/train the ER thresholds.
+* `--gold-csv` — hand labels kept out of calibration and used for the main reported
+  evaluation.
+* If the same candidate `_id` appears in both groups, it is excluded from the
+  out-of-sample evaluation to avoid leakage.
+
+Outputs:
+
+* `data/quality/integration_assessment/integration_assessment_metrics.json`
+* `data/quality/integration_assessment/integration_er_confusion.csv`
+* `data/quality/integration_assessment/integration_errors.csv`
+* `data/quality/integration_assessment/integration_geocoding_error.csv`
+* [`docs/post-integration-assessment.md`](docs/post-integration-assessment.md)
+* `report/post_integration/tables/*.tex`
+
+To rebuild the post-integration PDF report:
+
+```bash
+cd report/post_integration
+pdflatex -interaction=nonstopmode -halt-on-error main.tex
+pdflatex -interaction=nonstopmode -halt-on-error main.tex
+```
+
+This produces [`report/post_integration/main.pdf`](report/post_integration/main.pdf). The
+PDF metric-definition table contains formulas for ER precision/recall, kept recall,
+survival rates, coordinate coverage, and Haversine geocoding error.
 
 ---
 

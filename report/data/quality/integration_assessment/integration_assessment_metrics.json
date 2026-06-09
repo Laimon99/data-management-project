@@ -1,0 +1,124 @@
+{
+  "generated_at": "2026-06-09T18:40:45.958013+00:00",
+  "gold": {
+    "rows": 0,
+    "sources": []
+  },
+  "mongo_counts": {
+    "candidates": 137880,
+    "links": 4832,
+    "integrated": 10054,
+    "google_clean": 10786,
+    "tripadvisor_clean": 7539
+  },
+  "er": {
+    "gold_rows": 0,
+    "in_sample": {
+      "summaries": {
+        "overall:all": {
+          "group_type": "overall",
+          "group": "all",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 0,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 0,
+              "NON_MATCH": 0
+            }
+          },
+          "total": 0,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": null,
+          "match_recall_kept": null,
+          "match_f1_strict": null,
+          "accuracy": null,
+          "uncertain_rate": null
+        }
+      },
+      "confusion_rows": [
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 0,
+          "predicted_non_match": 0,
+          "total": 0,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": null,
+          "match_recall_kept": null,
+          "match_f1_strict": null,
+          "accuracy": null,
+          "uncertain_rate": null
+        },
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 0,
+          "predicted_non_match": 0,
+          "total": 0,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": null,
+          "match_recall_kept": null,
+          "match_f1_strict": null,
+          "accuracy": null,
+          "uncertain_rate": null
+        }
+      ],
+      "errors": []
+    },
+    "cross_validation": {
+      "overall": {
+        "folds": [],
+        "summary": {}
+      },
+      "by_source": {},
+      "human_counts": {}
+    }
+  },
+  "link_survival": {
+    "total_true_matches": 0,
+    "classifier_match_true_matches": 0,
+    "linked_true_matches": 0,
+    "integrated_true_matches": 0,
+    "link_survival_rate": null,
+    "integration_survival_rate": null,
+    "dropped_by_1to1_selection": 0,
+    "missing_source_doc_count": 0,
+    "errors": []
+  },
+  "geocoding": {
+    "summary": {
+      "gold_tripadvisor_matches": 0,
+      "distance_rows": 0,
+      "missing_coordinate_pairs": 0,
+      "median_m": null,
+      "p90_m": null,
+      "p95_m": null,
+      "max_m": null,
+      "within_50m_pct": null,
+      "within_100m_pct": null,
+      "within_250m_pct": null,
+      "tripadvisor_coordinate_coverage_pct": 0.840297121634169,
+      "tripadvisor_with_coordinates": 6335,
+      "tripadvisor_without_coordinates": 1204,
+      "tripadvisor_clean_records": 7539,
+      "tripadvisor_unblockable_candidates": 101,
+      "max_abs_stored_link_delta_m": null
+    },
+    "rows": []
+  },
+  "methodological_notes": [
+    "In-sample ER metrics are optimistic because thresholds were calibrated on the same hand-labeled pool; cross-validation gives the generalization estimate.",
+    "Geocoding distances are only observed for candidate pairs that survived the 150 m spatial block; gross geocoding failures appear as missed matches, null coordinate coverage, or UNBLOCKABLE candidates rather than large distances."
+  ]
+}

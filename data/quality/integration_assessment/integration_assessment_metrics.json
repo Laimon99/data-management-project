@@ -1,0 +1,4222 @@
+{
+  "generated_at": "2026-06-09T19:18:30.000656+00:00",
+  "gold": {
+    "rows": 288,
+    "sources": [
+      "data/quality/handlabel_for_post_int_assess.csv"
+    ],
+    "evaluation": {
+      "rows": 288,
+      "rows_after_csv_dedupe": 300,
+      "sources": [
+        "data/quality/handlabel_for_post_int_assess.csv"
+      ],
+      "excluded_overlap_with_in_calibration": 12
+    },
+    "in_calibration": {
+      "rows": 600,
+      "sources": [
+        "data/quality/entity_resolution_calibration_chains.csv",
+        "data/quality/entity_resolution_calibration_normal.csv"
+      ]
+    }
+  },
+  "mongo_counts": {
+    "candidates": 137880,
+    "links": 4832,
+    "integrated": 10054,
+    "google_clean": 10786,
+    "tripadvisor_clean": 7539
+  },
+  "er": {
+    "gold_rows": 288,
+    "in_sample": {
+      "summaries": {
+        "chain:chain": {
+          "group_type": "chain",
+          "group": "chain",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 6,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 24,
+              "NON_MATCH": 6
+            }
+          },
+          "total": 36,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": 0.0,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": null,
+          "accuracy": 0.16666666666666666,
+          "uncertain_rate": 0.8333333333333334
+        },
+        "chain:non_chain": {
+          "group_type": "chain",
+          "group": "non_chain",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 91,
+              "UNCERTAIN": 30,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 3,
+              "UNCERTAIN": 35,
+              "NON_MATCH": 93
+            }
+          },
+          "total": 252,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7520661157024794,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8465116279069769,
+          "accuracy": 0.7301587301587301,
+          "uncertain_rate": 0.25793650793650796
+        },
+        "overall:all": {
+          "group_type": "overall",
+          "group": "all",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 91,
+              "UNCERTAIN": 36,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 3,
+              "UNCERTAIN": 59,
+              "NON_MATCH": 99
+            }
+          },
+          "total": 288,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7165354330708661,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8235294117647058,
+          "accuracy": 0.6597222222222222,
+          "uncertain_rate": 0.3298611111111111
+        },
+        "source:thefork": {
+          "group_type": "source",
+          "group": "thefork",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 44,
+              "UNCERTAIN": 28,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 17,
+              "NON_MATCH": 49
+            }
+          },
+          "total": 138,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.6111111111111112,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.7586206896551725,
+          "accuracy": 0.6739130434782609,
+          "uncertain_rate": 0.32608695652173914
+        },
+        "source:tripadvisor": {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 47,
+              "UNCERTAIN": 8,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 3,
+              "UNCERTAIN": 42,
+              "NON_MATCH": 50
+            }
+          },
+          "total": 150,
+          "missing_from_mongo": 0,
+          "match_precision": 0.94,
+          "match_recall_strict": 0.8545454545454545,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8952380952380952,
+          "accuracy": 0.6466666666666666,
+          "uncertain_rate": 0.3333333333333333
+        }
+      },
+      "confusion_rows": [
+        {
+          "group_type": "chain",
+          "group": "chain",
+          "human_label": "MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 6,
+          "predicted_non_match": 0,
+          "total": 36,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": 0.0,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": null,
+          "accuracy": 0.16666666666666666,
+          "uncertain_rate": 0.8333333333333334
+        },
+        {
+          "group_type": "chain",
+          "group": "chain",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 24,
+          "predicted_non_match": 6,
+          "total": 36,
+          "missing_from_mongo": 0,
+          "match_precision": null,
+          "match_recall_strict": 0.0,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": null,
+          "accuracy": 0.16666666666666666,
+          "uncertain_rate": 0.8333333333333334
+        },
+        {
+          "group_type": "chain",
+          "group": "non_chain",
+          "human_label": "MATCH",
+          "predicted_match": 91,
+          "predicted_uncertain": 30,
+          "predicted_non_match": 0,
+          "total": 252,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7520661157024794,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8465116279069769,
+          "accuracy": 0.7301587301587301,
+          "uncertain_rate": 0.25793650793650796
+        },
+        {
+          "group_type": "chain",
+          "group": "non_chain",
+          "human_label": "NON_MATCH",
+          "predicted_match": 3,
+          "predicted_uncertain": 35,
+          "predicted_non_match": 93,
+          "total": 252,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7520661157024794,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8465116279069769,
+          "accuracy": 0.7301587301587301,
+          "uncertain_rate": 0.25793650793650796
+        },
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "MATCH",
+          "predicted_match": 91,
+          "predicted_uncertain": 36,
+          "predicted_non_match": 0,
+          "total": 288,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7165354330708661,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8235294117647058,
+          "accuracy": 0.6597222222222222,
+          "uncertain_rate": 0.3298611111111111
+        },
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "NON_MATCH",
+          "predicted_match": 3,
+          "predicted_uncertain": 59,
+          "predicted_non_match": 99,
+          "total": 288,
+          "missing_from_mongo": 0,
+          "match_precision": 0.9680851063829787,
+          "match_recall_strict": 0.7165354330708661,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8235294117647058,
+          "accuracy": 0.6597222222222222,
+          "uncertain_rate": 0.3298611111111111
+        },
+        {
+          "group_type": "source",
+          "group": "thefork",
+          "human_label": "MATCH",
+          "predicted_match": 44,
+          "predicted_uncertain": 28,
+          "predicted_non_match": 0,
+          "total": 138,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.6111111111111112,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.7586206896551725,
+          "accuracy": 0.6739130434782609,
+          "uncertain_rate": 0.32608695652173914
+        },
+        {
+          "group_type": "source",
+          "group": "thefork",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 17,
+          "predicted_non_match": 49,
+          "total": 138,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.6111111111111112,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.7586206896551725,
+          "accuracy": 0.6739130434782609,
+          "uncertain_rate": 0.32608695652173914
+        },
+        {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "human_label": "MATCH",
+          "predicted_match": 47,
+          "predicted_uncertain": 8,
+          "predicted_non_match": 0,
+          "total": 150,
+          "missing_from_mongo": 0,
+          "match_precision": 0.94,
+          "match_recall_strict": 0.8545454545454545,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8952380952380952,
+          "accuracy": 0.6466666666666666,
+          "uncertain_rate": 0.3333333333333333
+        },
+        {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "human_label": "NON_MATCH",
+          "predicted_match": 3,
+          "predicted_uncertain": 42,
+          "predicted_non_match": 50,
+          "total": 150,
+          "missing_from_mongo": 0,
+          "match_precision": 0.94,
+          "match_recall_strict": 0.8545454545454545,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.8952380952380952,
+          "accuracy": 0.6466666666666666,
+          "uncertain_rate": 0.3333333333333333
+        }
+      ],
+      "errors": [
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJnyLl4MPBhkcRBeZjvaozqns:833887",
+          "source": "thefork",
+          "google_id": "ChIJnyLl4MPBhkcRBeZjvaozqns",
+          "source_id": "833887",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9064215472621304,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJZei3VkjAhkcRsmm4zLQFEF0:821705",
+          "source": "thefork",
+          "google_id": "ChIJZei3VkjAhkcRsmm4zLQFEF0",
+          "source_id": "821705",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.939759516968185,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJGf_1j0DBhkcRLdYET604ABI:826264",
+          "source": "thefork",
+          "google_id": "ChIJGf_1j0DBhkcRLdYET604ABI",
+          "source_id": "826264",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7653321679946062,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJc-noDeHBhkcRSQr4az6BPQo:508365",
+          "source": "thefork",
+          "google_id": "ChIJc-noDeHBhkcRSQr4az6BPQo",
+          "source_id": "508365",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.918125145286338,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJMfKmcHLBhkcRD8vzlwZoyQM:464519",
+          "source": "thefork",
+          "google_id": "ChIJMfKmcHLBhkcRD8vzlwZoyQM",
+          "source_id": "464519",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7602909712626914,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ6WCAm7nrhkcRI8mS4MCxT8s:823893",
+          "source": "thefork",
+          "google_id": "ChIJ6WCAm7nrhkcRI8mS4MCxT8s",
+          "source_id": "823893",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7798876961968585,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ0QonyLLFhkcRmu8TUvTzQXU:584359",
+          "source": "thefork",
+          "google_id": "ChIJ0QonyLLFhkcRmu8TUvTzQXU",
+          "source_id": "584359",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8884481285519513,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJh2MHeQTEhkcRfV_H2lJPLX4:848643",
+          "source": "thefork",
+          "google_id": "ChIJh2MHeQTEhkcRfV_H2lJPLX4",
+          "source_id": "848643",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8860244888450254,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJxXdKcBnFhkcRGlkvrjwP1eQ:859135",
+          "source": "thefork",
+          "google_id": "ChIJxXdKcBnFhkcRGlkvrjwP1eQ",
+          "source_id": "859135",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8989404396765096,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ95anbiPEhkcRDGcIaJ-HIHs:304529",
+          "source": "thefork",
+          "google_id": "ChIJ95anbiPEhkcRDGcIaJ-HIHs",
+          "source_id": "304529",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.861111111110558,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ-TEbaGPHhkcR0OE46fUQz2U:821225",
+          "source": "thefork",
+          "google_id": "ChIJ-TEbaGPHhkcR0OE46fUQz2U",
+          "source_id": "821225",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8813272232889997,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJhWA-T-_DhkcRl1cvu2NqpHQ:828349",
+          "source": "thefork",
+          "google_id": "ChIJhWA-T-_DhkcRl1cvu2NqpHQ",
+          "source_id": "828349",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.92806251689619,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJZzjvWcPrhkcR3Wb1g9a0tzQ:813417",
+          "source": "thefork",
+          "google_id": "ChIJZzjvWcPrhkcR3Wb1g9a0tzQ",
+          "source_id": "813417",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8735559462647613,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJraR1sFTrhkcREBrnBlL2pLA:823893",
+          "source": "thefork",
+          "google_id": "ChIJraR1sFTrhkcREBrnBlL2pLA",
+          "source_id": "823893",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8737988043753556,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJLXfv_nXDhkcRwqq4QKWpzCI:833520",
+          "source": "thefork",
+          "google_id": "ChIJLXfv_nXDhkcRwqq4QKWpzCI",
+          "source_id": "833520",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8604884564789639,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJuVJkdKvHhkcRaj51e-DIhrE:429075",
+          "source": "thefork",
+          "google_id": "ChIJuVJkdKvHhkcRaj51e-DIhrE",
+          "source_id": "429075",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8841097237891447,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ2f7ZRDnHhkcR2M2f90mfYTI:815071",
+          "source": "thefork",
+          "google_id": "ChIJ2f7ZRDnHhkcR2M2f90mfYTI",
+          "source_id": "815071",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9296644112779029,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJB3c0_QnFhkcRQWwm9Zj-l_4:842640",
+          "source": "thefork",
+          "google_id": "ChIJB3c0_QnFhkcRQWwm9Zj-l_4",
+          "source_id": "842640",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9370353488576416,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJF7-0e7zrhkcRB1rcpckvPnQ:813417",
+          "source": "thefork",
+          "google_id": "ChIJF7-0e7zrhkcRB1rcpckvPnQ",
+          "source_id": "813417",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7662235896874824,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJeb-gtl3BhkcRRLdU5bdU6is:50468",
+          "source": "thefork",
+          "google_id": "ChIJeb-gtl3BhkcRRLdU5bdU6is",
+          "source_id": "50468",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8667598553693583,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJc_M77E_HhkcR3M27whcAfQA:850782",
+          "source": "thefork",
+          "google_id": "ChIJc_M77E_HhkcR3M27whcAfQA",
+          "source_id": "850782",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7852522632833241,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJxYEPv-vGhkcRZXG_Puo98Vo:77499",
+          "source": "thefork",
+          "google_id": "ChIJxYEPv-vGhkcRZXG_Puo98Vo",
+          "source_id": "77499",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8829322593488301,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ6a9V1ehw1ooREbf1WwM9Tmk:841537",
+          "source": "thefork",
+          "google_id": "ChIJ6a9V1ehw1ooREbf1WwM9Tmk",
+          "source_id": "841537",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8823174562091699,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJOSrcUxbBhkcR_7aLVP3CIU0:836714",
+          "source": "thefork",
+          "google_id": "ChIJOSrcUxbBhkcR_7aLVP3CIU0",
+          "source_id": "836714",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8805892136329644,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJD6_AGgfEhkcR98PgBU9iow4:850417",
+          "source": "thefork",
+          "google_id": "ChIJD6_AGgfEhkcR98PgBU9iow4",
+          "source_id": "850417",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9154486622303093,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJxxmL_L_FhkcRc1G1tY6fh_o:857895",
+          "source": "thefork",
+          "google_id": "ChIJxxmL_L_FhkcRc1G1tY6fh_o",
+          "source_id": "857895",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8636363636363635,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ061XRvHDhkcRCpsLGCtSGNE:685363",
+          "source": "thefork",
+          "google_id": "ChIJ061XRvHDhkcRCpsLGCtSGNE",
+          "source_id": "685363",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9059471858036942,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ4T2b27TGhkcRIeLPX1RC6XY:54607",
+          "source": "thefork",
+          "google_id": "ChIJ4T2b27TGhkcRIeLPX1RC6XY",
+          "source_id": "54607",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9368908610990152,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ2e9EQ_THhkcRw9sLtqrrUkA:809921",
+          "source": "thefork",
+          "google_id": "ChIJ2e9EQ_THhkcRw9sLtqrrUkA",
+          "source_id": "809921",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7779288295811476,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJfTdfjtPrhkcR1letVuypyGI:853228",
+          "source": "thefork",
+          "google_id": "ChIJfTdfjtPrhkcR1letVuypyGI",
+          "source_id": "853228",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7604177294491838,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJxfPJUjXBhkcRZlbXvYS3818:638529",
+          "source": "thefork",
+          "google_id": "ChIJxfPJUjXBhkcRZlbXvYS3818",
+          "source_id": "638529",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9288760394329938,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJfapG__zDhkcRCdfgZIc70is:855185",
+          "source": "thefork",
+          "google_id": "ChIJfapG__zDhkcRCdfgZIc70is",
+          "source_id": "855185",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.923945411211639,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJyU8ilxbBhkcRFxE0QjlnLq0:67999",
+          "source": "thefork",
+          "google_id": "ChIJyU8ilxbBhkcRFxE0QjlnLq0",
+          "source_id": "67999",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8980809316484394,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ6bqEKtTGhkcRSOyLAKIni8Y:54470",
+          "source": "thefork",
+          "google_id": "ChIJ6bqEKtTGhkcRSOyLAKIni8Y",
+          "source_id": "54470",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9046736110803916,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJST3uPgDBhkcRV8BDm_8zCwU:862549",
+          "source": "thefork",
+          "google_id": "ChIJST3uPgDBhkcRV8BDm_8zCwU",
+          "source_id": "862549",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8610484098050278,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ8dYqIY3GhkcRwN8W_yv0J48:820307",
+          "source": "thefork",
+          "google_id": "ChIJ8dYqIY3GhkcRwN8W_yv0J48",
+          "source_id": "820307",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9043703774623678,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJuUkuckvBhkcRgQN_4bkxwZ4:821392",
+          "source": "thefork",
+          "google_id": "ChIJuUkuckvBhkcRgQN_4bkxwZ4",
+          "source_id": "821392",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9335157864024802,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJXeghR6nHhkcRjutJewi3Ra4:685355",
+          "source": "thefork",
+          "google_id": "ChIJXeghR6nHhkcRjutJewi3Ra4",
+          "source_id": "685355",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8646164160010216,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJwXE9IoLDhkcRYA2rjFUQ7L0:691713",
+          "source": "thefork",
+          "google_id": "ChIJwXE9IoLDhkcRYA2rjFUQ7L0",
+          "source_id": "691713",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7606615719560512,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJE-8nk6vGhkcRgu7OZZVUyrU:561161",
+          "source": "thefork",
+          "google_id": "ChIJE-8nk6vGhkcRgu7OZZVUyrU",
+          "source_id": "561161",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8663087513448864,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ5eagMVrHhkcRzGXMWvxv52w:584253",
+          "source": "thefork",
+          "google_id": "ChIJ5eagMVrHhkcRzGXMWvxv52w",
+          "source_id": "584253",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8896628592760507,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJK1SXDkfrhkcRnhfSjzvwAcU:850762",
+          "source": "thefork",
+          "google_id": "ChIJK1SXDkfrhkcRnhfSjzvwAcU",
+          "source_id": "850762",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8303677276509606,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJqUSIcyDBhkcR7BNeP-FAZLA:825806",
+          "source": "thefork",
+          "google_id": "ChIJqUSIcyDBhkcR7BNeP-FAZLA",
+          "source_id": "825806",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8999999999994469,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJu3OVytLGhkcRrNmd4jIAKsU:849583",
+          "source": "thefork",
+          "google_id": "ChIJu3OVytLGhkcRrNmd4jIAKsU",
+          "source_id": "849583",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJPYmO9a_GhkcRrHJnQ7fxSzw:339097",
+          "source": "thefork",
+          "google_id": "ChIJPYmO9a_GhkcRrHJnQ7fxSzw",
+          "source_id": "339097",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8856756489027287,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJn2AAHw7HhkcRLH_F3DK7QA8:15238823",
+          "source": "tripadvisor",
+          "google_id": "ChIJn2AAHw7HhkcRLH_F3DK7QA8",
+          "source_id": "15238823",
+          "human_label": "NON_MATCH",
+          "predicted_label": "MATCH",
+          "score": 0.6462841575827445,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJi8MAKoHDhkcRLmDWRPVVVzA:2299203",
+          "source": "tripadvisor",
+          "google_id": "ChIJi8MAKoHDhkcRLmDWRPVVVzA",
+          "source_id": "2299203",
+          "human_label": "NON_MATCH",
+          "predicted_label": "MATCH",
+          "score": 0.6411763329480566,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ061XRvHDhkcRCpsLGCtSGNE:17555609",
+          "source": "tripadvisor",
+          "google_id": "ChIJ061XRvHDhkcRCpsLGCtSGNE",
+          "source_id": "17555609",
+          "human_label": "NON_MATCH",
+          "predicted_label": "MATCH",
+          "score": 0.6362638303930485,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJERe0IKvGhkcRc5k6oBG9FR0:2048527",
+          "source": "tripadvisor",
+          "google_id": "ChIJERe0IKvGhkcRc5k6oBG9FR0",
+          "source_id": "2048527",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5034442832328443,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJu1v9743FhkcRmpE1U3PMqS4:3546575",
+          "source": "tripadvisor",
+          "google_id": "ChIJu1v9743FhkcRmpE1U3PMqS4",
+          "source_id": "3546575",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5873843348397221,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJPZSgFADFhkcRAlmMFfZocz8:23644001",
+          "source": "tripadvisor",
+          "google_id": "ChIJPZSgFADFhkcRAlmMFfZocz8",
+          "source_id": "23644001",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5611071072087899,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJQYJjjvrDhkcROVMM4Urwyvc:27194231",
+          "source": "tripadvisor",
+          "google_id": "ChIJQYJjjvrDhkcROVMM4Urwyvc",
+          "source_id": "27194231",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5905319481666096,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ280oQsLAhkcRvUKT3jvPwZc:27268542",
+          "source": "tripadvisor",
+          "google_id": "ChIJ280oQsLAhkcRvUKT3jvPwZc",
+          "source_id": "27268542",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5812369938967773,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJz1lWM-bDhkcROxl-56vNlmc:12516783",
+          "source": "tripadvisor",
+          "google_id": "ChIJz1lWM-bDhkcROxl-56vNlmc",
+          "source_id": "12516783",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5969538109301769,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJGSr10a3BhkcRbXkTJsxHCac:15694721",
+          "source": "tripadvisor",
+          "google_id": "ChIJGSr10a3BhkcRbXkTJsxHCac",
+          "source_id": "15694721",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6069432140139601,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJvS_wXNXAhkcREvpKbcEYwpA:17456379",
+          "source": "tripadvisor",
+          "google_id": "ChIJvS_wXNXAhkcREvpKbcEYwpA",
+          "source_id": "17456379",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5978529829908363,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ_4BVK_TBhkcRnoKNdr2maQo:27457878",
+          "source": "tripadvisor",
+          "google_id": "ChIJ_4BVK_TBhkcRnoKNdr2maQo",
+          "source_id": "27457878",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.494464896037883,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJAZmemzXFhkcR_ipt7M4_vOY:3688997",
+          "source": "tripadvisor",
+          "google_id": "ChIJAZmemzXFhkcR_ipt7M4_vOY",
+          "source_id": "3688997",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5974574500164646,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ80OrYXvHhkcRXQAkDGJSfpA:15351116",
+          "source": "tripadvisor",
+          "google_id": "ChIJ80OrYXvHhkcRXQAkDGJSfpA",
+          "source_id": "15351116",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJy93r5x7BhkcRyrhZ6cs6hzs:10151938",
+          "source": "tripadvisor",
+          "google_id": "ChIJy93r5x7BhkcRyrhZ6cs6hzs",
+          "source_id": "10151938",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6220441897972042,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ37iwQgDHhkcRm5yXrFbiyaQ:27142654",
+          "source": "tripadvisor",
+          "google_id": "ChIJ37iwQgDHhkcRm5yXrFbiyaQ",
+          "source_id": "27142654",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5875993794979201,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ5WtgYFXBhkcR9C5W9X4lX4Q:798900",
+          "source": "tripadvisor",
+          "google_id": "ChIJ5WtgYFXBhkcR9C5W9X4lX4Q",
+          "source_id": "798900",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5809521265604649,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ___PEfnDhkcR9XcHlgJhpv8:11876584",
+          "source": "tripadvisor",
+          "google_id": "ChIJ___PEfnDhkcR9XcHlgJhpv8",
+          "source_id": "11876584",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5895962033797602,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ_____9PBhkcR_hvgTOlqV28:8339621",
+          "source": "tripadvisor",
+          "google_id": "ChIJ_____9PBhkcR_hvgTOlqV28",
+          "source_id": "8339621",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJo9i0JkfBhkcR9-GfYAjH-fE:2045578",
+          "source": "tripadvisor",
+          "google_id": "ChIJo9i0JkfBhkcR9-GfYAjH-fE",
+          "source_id": "2045578",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.576840310563334,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJveNf5KzGhkcR5evtDliEbRI:27267982",
+          "source": "tripadvisor",
+          "google_id": "ChIJveNf5KzGhkcR5evtDliEbRI",
+          "source_id": "27267982",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.4925915346690955,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJUdBipzTEhkcRtuC_TvV13uU:12713496",
+          "source": "tripadvisor",
+          "google_id": "ChIJUdBipzTEhkcRtuC_TvV13uU",
+          "source_id": "12713496",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.606345278180099,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ3TF7V2XDhkcR8mULegTUy80:33022786",
+          "source": "tripadvisor",
+          "google_id": "ChIJ3TF7V2XDhkcR8mULegTUy80",
+          "source_id": "33022786",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6039960260831279,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ92nBJADHhkcRk-8Cqyd3x9A:14023724",
+          "source": "tripadvisor",
+          "google_id": "ChIJ92nBJADHhkcRk-8Cqyd3x9A",
+          "source_id": "14023724",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5874177385114923,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJc_M77E_HhkcR3M27whcAfQA:2483359",
+          "source": "tripadvisor",
+          "google_id": "ChIJc_M77E_HhkcR3M27whcAfQA",
+          "source_id": "2483359",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ15JgaWXBhkcR2Q1QH4NO-6k:20323972",
+          "source": "tripadvisor",
+          "google_id": "ChIJ15JgaWXBhkcR2Q1QH4NO-6k",
+          "source_id": "20323972",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6228189153666494,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJnRArTwDBhkcRDANuzFVsKzk:23770775",
+          "source": "tripadvisor",
+          "google_id": "ChIJnRArTwDBhkcRDANuzFVsKzk",
+          "source_id": "23770775",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.49190807637784195,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJhQxii8vDhkcR3lryV0MyxCw:2164282",
+          "source": "tripadvisor",
+          "google_id": "ChIJhQxii8vDhkcR3lryV0MyxCw",
+          "source_id": "2164282",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5988393560435337,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJDwxZVa_GhkcRQvhV5yHDxEw:5557193",
+          "source": "tripadvisor",
+          "google_id": "ChIJDwxZVa_GhkcRQvhV5yHDxEw",
+          "source_id": "5557193",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6136721873827526,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJwyb7OkDHhkcRB4EWvLwHrPg:15114206",
+          "source": "tripadvisor",
+          "google_id": "ChIJwyb7OkDHhkcRB4EWvLwHrPg",
+          "source_id": "15114206",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5930309849134784,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJCbkdQa7GhkcRFopKVBw_DLY:24971175",
+          "source": "tripadvisor",
+          "google_id": "ChIJCbkdQa7GhkcRFopKVBw_DLY",
+          "source_id": "24971175",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5846362707209595,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0:27696608",
+          "source": "tripadvisor",
+          "google_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0",
+          "source_id": "27696608",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6078403917970383,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJbdaTE9vHhkcRFfTfcj_RKbU:7992165",
+          "source": "tripadvisor",
+          "google_id": "ChIJbdaTE9vHhkcRFfTfcj_RKbU",
+          "source_id": "7992165",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.49256642215128893,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJF299aiHHhkcRGeWhXgH9tWQ:25007133",
+          "source": "tripadvisor",
+          "google_id": "ChIJF299aiHHhkcRGeWhXgH9tWQ",
+          "source_id": "25007133",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5820442545840251,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJz8P2sK_GhkcReCR3zaUWmb4:1034492",
+          "source": "tripadvisor",
+          "google_id": "ChIJz8P2sK_GhkcReCR3zaUWmb4",
+          "source_id": "1034492",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5886623547718082,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJlZbzncDGhkcRKKxgzZ10rwU:13226425",
+          "source": "tripadvisor",
+          "google_id": "ChIJlZbzncDGhkcRKKxgzZ10rwU",
+          "source_id": "13226425",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.507399940028661,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ2YB3zPzBhkcRC81klbMXH0w:25336506",
+          "source": "tripadvisor",
+          "google_id": "ChIJ2YB3zPzBhkcRC81klbMXH0w",
+          "source_id": "25336506",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5483459168510909,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJx-mLVADHhkcR61bfu8zCwAc:10190820",
+          "source": "tripadvisor",
+          "google_id": "ChIJx-mLVADHhkcR61bfu8zCwAc",
+          "source_id": "10190820",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5993291187605881,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJO2X1RInDhkcREOgA1l5hC60:29651970",
+          "source": "tripadvisor",
+          "google_id": "ChIJO2X1RInDhkcREOgA1l5hC60",
+          "source_id": "29651970",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6075219595696761,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJzYIEcS7HhkcRCiz42Wyp95A:25333069",
+          "source": "tripadvisor",
+          "google_id": "ChIJzYIEcS7HhkcRCiz42Wyp95A",
+          "source_id": "25333069",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5935514276535604,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJncyejLbHhkcRM6_nv7X-98M:27998956",
+          "source": "tripadvisor",
+          "google_id": "ChIJncyejLbHhkcRM6_nv7X-98M",
+          "source_id": "27998956",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6196417488140163,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJJ_omnP7HhkcR3Pu8flZRGag:7056658",
+          "source": "tripadvisor",
+          "google_id": "ChIJJ_omnP7HhkcR3Pu8flZRGag",
+          "source_id": "7056658",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5171319583601205,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJo9i0JkfBhkcR9-GfYAjH-fE:24126042",
+          "source": "tripadvisor",
+          "google_id": "ChIJo9i0JkfBhkcR9-GfYAjH-fE",
+          "source_id": "24126042",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6117412759686882,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJwyRE7dbHhkcRbn-wfeL_CGA:34032091",
+          "source": "tripadvisor",
+          "google_id": "ChIJwyRE7dbHhkcRbn-wfeL_CGA",
+          "source_id": "34032091",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5263925156698568,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJdUxAUwDFhkcR4DaLwjPwkxk:20055214",
+          "source": "tripadvisor",
+          "google_id": "ChIJdUxAUwDFhkcR4DaLwjPwkxk",
+          "source_id": "20055214",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6227879645257425,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ2atUg2PBhkcRUweq1z0iCF4:25218807",
+          "source": "tripadvisor",
+          "google_id": "ChIJ2atUg2PBhkcRUweq1z0iCF4",
+          "source_id": "25218807",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6264519744006251,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJB-QMxPvDhkcRwP-SLxemI6E:17389027",
+          "source": "tripadvisor",
+          "google_id": "ChIJB-QMxPvDhkcRwP-SLxemI6E",
+          "source_id": "17389027",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6179780081288826,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ0SLMvjnBhkcRAJkKVvChWjM:25089918",
+          "source": "tripadvisor",
+          "google_id": "ChIJ0SLMvjnBhkcRAJkKVvChWjM",
+          "source_id": "25089918",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5893883037337089,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJP4PaRMXFhkcRuaTfeWeXpwY:30584220",
+          "source": "tripadvisor",
+          "google_id": "ChIJP4PaRMXFhkcRuaTfeWeXpwY",
+          "source_id": "30584220",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5282051282051282,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJIWMFv7rHhkcRkoQvNdBKNeQ:21347441",
+          "source": "tripadvisor",
+          "google_id": "ChIJIWMFv7rHhkcRkoQvNdBKNeQ",
+          "source_id": "21347441",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6258168791159336,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJv-CaM-vHhkcRpA7ZPlj2yD4:15565377",
+          "source": "tripadvisor",
+          "google_id": "ChIJv-CaM-vHhkcRpA7ZPlj2yD4",
+          "source_id": "15565377",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5254709063222471,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJYeheFBjDhkcRYL3OfZcR4pk:26830718",
+          "source": "tripadvisor",
+          "google_id": "ChIJYeheFBjDhkcRYL3OfZcR4pk",
+          "source_id": "26830718",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.51150533540798,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJuZVJJFbBhkcRdtplrEW18Bg:23661484",
+          "source": "tripadvisor",
+          "google_id": "ChIJuZVJJFbBhkcRdtplrEW18Bg",
+          "source_id": "23661484",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.4965914314847495,
+          "detail": "Predicted label disagrees with strict human label."
+        }
+      ]
+    },
+    "cross_validation": {
+      "overall": {
+        "folds": [
+          {
+            "fold": 1,
+            "train_rows": 480,
+            "test_rows": 120,
+            "dmin": 0.61,
+            "dmax": 0.94,
+            "match_precision": 1.0,
+            "true_match_recall_into_match_or_uncertain": 0.9393939393939394,
+            "uncertain_rate": 0.13333333333333333,
+            "predicted_match": 21,
+            "predicted_uncertain": 16,
+            "false_non_match_for_true_match": 2,
+            "meets_targets": false
+          },
+          {
+            "fold": 2,
+            "train_rows": 480,
+            "test_rows": 120,
+            "dmin": 0.49,
+            "dmax": 0.6,
+            "match_precision": 0.8648648648648649,
+            "true_match_recall_into_match_or_uncertain": 1.0,
+            "uncertain_rate": 0.08333333333333333,
+            "predicted_match": 37,
+            "predicted_uncertain": 10,
+            "false_non_match_for_true_match": 0,
+            "meets_targets": false
+          },
+          {
+            "fold": 3,
+            "train_rows": 480,
+            "test_rows": 120,
+            "dmin": 0.66,
+            "dmax": 0.94,
+            "match_precision": 1.0,
+            "true_match_recall_into_match_or_uncertain": 0.9736842105263158,
+            "uncertain_rate": 0.1,
+            "predicted_match": 27,
+            "predicted_uncertain": 12,
+            "false_non_match_for_true_match": 1,
+            "meets_targets": true
+          },
+          {
+            "fold": 4,
+            "train_rows": 480,
+            "test_rows": 120,
+            "dmin": 0.49,
+            "dmax": 0.61,
+            "match_precision": 0.972972972972973,
+            "true_match_recall_into_match_or_uncertain": 1.0,
+            "uncertain_rate": 0.10833333333333334,
+            "predicted_match": 37,
+            "predicted_uncertain": 13,
+            "false_non_match_for_true_match": 0,
+            "meets_targets": true
+          },
+          {
+            "fold": 5,
+            "train_rows": 480,
+            "test_rows": 120,
+            "dmin": 0.49,
+            "dmax": 0.61,
+            "match_precision": 0.9722222222222222,
+            "true_match_recall_into_match_or_uncertain": 1.0,
+            "uncertain_rate": 0.11666666666666667,
+            "predicted_match": 36,
+            "predicted_uncertain": 14,
+            "false_non_match_for_true_match": 0,
+            "meets_targets": true
+          }
+        ],
+        "summary": {
+          "match_precision": {
+            "mean": 0.962012012012012,
+            "std": 0.05009617494241428
+          },
+          "match_recall_kept": {
+            "mean": 0.982615629984051,
+            "std": 0.02389365503037
+          },
+          "uncertain_rate": {
+            "mean": 0.10833333333333334,
+            "std": 0.016666666666666666
+          }
+        }
+      },
+      "by_source": {
+        "thefork": {
+          "folds": [
+            {
+              "fold": 1,
+              "train_rows": 219,
+              "test_rows": 55,
+              "dmin": 0.86,
+              "dmax": 0.94,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.03636363636363636,
+              "predicted_match": 6,
+              "predicted_uncertain": 2,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 2,
+              "train_rows": 219,
+              "test_rows": 55,
+              "dmin": 0.86,
+              "dmax": 0.87,
+              "match_precision": 0.9375,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.01818181818181818,
+              "predicted_match": 16,
+              "predicted_uncertain": 1,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 3,
+              "train_rows": 219,
+              "test_rows": 55,
+              "dmin": 0.86,
+              "dmax": 0.94,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.05454545454545454,
+              "predicted_match": 12,
+              "predicted_uncertain": 3,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 4,
+              "train_rows": 219,
+              "test_rows": 55,
+              "dmin": 0.77,
+              "dmax": 0.94,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.01818181818181818,
+              "predicted_match": 21,
+              "predicted_uncertain": 1,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 5,
+              "train_rows": 220,
+              "test_rows": 54,
+              "dmin": 0.86,
+              "dmax": 0.94,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.05555555555555555,
+              "predicted_match": 7,
+              "predicted_uncertain": 3,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            }
+          ],
+          "summary": {
+            "match_precision": {
+              "mean": 0.9875,
+              "std": 0.025
+            },
+            "match_recall_kept": {
+              "mean": 1.0,
+              "std": 0.0
+            },
+            "uncertain_rate": {
+              "mean": 0.036565656565656565,
+              "std": 0.016491581116734183
+            }
+          }
+        },
+        "tripadvisor": {
+          "folds": [
+            {
+              "fold": 1,
+              "train_rows": 260,
+              "test_rows": 66,
+              "dmin": 0.49,
+              "dmax": 0.58,
+              "match_precision": 0.95,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.030303030303030304,
+              "predicted_match": 20,
+              "predicted_uncertain": 2,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 2,
+              "train_rows": 261,
+              "test_rows": 65,
+              "dmin": 0.58,
+              "dmax": 0.63,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 0.9090909090909091,
+              "uncertain_rate": 0.0,
+              "predicted_match": 20,
+              "predicted_uncertain": 0,
+              "false_non_match_for_true_match": 2,
+              "meets_targets": false
+            },
+            {
+              "fold": 3,
+              "train_rows": 261,
+              "test_rows": 65,
+              "dmin": 0.49,
+              "dmax": 0.63,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.03076923076923077,
+              "predicted_match": 14,
+              "predicted_uncertain": 2,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 4,
+              "train_rows": 261,
+              "test_rows": 65,
+              "dmin": 0.49,
+              "dmax": 0.63,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.046153846153846156,
+              "predicted_match": 22,
+              "predicted_uncertain": 3,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            },
+            {
+              "fold": 5,
+              "train_rows": 261,
+              "test_rows": 65,
+              "dmin": 0.49,
+              "dmax": 0.63,
+              "match_precision": 1.0,
+              "true_match_recall_into_match_or_uncertain": 1.0,
+              "uncertain_rate": 0.046153846153846156,
+              "predicted_match": 26,
+              "predicted_uncertain": 3,
+              "false_non_match_for_true_match": 0,
+              "meets_targets": true
+            }
+          ],
+          "summary": {
+            "match_precision": {
+              "mean": 0.99,
+              "std": 0.020000000000000018
+            },
+            "match_recall_kept": {
+              "mean": 0.9818181818181818,
+              "std": 0.036363636363636376
+            },
+            "uncertain_rate": {
+              "mean": 0.030675990675990677,
+              "std": 0.0168540334489701
+            }
+          }
+        }
+      },
+      "human_counts": {
+        "MATCH": 174,
+        "NON_MATCH": 426
+      }
+    },
+    "cross_validation_gold_rows": 600,
+    "calibration_in_sample": {
+      "summaries": {
+        "chain:chain": {
+          "group_type": "chain",
+          "group": "chain",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 40,
+              "UNCERTAIN": 2,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 4,
+              "NON_MATCH": 154
+            }
+          },
+          "total": 200,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9523809523809523,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.975609756097561,
+          "accuracy": 0.97,
+          "uncertain_rate": 0.03
+        },
+        "chain:non_chain": {
+          "group_type": "chain",
+          "group": "non_chain",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 120,
+              "UNCERTAIN": 12,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 2,
+              "NON_MATCH": 266
+            }
+          },
+          "total": 400,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9090909090909091,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9523809523809523,
+          "accuracy": 0.965,
+          "uncertain_rate": 0.035
+        },
+        "overall:all": {
+          "group_type": "overall",
+          "group": "all",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 160,
+              "UNCERTAIN": 14,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 6,
+              "NON_MATCH": 420
+            }
+          },
+          "total": 600,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9195402298850575,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9580838323353293,
+          "accuracy": 0.9666666666666667,
+          "uncertain_rate": 0.03333333333333333
+        },
+        "source:thefork": {
+          "group_type": "source",
+          "group": "thefork",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 59,
+              "UNCERTAIN": 11,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 2,
+              "NON_MATCH": 202
+            }
+          },
+          "total": 274,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.8428571428571429,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9147286821705426,
+          "accuracy": 0.9525547445255474,
+          "uncertain_rate": 0.04744525547445255
+        },
+        "source:tripadvisor": {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "matrix": {
+            "MATCH": {
+              "MATCH": 101,
+              "UNCERTAIN": 3,
+              "NON_MATCH": 0
+            },
+            "NON_MATCH": {
+              "MATCH": 0,
+              "UNCERTAIN": 4,
+              "NON_MATCH": 218
+            }
+          },
+          "total": 326,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9711538461538461,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9853658536585366,
+          "accuracy": 0.9785276073619632,
+          "uncertain_rate": 0.02147239263803681
+        }
+      },
+      "confusion_rows": [
+        {
+          "group_type": "chain",
+          "group": "chain",
+          "human_label": "MATCH",
+          "predicted_match": 40,
+          "predicted_uncertain": 2,
+          "predicted_non_match": 0,
+          "total": 200,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9523809523809523,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.975609756097561,
+          "accuracy": 0.97,
+          "uncertain_rate": 0.03
+        },
+        {
+          "group_type": "chain",
+          "group": "chain",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 4,
+          "predicted_non_match": 154,
+          "total": 200,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9523809523809523,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.975609756097561,
+          "accuracy": 0.97,
+          "uncertain_rate": 0.03
+        },
+        {
+          "group_type": "chain",
+          "group": "non_chain",
+          "human_label": "MATCH",
+          "predicted_match": 120,
+          "predicted_uncertain": 12,
+          "predicted_non_match": 0,
+          "total": 400,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9090909090909091,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9523809523809523,
+          "accuracy": 0.965,
+          "uncertain_rate": 0.035
+        },
+        {
+          "group_type": "chain",
+          "group": "non_chain",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 2,
+          "predicted_non_match": 266,
+          "total": 400,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9090909090909091,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9523809523809523,
+          "accuracy": 0.965,
+          "uncertain_rate": 0.035
+        },
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "MATCH",
+          "predicted_match": 160,
+          "predicted_uncertain": 14,
+          "predicted_non_match": 0,
+          "total": 600,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9195402298850575,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9580838323353293,
+          "accuracy": 0.9666666666666667,
+          "uncertain_rate": 0.03333333333333333
+        },
+        {
+          "group_type": "overall",
+          "group": "all",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 6,
+          "predicted_non_match": 420,
+          "total": 600,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9195402298850575,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9580838323353293,
+          "accuracy": 0.9666666666666667,
+          "uncertain_rate": 0.03333333333333333
+        },
+        {
+          "group_type": "source",
+          "group": "thefork",
+          "human_label": "MATCH",
+          "predicted_match": 59,
+          "predicted_uncertain": 11,
+          "predicted_non_match": 0,
+          "total": 274,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.8428571428571429,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9147286821705426,
+          "accuracy": 0.9525547445255474,
+          "uncertain_rate": 0.04744525547445255
+        },
+        {
+          "group_type": "source",
+          "group": "thefork",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 2,
+          "predicted_non_match": 202,
+          "total": 274,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.8428571428571429,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9147286821705426,
+          "accuracy": 0.9525547445255474,
+          "uncertain_rate": 0.04744525547445255
+        },
+        {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "human_label": "MATCH",
+          "predicted_match": 101,
+          "predicted_uncertain": 3,
+          "predicted_non_match": 0,
+          "total": 326,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9711538461538461,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9853658536585366,
+          "accuracy": 0.9785276073619632,
+          "uncertain_rate": 0.02147239263803681
+        },
+        {
+          "group_type": "source",
+          "group": "tripadvisor",
+          "human_label": "NON_MATCH",
+          "predicted_match": 0,
+          "predicted_uncertain": 4,
+          "predicted_non_match": 218,
+          "total": 326,
+          "missing_from_mongo": 0,
+          "match_precision": 1.0,
+          "match_recall_strict": 0.9711538461538461,
+          "match_recall_kept": 1.0,
+          "match_f1_strict": 0.9853658536585366,
+          "accuracy": 0.9785276073619632,
+          "uncertain_rate": 0.02147239263803681
+        }
+      ],
+      "errors": [
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJXa20nfnDhkcRi5MNdG_K2aU:50388",
+          "source": "thefork",
+          "google_id": "ChIJXa20nfnDhkcRi5MNdG_K2aU",
+          "source_id": "50388",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9390878818649271,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJARlKx8_HhkcRXb4s6y1Aues:544415",
+          "source": "thefork",
+          "google_id": "ChIJARlKx8_HhkcRXb4s6y1Aues",
+          "source_id": "544415",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8646998326292916,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ-9hbSnXBhkcRNrHaW2WJBzM:503465",
+          "source": "thefork",
+          "google_id": "ChIJ-9hbSnXBhkcRNrHaW2WJBzM",
+          "source_id": "503465",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9157661451346,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ3WiTtUDBhkcRYJaY1mrkblU:836619",
+          "source": "thefork",
+          "google_id": "ChIJ3WiTtUDBhkcRYJaY1mrkblU",
+          "source_id": "836619",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9054054054054054,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ80UtFP7DhkcR80elQBw5En8:49133",
+          "source": "thefork",
+          "google_id": "ChIJ80UtFP7DhkcR80elQBw5En8",
+          "source_id": "49133",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9009626318619356,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJtZwviurHhkcR7s3xZTiK4G0:851387",
+          "source": "thefork",
+          "google_id": "ChIJtZwviurHhkcR7s3xZTiK4G0",
+          "source_id": "851387",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9024300679283247,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJRx1ww4TGhkcRxKHwaAzZVVE:79154",
+          "source": "thefork",
+          "google_id": "ChIJRx1ww4TGhkcRxKHwaAzZVVE",
+          "source_id": "79154",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8722222222216691,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJi4RMPADrhkcR8Y42JMeA4tQ:853228",
+          "source": "thefork",
+          "google_id": "ChIJi4RMPADrhkcR8Y42JMeA4tQ",
+          "source_id": "853228",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9251931533146065,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJCZGOmrTGhkcR2N-sRQ5qCMk:314301",
+          "source": "thefork",
+          "google_id": "ChIJCZGOmrTGhkcR2N-sRQ5qCMk",
+          "source_id": "314301",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8755891265478677,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ4WvPNzjHhkcRBJzf-vAYAvM:813789",
+          "source": "thefork",
+          "google_id": "ChIJ4WvPNzjHhkcRBJzf-vAYAvM",
+          "source_id": "813789",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.9361299787658849,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8:860382",
+          "source": "thefork",
+          "google_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8",
+          "source_id": "860382",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8804223654978109,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJA6vyozHEhkcRrWuiJjWeiME:205821",
+          "source": "thefork",
+          "google_id": "ChIJA6vyozHEhkcRrWuiJjWeiME",
+          "source_id": "205821",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.8898343691143089,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJtxs0ArvHhkcRW74I9AtonuI:21347441",
+          "source": "tripadvisor",
+          "google_id": "ChIJtxs0ArvHhkcRW74I9AtonuI",
+          "source_id": "21347441",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6206004691527764,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJz5DfianDhkcRsu4aPD0pxPY:10331311",
+          "source": "tripadvisor",
+          "google_id": "ChIJz5DfianDhkcRsu4aPD0pxPY",
+          "source_id": "10331311",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.6264451169074786,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJXz-kRADEhkcRHPxSoj46XEc:288809",
+          "source": "thefork",
+          "google_id": "ChIJXz-kRADEhkcRHPxSoj46XEc",
+          "source_id": "288809",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.7620071997769021,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJ-Xo9HkHHhkcRch0Df6KQQK8:16667533",
+          "source": "tripadvisor",
+          "google_id": "ChIJ-Xo9HkHHhkcRch0Df6KQQK8",
+          "source_id": "16667533",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5184659242367233,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJxVeiwDbBhkcRz4UxEM7gEDk:32987356",
+          "source": "tripadvisor",
+          "google_id": "ChIJxVeiwDbBhkcRz4UxEM7gEDk",
+          "source_id": "32987356",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.4940356651756023,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJicR_cjTBhkcRgap8YZCyGgM:17374494",
+          "source": "tripadvisor",
+          "google_id": "ChIJicR_cjTBhkcRgap8YZCyGgM",
+          "source_id": "17374494",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJh-1EZa7GhkcRSd0CLWysp88:33254900",
+          "source": "tripadvisor",
+          "google_id": "ChIJh-1EZa7GhkcRSd0CLWysp88",
+          "source_id": "33254900",
+          "human_label": "MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5,
+          "detail": "Predicted label disagrees with strict human label."
+        },
+        {
+          "issue_type": "er_misclassification",
+          "candidate_id": "ChIJz2Jm4jTDhkcR3eol5SHhaXU:23357191",
+          "source": "tripadvisor",
+          "google_id": "ChIJz2Jm4jTDhkcR3eol5SHhaXU",
+          "source_id": "23357191",
+          "human_label": "NON_MATCH",
+          "predicted_label": "UNCERTAIN",
+          "score": 0.5108008219923827,
+          "detail": "Predicted label disagrees with strict human label."
+        }
+      ]
+    }
+  },
+  "link_survival": {
+    "total_true_matches": 127,
+    "classifier_match_true_matches": 91,
+    "linked_true_matches": 88,
+    "integrated_true_matches": 88,
+    "link_survival_rate": 0.6929133858267716,
+    "integration_survival_rate": 0.6929133858267716,
+    "dropped_by_1to1_selection": 3,
+    "missing_source_doc_count": 0,
+    "errors": [
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJnyLl4MPBhkcRBeZjvaozqns:833887",
+        "source": "thefork",
+        "google_id": "ChIJnyLl4MPBhkcRBeZjvaozqns",
+        "source_id": "833887",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9064215472621304,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJZei3VkjAhkcRsmm4zLQFEF0:821705",
+        "source": "thefork",
+        "google_id": "ChIJZei3VkjAhkcRsmm4zLQFEF0",
+        "source_id": "821705",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.939759516968185,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ0QonyLLFhkcRmu8TUvTzQXU:584359",
+        "source": "thefork",
+        "google_id": "ChIJ0QonyLLFhkcRmu8TUvTzQXU",
+        "source_id": "584359",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8884481285519513,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJh2MHeQTEhkcRfV_H2lJPLX4:848643",
+        "source": "thefork",
+        "google_id": "ChIJh2MHeQTEhkcRfV_H2lJPLX4",
+        "source_id": "848643",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8860244888450254,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJxXdKcBnFhkcRGlkvrjwP1eQ:859135",
+        "source": "thefork",
+        "google_id": "ChIJxXdKcBnFhkcRGlkvrjwP1eQ",
+        "source_id": "859135",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8989404396765096,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ95anbiPEhkcRDGcIaJ-HIHs:304529",
+        "source": "thefork",
+        "google_id": "ChIJ95anbiPEhkcRDGcIaJ-HIHs",
+        "source_id": "304529",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.861111111110558,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ-TEbaGPHhkcR0OE46fUQz2U:821225",
+        "source": "thefork",
+        "google_id": "ChIJ-TEbaGPHhkcR0OE46fUQz2U",
+        "source_id": "821225",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8813272232889997,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJhWA-T-_DhkcRl1cvu2NqpHQ:828349",
+        "source": "thefork",
+        "google_id": "ChIJhWA-T-_DhkcRl1cvu2NqpHQ",
+        "source_id": "828349",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.92806251689619,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJuVJkdKvHhkcRaj51e-DIhrE:429075",
+        "source": "thefork",
+        "google_id": "ChIJuVJkdKvHhkcRaj51e-DIhrE",
+        "source_id": "429075",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8841097237891447,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ2f7ZRDnHhkcR2M2f90mfYTI:815071",
+        "source": "thefork",
+        "google_id": "ChIJ2f7ZRDnHhkcR2M2f90mfYTI",
+        "source_id": "815071",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9296644112779029,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJB3c0_QnFhkcRQWwm9Zj-l_4:842640",
+        "source": "thefork",
+        "google_id": "ChIJB3c0_QnFhkcRQWwm9Zj-l_4",
+        "source_id": "842640",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9370353488576416,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJeb-gtl3BhkcRRLdU5bdU6is:50468",
+        "source": "thefork",
+        "google_id": "ChIJeb-gtl3BhkcRRLdU5bdU6is",
+        "source_id": "50468",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8667598553693583,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJxYEPv-vGhkcRZXG_Puo98Vo:77499",
+        "source": "thefork",
+        "google_id": "ChIJxYEPv-vGhkcRZXG_Puo98Vo",
+        "source_id": "77499",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8829322593488301,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJD6_AGgfEhkcR98PgBU9iow4:850417",
+        "source": "thefork",
+        "google_id": "ChIJD6_AGgfEhkcR98PgBU9iow4",
+        "source_id": "850417",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9154486622303093,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJxxmL_L_FhkcRc1G1tY6fh_o:857895",
+        "source": "thefork",
+        "google_id": "ChIJxxmL_L_FhkcRc1G1tY6fh_o",
+        "source_id": "857895",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8636363636363635,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ4T2b27TGhkcRIeLPX1RC6XY:54607",
+        "source": "thefork",
+        "google_id": "ChIJ4T2b27TGhkcRIeLPX1RC6XY",
+        "source_id": "54607",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9368908610990152,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJxfPJUjXBhkcRZlbXvYS3818:638529",
+        "source": "thefork",
+        "google_id": "ChIJxfPJUjXBhkcRZlbXvYS3818",
+        "source_id": "638529",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9288760394329938,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJfapG__zDhkcRCdfgZIc70is:855185",
+        "source": "thefork",
+        "google_id": "ChIJfapG__zDhkcRCdfgZIc70is",
+        "source_id": "855185",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.923945411211639,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJyU8ilxbBhkcRFxE0QjlnLq0:67999",
+        "source": "thefork",
+        "google_id": "ChIJyU8ilxbBhkcRFxE0QjlnLq0",
+        "source_id": "67999",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8980809316484394,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ6bqEKtTGhkcRSOyLAKIni8Y:54470",
+        "source": "thefork",
+        "google_id": "ChIJ6bqEKtTGhkcRSOyLAKIni8Y",
+        "source_id": "54470",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9046736110803916,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJST3uPgDBhkcRV8BDm_8zCwU:862549",
+        "source": "thefork",
+        "google_id": "ChIJST3uPgDBhkcRV8BDm_8zCwU",
+        "source_id": "862549",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8610484098050278,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ8dYqIY3GhkcRwN8W_yv0J48:820307",
+        "source": "thefork",
+        "google_id": "ChIJ8dYqIY3GhkcRwN8W_yv0J48",
+        "source_id": "820307",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9043703774623678,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJuUkuckvBhkcRgQN_4bkxwZ4:821392",
+        "source": "thefork",
+        "google_id": "ChIJuUkuckvBhkcRgQN_4bkxwZ4",
+        "source_id": "821392",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9335157864024802,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJXeghR6nHhkcRjutJewi3Ra4:685355",
+        "source": "thefork",
+        "google_id": "ChIJXeghR6nHhkcRjutJewi3Ra4",
+        "source_id": "685355",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8646164160010216,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ5eagMVrHhkcRzGXMWvxv52w:584253",
+        "source": "thefork",
+        "google_id": "ChIJ5eagMVrHhkcRzGXMWvxv52w",
+        "source_id": "584253",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8896628592760507,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJqUSIcyDBhkcR7BNeP-FAZLA:825806",
+        "source": "thefork",
+        "google_id": "ChIJqUSIcyDBhkcR7BNeP-FAZLA",
+        "source_id": "825806",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8999999999994469,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJu3OVytLGhkcRrNmd4jIAKsU:849583",
+        "source": "thefork",
+        "google_id": "ChIJu3OVytLGhkcRrNmd4jIAKsU",
+        "source_id": "849583",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJPYmO9a_GhkcRrHJnQ7fxSzw:339097",
+        "source": "thefork",
+        "google_id": "ChIJPYmO9a_GhkcRrHJnQ7fxSzw",
+        "source_id": "339097",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8856756489027287,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "dropped_by_1to1_selection",
+        "candidate_id": "ChIJWzY3X8jHhkcRdoN0l8t44zg:27181508",
+        "source": "tripadvisor",
+        "google_id": "ChIJWzY3X8jHhkcRdoN0l8t44zg",
+        "source_id": "27181508",
+        "human_label": "MATCH",
+        "predicted_label": "MATCH",
+        "score": 0.7289545291167105,
+        "detail": "Human MATCH classified as MATCH but absent from selected links."
+      },
+      {
+        "issue_type": "dropped_by_1to1_selection",
+        "candidate_id": "ChIJJaSrlM7DhkcRx9_EJVJjZnQ:28085363",
+        "source": "tripadvisor",
+        "google_id": "ChIJJaSrlM7DhkcRx9_EJVJjZnQ",
+        "source_id": "28085363",
+        "human_label": "MATCH",
+        "predicted_label": "MATCH",
+        "score": 0.7064575447297019,
+        "detail": "Human MATCH classified as MATCH but absent from selected links."
+      },
+      {
+        "issue_type": "dropped_by_1to1_selection",
+        "candidate_id": "ChIJLdE4h93HhkcRSBmfsI2oZ2k:28134342",
+        "source": "tripadvisor",
+        "google_id": "ChIJLdE4h93HhkcRSBmfsI2oZ2k",
+        "source_id": "28134342",
+        "human_label": "MATCH",
+        "predicted_label": "MATCH",
+        "score": 0.6531948928532807,
+        "detail": "Human MATCH classified as MATCH but absent from selected links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJGSr10a3BhkcRbXkTJsxHCac:15694721",
+        "source": "tripadvisor",
+        "google_id": "ChIJGSr10a3BhkcRbXkTJsxHCac",
+        "source_id": "15694721",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.6069432140139601,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ80OrYXvHhkcRXQAkDGJSfpA:15351116",
+        "source": "tripadvisor",
+        "google_id": "ChIJ80OrYXvHhkcRXQAkDGJSfpA",
+        "source_id": "15351116",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ_____9PBhkcR_hvgTOlqV28:8339621",
+        "source": "tripadvisor",
+        "google_id": "ChIJ_____9PBhkcR_hvgTOlqV28",
+        "source_id": "8339621",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJveNf5KzGhkcR5evtDliEbRI:27267982",
+        "source": "tripadvisor",
+        "google_id": "ChIJveNf5KzGhkcR5evtDliEbRI",
+        "source_id": "27267982",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.4925915346690955,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJc_M77E_HhkcR3M27whcAfQA:2483359",
+        "source": "tripadvisor",
+        "google_id": "ChIJc_M77E_HhkcR3M27whcAfQA",
+        "source_id": "2483359",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0:27696608",
+        "source": "tripadvisor",
+        "google_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0",
+        "source_id": "27696608",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.6078403917970383,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJx-mLVADHhkcR61bfu8zCwAc:10190820",
+        "source": "tripadvisor",
+        "google_id": "ChIJx-mLVADHhkcR61bfu8zCwAc",
+        "source_id": "10190820",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5993291187605881,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJP4PaRMXFhkcRuaTfeWeXpwY:30584220",
+        "source": "tripadvisor",
+        "google_id": "ChIJP4PaRMXFhkcRuaTfeWeXpwY",
+        "source_id": "30584220",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5282051282051282,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      }
+    ]
+  },
+  "link_survival_in_calibration": {
+    "total_true_matches": 174,
+    "classifier_match_true_matches": 160,
+    "linked_true_matches": 158,
+    "integrated_true_matches": 158,
+    "link_survival_rate": 0.9080459770114943,
+    "integration_survival_rate": 0.9080459770114943,
+    "dropped_by_1to1_selection": 2,
+    "missing_source_doc_count": 0,
+    "errors": [
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJXa20nfnDhkcRi5MNdG_K2aU:50388",
+        "source": "thefork",
+        "google_id": "ChIJXa20nfnDhkcRi5MNdG_K2aU",
+        "source_id": "50388",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9390878818649271,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJARlKx8_HhkcRXb4s6y1Aues:544415",
+        "source": "thefork",
+        "google_id": "ChIJARlKx8_HhkcRXb4s6y1Aues",
+        "source_id": "544415",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8646998326292916,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ-9hbSnXBhkcRNrHaW2WJBzM:503465",
+        "source": "thefork",
+        "google_id": "ChIJ-9hbSnXBhkcRNrHaW2WJBzM",
+        "source_id": "503465",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9157661451346,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ3WiTtUDBhkcRYJaY1mrkblU:836619",
+        "source": "thefork",
+        "google_id": "ChIJ3WiTtUDBhkcRYJaY1mrkblU",
+        "source_id": "836619",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9054054054054054,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJ80UtFP7DhkcR80elQBw5En8:49133",
+        "source": "thefork",
+        "google_id": "ChIJ80UtFP7DhkcR80elQBw5En8",
+        "source_id": "49133",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9009626318619356,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJtZwviurHhkcR7s3xZTiK4G0:851387",
+        "source": "thefork",
+        "google_id": "ChIJtZwviurHhkcR7s3xZTiK4G0",
+        "source_id": "851387",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9024300679283247,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJRx1ww4TGhkcRxKHwaAzZVVE:79154",
+        "source": "thefork",
+        "google_id": "ChIJRx1ww4TGhkcRxKHwaAzZVVE",
+        "source_id": "79154",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8722222222216691,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJi4RMPADrhkcR8Y42JMeA4tQ:853228",
+        "source": "thefork",
+        "google_id": "ChIJi4RMPADrhkcR8Y42JMeA4tQ",
+        "source_id": "853228",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.9251931533146065,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJCZGOmrTGhkcR2N-sRQ5qCMk:314301",
+        "source": "thefork",
+        "google_id": "ChIJCZGOmrTGhkcR2N-sRQ5qCMk",
+        "source_id": "314301",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8755891265478677,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8:860382",
+        "source": "thefork",
+        "google_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8",
+        "source_id": "860382",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8804223654978109,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJA6vyozHEhkcRrWuiJjWeiME:205821",
+        "source": "thefork",
+        "google_id": "ChIJA6vyozHEhkcRrWuiJjWeiME",
+        "source_id": "205821",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.8898343691143089,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "dropped_by_1to1_selection",
+        "candidate_id": "ChIJgw1fA2jHhkcRLerD4axb84A:23546714",
+        "source": "tripadvisor",
+        "google_id": "ChIJgw1fA2jHhkcRLerD4axb84A",
+        "source_id": "23546714",
+        "human_label": "MATCH",
+        "predicted_label": "MATCH",
+        "score": 0.9960829250659406,
+        "detail": "Human MATCH classified as MATCH but absent from selected links."
+      },
+      {
+        "issue_type": "dropped_by_1to1_selection",
+        "candidate_id": "ChIJJRzFfUvBhkcRT3AoEGUTh74:13980489",
+        "source": "tripadvisor",
+        "google_id": "ChIJJRzFfUvBhkcRT3AoEGUTh74",
+        "source_id": "13980489",
+        "human_label": "MATCH",
+        "predicted_label": "MATCH",
+        "score": 0.9977694892928668,
+        "detail": "Human MATCH classified as MATCH but absent from selected links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJz5DfianDhkcRsu4aPD0pxPY:10331311",
+        "source": "tripadvisor",
+        "google_id": "ChIJz5DfianDhkcRsu4aPD0pxPY",
+        "source_id": "10331311",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.6264451169074786,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJicR_cjTBhkcRgap8YZCyGgM:17374494",
+        "source": "tripadvisor",
+        "google_id": "ChIJicR_cjTBhkcRgap8YZCyGgM",
+        "source_id": "17374494",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      },
+      {
+        "issue_type": "true_match_not_linked",
+        "candidate_id": "ChIJh-1EZa7GhkcRSd0CLWysp88:33254900",
+        "source": "tripadvisor",
+        "google_id": "ChIJh-1EZa7GhkcRSd0CLWysp88",
+        "source_id": "33254900",
+        "human_label": "MATCH",
+        "predicted_label": "UNCERTAIN",
+        "score": 0.5,
+        "detail": "Human MATCH did not survive to entity_resolution_links."
+      }
+    ]
+  },
+  "geocoding": {
+    "summary": {
+      "gold_tripadvisor_matches": 55,
+      "distance_rows": 46,
+      "missing_coordinate_pairs": 9,
+      "median_m": 10.092632451100789,
+      "p90_m": 40.45816144796457,
+      "p95_m": 52.600653408859536,
+      "max_m": 92.71301356219337,
+      "within_50m_pct": 0.9130434782608695,
+      "within_100m_pct": 1.0,
+      "within_250m_pct": 1.0,
+      "tripadvisor_coordinate_coverage_pct": 0.840297121634169,
+      "tripadvisor_with_coordinates": 6335,
+      "tripadvisor_without_coordinates": 1204,
+      "tripadvisor_clean_records": 7539,
+      "tripadvisor_unblockable_candidates": 101,
+      "max_abs_stored_link_delta_m": 0.0
+    },
+    "rows": [
+      {
+        "candidate_id": "ChIJ59ny8STDhkcRRxl4DiOClRg:27478713",
+        "google_id": "ChIJ59ny8STDhkcRRxl4DiOClRg",
+        "tripadvisor_id": "27478713",
+        "distance_m": 38.2703956945122,
+        "stored_candidate_geo_dist_m": 38.2703956945122,
+        "stored_link_geo_dist_m": 38.2703956945122,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJP5OAlqXFhkcReyT5pb9q1nI:27195432",
+        "google_id": "ChIJP5OAlqXFhkcReyT5pb9q1nI",
+        "tripadvisor_id": "27195432",
+        "distance_m": 35.16745005966939,
+        "stored_candidate_geo_dist_m": 35.16745005966939,
+        "stored_link_geo_dist_m": 35.16745005966939,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJNSPjSp7GhkcRyba_5vBFAo8:2436795",
+        "google_id": "ChIJNSPjSp7GhkcRyba_5vBFAo8",
+        "tripadvisor_id": "2436795",
+        "distance_m": 13.551920407568199,
+        "stored_candidate_geo_dist_m": 13.551920407568199,
+        "stored_link_geo_dist_m": 13.551920407568199,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ2dOXFTfBhkcRjVZUj6yw5Oc:2144872",
+        "google_id": "ChIJ2dOXFTfBhkcRjVZUj6yw5Oc",
+        "tripadvisor_id": "2144872",
+        "distance_m": 2.735410084575529,
+        "stored_candidate_geo_dist_m": 2.735410084575529,
+        "stored_link_geo_dist_m": 2.735410084575529,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ-WqqmWXHhkcRG498hvnpqFk:23742413",
+        "google_id": "ChIJ-WqqmWXHhkcRG498hvnpqFk",
+        "tripadvisor_id": "23742413",
+        "distance_m": 4.424188008840691,
+        "stored_candidate_geo_dist_m": 4.424188008840691,
+        "stored_link_geo_dist_m": 4.424188008840691,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJd3o0CdTAhkcRQFsiXoSRG94:2163012",
+        "google_id": "ChIJd3o0CdTAhkcRQFsiXoSRG94",
+        "tripadvisor_id": "2163012",
+        "distance_m": 11.808283862526807,
+        "stored_candidate_geo_dist_m": 11.808283862526807,
+        "stored_link_geo_dist_m": 11.808283862526807,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJbcWHLADFhkcRd_qjBZOTobA:29017353",
+        "google_id": "ChIJbcWHLADFhkcRd_qjBZOTobA",
+        "tripadvisor_id": "29017353",
+        "distance_m": 50.160541250571534,
+        "stored_candidate_geo_dist_m": 50.160541250571534,
+        "stored_link_geo_dist_m": 50.160541250571534,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJyRj1GxvEhkcRltLCwJcHDPM:12438123",
+        "google_id": "ChIJyRj1GxvEhkcRltLCwJcHDPM",
+        "tripadvisor_id": "12438123",
+        "distance_m": 40.45816144796457,
+        "stored_candidate_geo_dist_m": 40.45816144796457,
+        "stored_link_geo_dist_m": 40.45816144796457,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJy7aKwnXBhkcR-Q4bia7gsR8:27130761",
+        "google_id": "ChIJy7aKwnXBhkcR-Q4bia7gsR8",
+        "tripadvisor_id": "27130761",
+        "distance_m": 15.324289796445271,
+        "stored_candidate_geo_dist_m": 15.324289796445271,
+        "stored_link_geo_dist_m": 15.324289796445271,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJY4JnAADBhkcRVcCgMZCo260:28654311",
+        "google_id": "ChIJY4JnAADBhkcRVcCgMZCo260",
+        "tripadvisor_id": "28654311",
+        "distance_m": 5.7029960980370245,
+        "stored_candidate_geo_dist_m": 5.7029960980370245,
+        "stored_link_geo_dist_m": 5.7029960980370245,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJHaSMqabHhkcRy9-eiV1VrQY:16691638",
+        "google_id": "ChIJHaSMqabHhkcRy9-eiV1VrQY",
+        "tripadvisor_id": "16691638",
+        "distance_m": 1.794868064560244,
+        "stored_candidate_geo_dist_m": 1.794868064560244,
+        "stored_link_geo_dist_m": 1.794868064560244,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJWzY3X8jHhkcRdoN0l8t44zg:27181508",
+        "google_id": "ChIJWzY3X8jHhkcRdoN0l8t44zg",
+        "tripadvisor_id": "27181508",
+        "distance_m": 11.056459007958244,
+        "stored_candidate_geo_dist_m": 11.056459007958244,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJl7OytjTBhkcRjnbwMclcNfY:13272380",
+        "google_id": "ChIJl7OytjTBhkcRjnbwMclcNfY",
+        "tripadvisor_id": "13272380",
+        "distance_m": 3.8288431666642873,
+        "stored_candidate_geo_dist_m": 3.8288431666642873,
+        "stored_link_geo_dist_m": 3.8288431666642873,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJhQxii8vDhkcR3lryV0MyxCw:32989351",
+        "google_id": "ChIJhQxii8vDhkcR3lryV0MyxCw",
+        "tripadvisor_id": "32989351",
+        "distance_m": 6.295690205018549,
+        "stored_candidate_geo_dist_m": 6.295690205018549,
+        "stored_link_geo_dist_m": 6.295690205018549,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJD5D9Si7HhkcRuCnvpLNqKpc:23845651",
+        "google_id": "ChIJD5D9Si7HhkcRuCnvpLNqKpc",
+        "tripadvisor_id": "23845651",
+        "distance_m": 52.600653408859536,
+        "stored_candidate_geo_dist_m": 52.600653408859536,
+        "stored_link_geo_dist_m": 52.600653408859536,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ_dV8_ePGhkcRvuMXr_M0Gvw:8338517",
+        "google_id": "ChIJ_dV8_ePGhkcRvuMXr_M0Gvw",
+        "tripadvisor_id": "8338517",
+        "distance_m": 11.041975970468991,
+        "stored_candidate_geo_dist_m": 11.041975970468991,
+        "stored_link_geo_dist_m": 11.041975970468991,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJiX5-K0fBhkcRPvhDyiaVJQ8:10417586",
+        "google_id": "ChIJiX5-K0fBhkcRPvhDyiaVJQ8",
+        "tripadvisor_id": "10417586",
+        "distance_m": 22.467606597099554,
+        "stored_candidate_geo_dist_m": 22.467606597099554,
+        "stored_link_geo_dist_m": 22.467606597099554,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ-wAyIgDHhkcR6wxi3KNTmtM:33735525",
+        "google_id": "ChIJ-wAyIgDHhkcR6wxi3KNTmtM",
+        "tripadvisor_id": "33735525",
+        "distance_m": 7.674919603446964,
+        "stored_candidate_geo_dist_m": 7.674919603446964,
+        "stored_link_geo_dist_m": 7.674919603446964,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJK5PFHbPHhkcRC-G_0MBWNgo:20954346",
+        "google_id": "ChIJK5PFHbPHhkcRC-G_0MBWNgo",
+        "tripadvisor_id": "20954346",
+        "distance_m": 5.776321117322837,
+        "stored_candidate_geo_dist_m": 5.776321117322837,
+        "stored_link_geo_dist_m": 5.776321117322837,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJie1TAPnDhkcR4WZJwM2u-zE:2069193",
+        "google_id": "ChIJie1TAPnDhkcR4WZJwM2u-zE",
+        "tripadvisor_id": "2069193",
+        "distance_m": 11.1477772260727,
+        "stored_candidate_geo_dist_m": 11.1477772260727,
+        "stored_link_geo_dist_m": 11.1477772260727,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJe2FDDtnDhkcR4f7_utXAovg:716411",
+        "google_id": "ChIJe2FDDtnDhkcR4f7_utXAovg",
+        "tripadvisor_id": "716411",
+        "distance_m": 4.424845420428604,
+        "stored_candidate_geo_dist_m": 4.424845420428604,
+        "stored_link_geo_dist_m": 4.424845420428604,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJeyYJ7-bGhkcR32WFx77-Al4:24067035",
+        "google_id": "ChIJeyYJ7-bGhkcR32WFx77-Al4",
+        "tripadvisor_id": "24067035",
+        "distance_m": 9.143288931732586,
+        "stored_candidate_geo_dist_m": 9.143288931732586,
+        "stored_link_geo_dist_m": 9.143288931732586,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJxZvvnU_DhkcRbKvk-ty9ayw:20094592",
+        "google_id": "ChIJxZvvnU_DhkcRbKvk-ty9ayw",
+        "tripadvisor_id": "20094592",
+        "distance_m": 41.53738720291535,
+        "stored_candidate_geo_dist_m": 41.53738720291535,
+        "stored_link_geo_dist_m": 41.53738720291535,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJA3NXfvnGhkcR9m0IaH6L7R4:2367956",
+        "google_id": "ChIJA3NXfvnGhkcR9m0IaH6L7R4",
+        "tripadvisor_id": "2367956",
+        "distance_m": 6.736899554419098,
+        "stored_candidate_geo_dist_m": 6.736899554419098,
+        "stored_link_geo_dist_m": 6.736899554419098,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJQw4X7SvBhkcRmKmONNkdSbI:2063997",
+        "google_id": "ChIJQw4X7SvBhkcRmKmONNkdSbI",
+        "tripadvisor_id": "2063997",
+        "distance_m": 19.66655518962317,
+        "stored_candidate_geo_dist_m": 19.66655518962317,
+        "stored_link_geo_dist_m": 19.66655518962317,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJP4V-BuLDhkcROuVQTRQJuxA:13173287",
+        "google_id": "ChIJP4V-BuLDhkcROuVQTRQJuxA",
+        "tripadvisor_id": "13173287",
+        "distance_m": 33.090797945631046,
+        "stored_candidate_geo_dist_m": 33.090797945631046,
+        "stored_link_geo_dist_m": 33.090797945631046,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ-aSFUc7GhkcRdAUHAGu1cd0:716412",
+        "google_id": "ChIJ-aSFUc7GhkcRdAUHAGu1cd0",
+        "tripadvisor_id": "716412",
+        "distance_m": 5.041624184059947,
+        "stored_candidate_geo_dist_m": 5.041624184059947,
+        "stored_link_geo_dist_m": 5.041624184059947,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJtwbSk-PAhkcRDzmA3ZTtm0w:25178267",
+        "google_id": "ChIJtwbSk-PAhkcRDzmA3ZTtm0w",
+        "tripadvisor_id": "25178267",
+        "distance_m": 26.9155139821623,
+        "stored_candidate_geo_dist_m": 26.9155139821623,
+        "stored_link_geo_dist_m": 26.9155139821623,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJJbYx-ebHhkcR3n8Ky8ln6JE:27223225",
+        "google_id": "ChIJJbYx-ebHhkcR3n8Ky8ln6JE",
+        "tripadvisor_id": "27223225",
+        "distance_m": 3.8517154109695775,
+        "stored_candidate_geo_dist_m": 3.8517154109695775,
+        "stored_link_geo_dist_m": 3.8517154109695775,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJTcWCUpfGhkcR_OP8HB375N8:15664192",
+        "google_id": "ChIJTcWCUpfGhkcR_OP8HB375N8",
+        "tripadvisor_id": "15664192",
+        "distance_m": 14.610656975555221,
+        "stored_candidate_geo_dist_m": 14.610656975555221,
+        "stored_link_geo_dist_m": 14.610656975555221,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJlSHLTADBhkcRXetqFKQWmGE:26722761",
+        "google_id": "ChIJlSHLTADBhkcRXetqFKQWmGE",
+        "tripadvisor_id": "26722761",
+        "distance_m": 1.0756593125907938,
+        "stored_candidate_geo_dist_m": 1.0756593125907938,
+        "stored_link_geo_dist_m": 1.0756593125907938,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJm9dueq7GhkcRYD_anjS4diQ:2370364",
+        "google_id": "ChIJm9dueq7GhkcRYD_anjS4diQ",
+        "tripadvisor_id": "2370364",
+        "distance_m": 15.785518329948449,
+        "stored_candidate_geo_dist_m": 15.785518329948449,
+        "stored_link_geo_dist_m": 15.785518329948449,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJaXk07X7FhkcRFX6XOVKoOg4:25579065",
+        "google_id": "ChIJaXk07X7FhkcRFX6XOVKoOg4",
+        "tripadvisor_id": "25579065",
+        "distance_m": 4.656528378111159,
+        "stored_candidate_geo_dist_m": 4.656528378111159,
+        "stored_link_geo_dist_m": 4.656528378111159,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJJaSrlM7DhkcRx9_EJVJjZnQ:28085363",
+        "google_id": "ChIJJaSrlM7DhkcRx9_EJVJjZnQ",
+        "tripadvisor_id": "28085363",
+        "distance_m": 87.08491054059616,
+        "stored_candidate_geo_dist_m": 87.08491054059616,
+        "stored_link_geo_dist_m": null,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJLdE4h93HhkcRSBmfsI2oZ2k:28134342",
+        "google_id": "ChIJLdE4h93HhkcRSBmfsI2oZ2k",
+        "tripadvisor_id": "28134342",
+        "distance_m": 5.8053362446583,
+        "stored_candidate_geo_dist_m": 5.8053362446583,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJCfxaklTDhkcR-K5-sH4o5EQ:17469785",
+        "google_id": "ChIJCfxaklTDhkcR-K5-sH4o5EQ",
+        "tripadvisor_id": "17469785",
+        "distance_m": 7.827915518831558,
+        "stored_candidate_geo_dist_m": 7.827915518831558,
+        "stored_link_geo_dist_m": 7.827915518831558,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJdex8C2LGhkcRn-7s1qWc1rs:5570617",
+        "google_id": "ChIJdex8C2LGhkcRn-7s1qWc1rs",
+        "tripadvisor_id": "5570617",
+        "distance_m": 3.103684161716912,
+        "stored_candidate_geo_dist_m": 3.103684161716912,
+        "stored_link_geo_dist_m": 3.103684161716912,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJSwW75uvGhkcRgVN6Q6a_g0I:20974096",
+        "google_id": "ChIJSwW75uvGhkcRgVN6Q6a_g0I",
+        "tripadvisor_id": "20974096",
+        "distance_m": 2.067735555330817,
+        "stored_candidate_geo_dist_m": 2.067735555330817,
+        "stored_link_geo_dist_m": 2.067735555330817,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJSaUksgPEhkcRSKYs8JB1FdA:1023627",
+        "google_id": "ChIJSaUksgPEhkcRSKYs8JB1FdA",
+        "tripadvisor_id": "1023627",
+        "distance_m": 2.8168601460020875,
+        "stored_candidate_geo_dist_m": 2.8168601460020875,
+        "stored_link_geo_dist_m": 2.8168601460020875,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJo5WRUrvHhkcRMNO2Zd9r4Vw:26813360",
+        "google_id": "ChIJo5WRUrvHhkcRMNO2Zd9r4Vw",
+        "tripadvisor_id": "26813360",
+        "distance_m": 92.71301356219337,
+        "stored_candidate_geo_dist_m": 92.71301356219337,
+        "stored_link_geo_dist_m": 92.71301356219337,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJa0aRKAvHhkcRsQo8L8NNLm4:3244275",
+        "google_id": "ChIJa0aRKAvHhkcRsQo8L8NNLm4",
+        "tripadvisor_id": "3244275",
+        "distance_m": 0.4381185077800877,
+        "stored_candidate_geo_dist_m": 0.4381185077800877,
+        "stored_link_geo_dist_m": 0.4381185077800877,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJxUe0_WDBhkcRD42pKNGBoKE:32713085",
+        "google_id": "ChIJxUe0_WDBhkcRD42pKNGBoKE",
+        "tripadvisor_id": "32713085",
+        "distance_m": 6.555837499631764,
+        "stored_candidate_geo_dist_m": 6.555837499631764,
+        "stored_link_geo_dist_m": 6.555837499631764,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJGSr10a3BhkcRbXkTJsxHCac:15694721",
+        "google_id": "ChIJGSr10a3BhkcRbXkTJsxHCac",
+        "tripadvisor_id": "15694721",
+        "distance_m": 19.446905305413065,
+        "stored_candidate_geo_dist_m": 19.446905305413065,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJveNf5KzGhkcR5evtDliEbRI:27267982",
+        "google_id": "ChIJveNf5KzGhkcR5evtDliEbRI",
+        "tripadvisor_id": "27267982",
+        "distance_m": 1.9964178412962148,
+        "stored_candidate_geo_dist_m": 1.9964178412962148,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0:27696608",
+        "google_id": "ChIJ7Z-fFd3DhkcRQrqH2oxFBJ0",
+        "tripadvisor_id": "27696608",
+        "distance_m": 17.652549739256727,
+        "stored_candidate_geo_dist_m": 17.652549739256727,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJx-mLVADHhkcR61bfu8zCwAc:10190820",
+        "google_id": "ChIJx-mLVADHhkcR61bfu8zCwAc",
+        "tripadvisor_id": "10190820",
+        "distance_m": 34.675095812157,
+        "stored_candidate_geo_dist_m": 34.675095812157,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      }
+    ]
+  },
+  "geocoding_in_calibration": {
+    "summary": {
+      "gold_tripadvisor_matches": 104,
+      "distance_rows": 78,
+      "missing_coordinate_pairs": 26,
+      "median_m": 10.723551288104893,
+      "p90_m": 47.094352520638324,
+      "p95_m": 83.414295597611,
+      "max_m": 131.45363745396003,
+      "within_50m_pct": 0.8974358974358975,
+      "within_100m_pct": 0.9743589743589743,
+      "within_250m_pct": 1.0,
+      "tripadvisor_coordinate_coverage_pct": 0.840297121634169,
+      "tripadvisor_with_coordinates": 6335,
+      "tripadvisor_without_coordinates": 1204,
+      "tripadvisor_clean_records": 7539,
+      "tripadvisor_unblockable_candidates": 101,
+      "max_abs_stored_link_delta_m": 0.0
+    },
+    "rows": [
+      {
+        "candidate_id": "ChIJVR3lYZHHhkcRWQ2VA_TAU5E:14944465",
+        "google_id": "ChIJVR3lYZHHhkcRWQ2VA_TAU5E",
+        "tripadvisor_id": "14944465",
+        "distance_m": 5.952601644408734,
+        "stored_candidate_geo_dist_m": 5.952601644408734,
+        "stored_link_geo_dist_m": 5.952601644408734,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJq6r6Uv_DhkcR8Tio_cgIl8k:13119552",
+        "google_id": "ChIJq6r6Uv_DhkcR8Tio_cgIl8k",
+        "tripadvisor_id": "13119552",
+        "distance_m": 5.339387425015827,
+        "stored_candidate_geo_dist_m": 5.339387425015827,
+        "stored_link_geo_dist_m": 5.339387425015827,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8:33871615",
+        "google_id": "ChIJRdbtXQDBhkcRsLk-ruEIt-8",
+        "tripadvisor_id": "33871615",
+        "distance_m": 2.150779024859748,
+        "stored_candidate_geo_dist_m": 2.150779024859748,
+        "stored_link_geo_dist_m": 2.150779024859748,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJy9GuVTHFhkcRPYBjvYcMYsM:33951479",
+        "google_id": "ChIJy9GuVTHFhkcRPYBjvYcMYsM",
+        "tripadvisor_id": "33951479",
+        "distance_m": 35.863235103519344,
+        "stored_candidate_geo_dist_m": 35.863235103519344,
+        "stored_link_geo_dist_m": 35.863235103519344,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJrXdT2aHGhkcRCzvFQ81S8bA:7932678",
+        "google_id": "ChIJrXdT2aHGhkcRCzvFQ81S8bA",
+        "tripadvisor_id": "7932678",
+        "distance_m": 61.76527248124097,
+        "stored_candidate_geo_dist_m": 61.76527248124097,
+        "stored_link_geo_dist_m": 61.76527248124097,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJgw1fA2jHhkcRLerD4axb84A:23546714",
+        "google_id": "ChIJgw1fA2jHhkcRLerD4axb84A",
+        "tripadvisor_id": "23546714",
+        "distance_m": 7.834149868118814,
+        "stored_candidate_geo_dist_m": 7.834149868118814,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJW5lGerrHhkcRWrymnJp9SHk:17622179",
+        "google_id": "ChIJW5lGerrHhkcRWrymnJp9SHk",
+        "tripadvisor_id": "17622179",
+        "distance_m": 27.79937320483298,
+        "stored_candidate_geo_dist_m": 27.79937320483298,
+        "stored_link_geo_dist_m": 27.79937320483298,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJCWhSkubGhkcRsYZHqjE9SNg:27259018",
+        "google_id": "ChIJCWhSkubGhkcRsYZHqjE9SNg",
+        "tripadvisor_id": "27259018",
+        "distance_m": 16.477946221893433,
+        "stored_candidate_geo_dist_m": 16.477946221893433,
+        "stored_link_geo_dist_m": 16.477946221893433,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ_yJyekrBhkcR-lm3wlmO3fo:1092919",
+        "google_id": "ChIJ_yJyekrBhkcR-lm3wlmO3fo",
+        "tripadvisor_id": "1092919",
+        "distance_m": 0.3962833251983131,
+        "stored_candidate_geo_dist_m": 0.3962833251983131,
+        "stored_link_geo_dist_m": 0.3962833251983131,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJKWfFqwjBhkcRv0c_VvKaCC4:33066558",
+        "google_id": "ChIJKWfFqwjBhkcRv0c_VvKaCC4",
+        "tripadvisor_id": "33066558",
+        "distance_m": 23.534623417981766,
+        "stored_candidate_geo_dist_m": 23.534623417981766,
+        "stored_link_geo_dist_m": 23.534623417981766,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJSVm3PfbHhkcRPeDWzSh9BS8:17836857",
+        "google_id": "ChIJSVm3PfbHhkcRPeDWzSh9BS8",
+        "tripadvisor_id": "17836857",
+        "distance_m": 99.31352881020248,
+        "stored_candidate_geo_dist_m": 99.31352881020248,
+        "stored_link_geo_dist_m": 99.31352881020248,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ-VbfHKvGhkcR-oZDzn02VRc:8607922",
+        "google_id": "ChIJ-VbfHKvGhkcR-oZDzn02VRc",
+        "tripadvisor_id": "8607922",
+        "distance_m": 5.750841635290981,
+        "stored_candidate_geo_dist_m": 5.750841635290981,
+        "stored_link_geo_dist_m": 5.750841635290981,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJmexznZfFhkcRz5tN1pCmJAg:23444727",
+        "google_id": "ChIJmexznZfFhkcRz5tN1pCmJAg",
+        "tripadvisor_id": "23444727",
+        "distance_m": 17.761980970434877,
+        "stored_candidate_geo_dist_m": 17.761980970434877,
+        "stored_link_geo_dist_m": 17.761980970434877,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJQSn6HiDEhkcRMtkGjAy2AW4:10054235",
+        "google_id": "ChIJQSn6HiDEhkcRMtkGjAy2AW4",
+        "tripadvisor_id": "10054235",
+        "distance_m": 6.9573987624844085,
+        "stored_candidate_geo_dist_m": 6.9573987624844085,
+        "stored_link_geo_dist_m": 6.9573987624844085,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJe3AmZObGhkcRs_EWr-BYOyM:8677564",
+        "google_id": "ChIJe3AmZObGhkcRs_EWr-BYOyM",
+        "tripadvisor_id": "8677564",
+        "distance_m": 5.870407347415726,
+        "stored_candidate_geo_dist_m": 5.870407347415726,
+        "stored_link_geo_dist_m": 5.870407347415726,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJd8ROFKvGhkcRUf875a9G9lM:4409934",
+        "google_id": "ChIJd8ROFKvGhkcRUf875a9G9lM",
+        "tripadvisor_id": "4409934",
+        "distance_m": 10.998701870319891,
+        "stored_candidate_geo_dist_m": 10.998701870319891,
+        "stored_link_geo_dist_m": 10.998701870319891,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJU4cbVSPEhkcRRjNhW-uOvSQ:1112131",
+        "google_id": "ChIJU4cbVSPEhkcRRjNhW-uOvSQ",
+        "tripadvisor_id": "1112131",
+        "distance_m": 1.5449708786878016,
+        "stored_candidate_geo_dist_m": 1.5449708786878016,
+        "stored_link_geo_dist_m": 1.5449708786878016,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ3TWh30bBhkcRPYru7Ou6uHg:33056110",
+        "google_id": "ChIJ3TWh30bBhkcRPYru7Ou6uHg",
+        "tripadvisor_id": "33056110",
+        "distance_m": 10.448400705889897,
+        "stored_candidate_geo_dist_m": 10.448400705889897,
+        "stored_link_geo_dist_m": 10.448400705889897,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJjyyrAWfGhkcRJZ_uBTCCuB4:3442509",
+        "google_id": "ChIJjyyrAWfGhkcRJZ_uBTCCuB4",
+        "tripadvisor_id": "3442509",
+        "distance_m": 47.094352520638324,
+        "stored_candidate_geo_dist_m": 47.094352520638324,
+        "stored_link_geo_dist_m": 47.094352520638324,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJtRz3Fp7BhkcRZcOAIC-AOQc:17676803",
+        "google_id": "ChIJtRz3Fp7BhkcRZcOAIC-AOQc",
+        "tripadvisor_id": "17676803",
+        "distance_m": 37.699995418192664,
+        "stored_candidate_geo_dist_m": 37.699995418192664,
+        "stored_link_geo_dist_m": 37.699995418192664,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ7d9vnYvBhkcRE58jJLo9QLs:21049410",
+        "google_id": "ChIJ7d9vnYvBhkcRE58jJLo9QLs",
+        "tripadvisor_id": "21049410",
+        "distance_m": 117.68303179957236,
+        "stored_candidate_geo_dist_m": 117.68303179957236,
+        "stored_link_geo_dist_m": 117.68303179957236,
+        "within_50m": false,
+        "within_100m": false,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJsyX3adfHhkcRrsc_zUPKM1c:26101329",
+        "google_id": "ChIJsyX3adfHhkcRrsc_zUPKM1c",
+        "tripadvisor_id": "26101329",
+        "distance_m": 8.333537089312621,
+        "stored_candidate_geo_dist_m": 8.333537089312621,
+        "stored_link_geo_dist_m": 8.333537089312621,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJCQOvx-PGhkcRIPeDv8uqsW8:13995593",
+        "google_id": "ChIJCQOvx-PGhkcRIPeDv8uqsW8",
+        "tripadvisor_id": "13995593",
+        "distance_m": 5.864183713199616,
+        "stored_candidate_geo_dist_m": 5.864183713199616,
+        "stored_link_geo_dist_m": 5.864183713199616,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJgQ9IBcXGhkcRWwcy2zT6AtU:27394835",
+        "google_id": "ChIJgQ9IBcXGhkcRWwcy2zT6AtU",
+        "tripadvisor_id": "27394835",
+        "distance_m": 9.041647059051732,
+        "stored_candidate_geo_dist_m": 9.041647059051732,
+        "stored_link_geo_dist_m": 9.041647059051732,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJD8xBJyDEhkcRX-gXRK2dkQk:696520",
+        "google_id": "ChIJD8xBJyDEhkcRX-gXRK2dkQk",
+        "tripadvisor_id": "696520",
+        "distance_m": 13.828356344982128,
+        "stored_candidate_geo_dist_m": 13.828356344982128,
+        "stored_link_geo_dist_m": 13.828356344982128,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJKbCQHoLEhkcRGw5FX5CHUNY:27320245",
+        "google_id": "ChIJKbCQHoLEhkcRGw5FX5CHUNY",
+        "tripadvisor_id": "27320245",
+        "distance_m": 16.496303072655436,
+        "stored_candidate_geo_dist_m": 16.496303072655436,
+        "stored_link_geo_dist_m": 16.496303072655436,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJYd1d7TPBhkcRHDhgSVw9IUA:12697523",
+        "google_id": "ChIJYd1d7TPBhkcRHDhgSVw9IUA",
+        "tripadvisor_id": "12697523",
+        "distance_m": 8.915465448071727,
+        "stored_candidate_geo_dist_m": 8.915465448071727,
+        "stored_link_geo_dist_m": 8.915465448071727,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJgchqLfPHhkcRcK8BJvCPw0Y:15531837",
+        "google_id": "ChIJgchqLfPHhkcRcK8BJvCPw0Y",
+        "tripadvisor_id": "15531837",
+        "distance_m": 11.38657147486131,
+        "stored_candidate_geo_dist_m": 11.38657147486131,
+        "stored_link_geo_dist_m": 11.38657147486131,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJyV5-W-_BhkcRZOFv-_kpsVY:4086894",
+        "google_id": "ChIJyV5-W-_BhkcRZOFv-_kpsVY",
+        "tripadvisor_id": "4086894",
+        "distance_m": 6.68949487154333,
+        "stored_candidate_geo_dist_m": 6.68949487154333,
+        "stored_link_geo_dist_m": 6.68949487154333,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJd5BBEjTHhkcRQzuXlv2nnlQ:23888156",
+        "google_id": "ChIJd5BBEjTHhkcRQzuXlv2nnlQ",
+        "tripadvisor_id": "23888156",
+        "distance_m": 7.811424650885835,
+        "stored_candidate_geo_dist_m": 7.811424650885835,
+        "stored_link_geo_dist_m": 7.811424650885835,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJL4NHWxHBhkcRySzVvTuD9WM:25563361",
+        "google_id": "ChIJL4NHWxHBhkcRySzVvTuD9WM",
+        "tripadvisor_id": "25563361",
+        "distance_m": 13.357757833849721,
+        "stored_candidate_geo_dist_m": 13.357757833849721,
+        "stored_link_geo_dist_m": 13.357757833849721,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJt1eoO27BhkcR_4noABVpTnc:23740700",
+        "google_id": "ChIJt1eoO27BhkcR_4noABVpTnc",
+        "tripadvisor_id": "23740700",
+        "distance_m": 85.99399358012323,
+        "stored_candidate_geo_dist_m": 85.99399358012323,
+        "stored_link_geo_dist_m": 85.99399358012323,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJf-B3FADHhkcR3DmOB2F0GYo:27674319",
+        "google_id": "ChIJf-B3FADHhkcR3DmOB2F0GYo",
+        "tripadvisor_id": "27674319",
+        "distance_m": 4.2658892896097695,
+        "stored_candidate_geo_dist_m": 4.2658892896097695,
+        "stored_link_geo_dist_m": 4.2658892896097695,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJJRzFfUvBhkcRT3AoEGUTh74:13980489",
+        "google_id": "ChIJJRzFfUvBhkcRT3AoEGUTh74",
+        "tripadvisor_id": "13980489",
+        "distance_m": 4.461021414266597,
+        "stored_candidate_geo_dist_m": 4.461021414266597,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJYf3Y3cbFhkcRhxB5OvepDXY:21309774",
+        "google_id": "ChIJYf3Y3cbFhkcRhxB5OvepDXY",
+        "tripadvisor_id": "21309774",
+        "distance_m": 6.5726083842883885,
+        "stored_candidate_geo_dist_m": 6.5726083842883885,
+        "stored_link_geo_dist_m": 6.5726083842883885,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJvVyRu_vDhkcRkRpVKH_VPsg:5237914",
+        "google_id": "ChIJvVyRu_vDhkcRkRpVKH_VPsg",
+        "tripadvisor_id": "5237914",
+        "distance_m": 11.283428784549109,
+        "stored_candidate_geo_dist_m": 11.283428784549109,
+        "stored_link_geo_dist_m": 11.283428784549109,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ2XH1ItHHhkcRfGHLciZHOMw:33203900",
+        "google_id": "ChIJ2XH1ItHHhkcRfGHLciZHOMw",
+        "tripadvisor_id": "33203900",
+        "distance_m": 18.303143057856147,
+        "stored_candidate_geo_dist_m": 18.303143057856147,
+        "stored_link_geo_dist_m": 18.303143057856147,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJnSjuDznHhkcRX5tL9tIFHV8:17740662",
+        "google_id": "ChIJnSjuDznHhkcRX5tL9tIFHV8",
+        "tripadvisor_id": "17740662",
+        "distance_m": 11.506427577960958,
+        "stored_candidate_geo_dist_m": 11.506427577960958,
+        "stored_link_geo_dist_m": 11.506427577960958,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJBcwieeDGhkcRQdNdPHLfdGQ:1207583",
+        "google_id": "ChIJBcwieeDGhkcRQdNdPHLfdGQ",
+        "tripadvisor_id": "1207583",
+        "distance_m": 6.569061953768558,
+        "stored_candidate_geo_dist_m": 6.569061953768558,
+        "stored_link_geo_dist_m": 6.569061953768558,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJZ4VhNWfFhkcRwskz0q6FOsI:28011093",
+        "google_id": "ChIJZ4VhNWfFhkcRwskz0q6FOsI",
+        "tripadvisor_id": "28011093",
+        "distance_m": 4.365231209863748,
+        "stored_candidate_geo_dist_m": 4.365231209863748,
+        "stored_link_geo_dist_m": 4.365231209863748,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJhc6IKzTChkcRY3Ua_652wFk:2533694",
+        "google_id": "ChIJhc6IKzTChkcRY3Ua_652wFk",
+        "tripadvisor_id": "2533694",
+        "distance_m": 17.85171091320716,
+        "stored_candidate_geo_dist_m": 17.85171091320716,
+        "stored_link_geo_dist_m": 17.85171091320716,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJtSr3cM3phkcR1qyvN3thSTY:2464242",
+        "google_id": "ChIJtSr3cM3phkcR1qyvN3thSTY",
+        "tripadvisor_id": "2464242",
+        "distance_m": 13.969121953779036,
+        "stored_candidate_geo_dist_m": 13.969121953779036,
+        "stored_link_geo_dist_m": 13.969121953779036,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJW9PQgqnGhkcRdy82tpWndl8:8339925",
+        "google_id": "ChIJW9PQgqnGhkcRdy82tpWndl8",
+        "tripadvisor_id": "8339925",
+        "distance_m": 7.460263225573324,
+        "stored_candidate_geo_dist_m": 7.460263225573324,
+        "stored_link_geo_dist_m": 7.460263225573324,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJUSUUt8fFhkcRIPRwraICX9U:5327756",
+        "google_id": "ChIJUSUUt8fFhkcRIPRwraICX9U",
+        "tripadvisor_id": "5327756",
+        "distance_m": 10.294542025551287,
+        "stored_candidate_geo_dist_m": 10.294542025551287,
+        "stored_link_geo_dist_m": 10.294542025551287,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJOQ4I4wXHhkcR-82r5c1MGe4:2423829",
+        "google_id": "ChIJOQ4I4wXHhkcR-82r5c1MGe4",
+        "tripadvisor_id": "2423829",
+        "distance_m": 6.687467709285393,
+        "stored_candidate_geo_dist_m": 6.687467709285393,
+        "stored_link_geo_dist_m": 6.687467709285393,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJeTHhov_BhkcRP1i7F4Ge4ig:20135675",
+        "google_id": "ChIJeTHhov_BhkcRP1i7F4Ge4ig",
+        "tripadvisor_id": "20135675",
+        "distance_m": 3.5142056553909287,
+        "stored_candidate_geo_dist_m": 3.5142056553909287,
+        "stored_link_geo_dist_m": 3.5142056553909287,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJWfQ3ykDHhkcRjgKvOjHwpDw:1115997",
+        "google_id": "ChIJWfQ3ykDHhkcRjgKvOjHwpDw",
+        "tripadvisor_id": "1115997",
+        "distance_m": 2.4534289789851935,
+        "stored_candidate_geo_dist_m": 2.4534289789851935,
+        "stored_link_geo_dist_m": 2.4534289789851935,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ5VxGa7zBhkcRplRGsXT125Q:2251045",
+        "google_id": "ChIJ5VxGa7zBhkcRplRGsXT125Q",
+        "tripadvisor_id": "2251045",
+        "distance_m": 8.687563888477342,
+        "stored_candidate_geo_dist_m": 8.687563888477342,
+        "stored_link_geo_dist_m": 8.687563888477342,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJy31k7LfBhkcRRSaxwhmBqh4:24959135",
+        "google_id": "ChIJy31k7LfBhkcRRSaxwhmBqh4",
+        "tripadvisor_id": "24959135",
+        "distance_m": 8.915913847674181,
+        "stored_candidate_geo_dist_m": 8.915913847674181,
+        "stored_link_geo_dist_m": 8.915913847674181,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJFRKWdgDBhkcRz4j8VyVvQWY:27483731",
+        "google_id": "ChIJFRKWdgDBhkcRz4j8VyVvQWY",
+        "tripadvisor_id": "27483731",
+        "distance_m": 6.130727540720167,
+        "stored_candidate_geo_dist_m": 6.130727540720167,
+        "stored_link_geo_dist_m": 6.130727540720167,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJo3Myon3BhkcR1-vQ6A98DHs:11620781",
+        "google_id": "ChIJo3Myon3BhkcR1-vQ6A98DHs",
+        "tripadvisor_id": "11620781",
+        "distance_m": 14.527226746870879,
+        "stored_candidate_geo_dist_m": 14.527226746870879,
+        "stored_link_geo_dist_m": 14.527226746870879,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJd_xYVZnBhkcROoWIp2HN86M:23831374",
+        "google_id": "ChIJd_xYVZnBhkcROoWIp2HN86M",
+        "tripadvisor_id": "23831374",
+        "distance_m": 3.363611063944052,
+        "stored_candidate_geo_dist_m": 3.363611063944052,
+        "stored_link_geo_dist_m": 3.363611063944052,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJz5DfianDhkcRsu4aPD0pxPY:10331311",
+        "google_id": "ChIJz5DfianDhkcRsu4aPD0pxPY",
+        "tripadvisor_id": "10331311",
+        "distance_m": 7.109766185042797,
+        "stored_candidate_geo_dist_m": 7.109766185042797,
+        "stored_link_geo_dist_m": null,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ9W1OtS3BhkcRbtQ4BGdcjw4:17794528",
+        "google_id": "ChIJ9W1OtS3BhkcRbtQ4BGdcjw4",
+        "tripadvisor_id": "17794528",
+        "distance_m": 27.660898606515158,
+        "stored_candidate_geo_dist_m": 27.660898606515158,
+        "stored_link_geo_dist_m": 27.660898606515158,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ6zoIQLDGhkcRWO7yEfkZWLI:8653530",
+        "google_id": "ChIJ6zoIQLDGhkcRWO7yEfkZWLI",
+        "tripadvisor_id": "8653530",
+        "distance_m": 18.204303982741635,
+        "stored_candidate_geo_dist_m": 18.204303982741635,
+        "stored_link_geo_dist_m": 18.204303982741635,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJoWb1zQjDhkcRLTXfkEmXzb4:23695841",
+        "google_id": "ChIJoWb1zQjDhkcRLTXfkEmXzb4",
+        "tripadvisor_id": "23695841",
+        "distance_m": 79.17716635111985,
+        "stored_candidate_geo_dist_m": 79.17716635111985,
+        "stored_link_geo_dist_m": 79.17716635111985,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJO7VRygfFhkcRELDLoHwB71s:29616726",
+        "google_id": "ChIJO7VRygfFhkcRELDLoHwB71s",
+        "tripadvisor_id": "29616726",
+        "distance_m": 4.707077163053036,
+        "stored_candidate_geo_dist_m": 4.707077163053036,
+        "stored_link_geo_dist_m": 4.707077163053036,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJlcfzeW7BhkcRHqTmRKBxKNc:30560898",
+        "google_id": "ChIJlcfzeW7BhkcRHqTmRKBxKNc",
+        "tripadvisor_id": "30560898",
+        "distance_m": 7.714182062668223,
+        "stored_candidate_geo_dist_m": 7.714182062668223,
+        "stored_link_geo_dist_m": 7.714182062668223,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJr56LV4DHhkcRmYeddcNxGcE:14118545",
+        "google_id": "ChIJr56LV4DHhkcRmYeddcNxGcE",
+        "tripadvisor_id": "14118545",
+        "distance_m": 33.079611229811526,
+        "stored_candidate_geo_dist_m": 33.079611229811526,
+        "stored_link_geo_dist_m": 33.079611229811526,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJi8USvtrGhkcRx0yIWlb719g:4177501",
+        "google_id": "ChIJi8USvtrGhkcRx0yIWlb719g",
+        "tripadvisor_id": "4177501",
+        "distance_m": 32.352977070254276,
+        "stored_candidate_geo_dist_m": 32.352977070254276,
+        "stored_link_geo_dist_m": 32.352977070254276,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ9SDDJADHhkcRFQ-NIj0tuwc:15143883",
+        "google_id": "ChIJ9SDDJADHhkcRFQ-NIj0tuwc",
+        "tripadvisor_id": "15143883",
+        "distance_m": 83.414295597611,
+        "stored_candidate_geo_dist_m": 83.414295597611,
+        "stored_link_geo_dist_m": 83.414295597611,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJj2u4_BPHhkcRj6v1vnDRn-4:14180704",
+        "google_id": "ChIJj2u4_BPHhkcRj6v1vnDRn-4",
+        "tripadvisor_id": "14180704",
+        "distance_m": 0.980943953203301,
+        "stored_candidate_geo_dist_m": 0.980943953203301,
+        "stored_link_geo_dist_m": 0.980943953203301,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ9Sugtf3BhkcRbCkjWDB9iv8:23383570",
+        "google_id": "ChIJ9Sugtf3BhkcRbCkjWDB9iv8",
+        "tripadvisor_id": "23383570",
+        "distance_m": 27.1980326154012,
+        "stored_candidate_geo_dist_m": 27.1980326154012,
+        "stored_link_geo_dist_m": 27.1980326154012,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ_SuuMf3DhkcRH8NOUF_8mDI:6615005",
+        "google_id": "ChIJ_SuuMf3DhkcRH8NOUF_8mDI",
+        "tripadvisor_id": "6615005",
+        "distance_m": 11.652881201186538,
+        "stored_candidate_geo_dist_m": 11.652881201186538,
+        "stored_link_geo_dist_m": 11.652881201186538,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJLbrgyuDHhkcRK3yFB88eFVs:30558884",
+        "google_id": "ChIJLbrgyuDHhkcRK3yFB88eFVs",
+        "tripadvisor_id": "30558884",
+        "distance_m": 14.153477416656342,
+        "stored_candidate_geo_dist_m": 14.153477416656342,
+        "stored_link_geo_dist_m": 14.153477416656342,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJz2Jm4jTDhkcR3eol5SHhaXU:26830718",
+        "google_id": "ChIJz2Jm4jTDhkcR3eol5SHhaXU",
+        "tripadvisor_id": "26830718",
+        "distance_m": 27.79881509996255,
+        "stored_candidate_geo_dist_m": 27.79881509996255,
+        "stored_link_geo_dist_m": 27.79881509996255,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJo8eXJn_HhkcRQoRFh-FLVqw:18894215",
+        "google_id": "ChIJo8eXJn_HhkcRQoRFh-FLVqw",
+        "tripadvisor_id": "18894215",
+        "distance_m": 1.645097420693456,
+        "stored_candidate_geo_dist_m": 1.645097420693456,
+        "stored_link_geo_dist_m": 1.645097420693456,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJV0L22cnGhkcRE7gSLgwpPWw:8106852",
+        "google_id": "ChIJV0L22cnGhkcRE7gSLgwpPWw",
+        "tripadvisor_id": "8106852",
+        "distance_m": 5.98740264176928,
+        "stored_candidate_geo_dist_m": 5.98740264176928,
+        "stored_link_geo_dist_m": 5.98740264176928,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ-eep2pjBhkcRk2CdchMd-iw:15739792",
+        "google_id": "ChIJ-eep2pjBhkcRk2CdchMd-iw",
+        "tripadvisor_id": "15739792",
+        "distance_m": 55.40794305728761,
+        "stored_candidate_geo_dist_m": 55.40794305728761,
+        "stored_link_geo_dist_m": 55.40794305728761,
+        "within_50m": false,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJkUHabrrBhkcR-o5IyrKrTMs:26785293",
+        "google_id": "ChIJkUHabrrBhkcR-o5IyrKrTMs",
+        "tripadvisor_id": "26785293",
+        "distance_m": 11.793277253807208,
+        "stored_candidate_geo_dist_m": 11.793277253807208,
+        "stored_link_geo_dist_m": 11.793277253807208,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJ_x4gSF3DhkcRN61FNkY6WZc:29185707",
+        "google_id": "ChIJ_x4gSF3DhkcRN61FNkY6WZc",
+        "tripadvisor_id": "29185707",
+        "distance_m": 6.909611685421972,
+        "stored_candidate_geo_dist_m": 6.909611685421972,
+        "stored_link_geo_dist_m": 6.909611685421972,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJUTw5HRrFhkcRoHGx8jCGWBs:27464445",
+        "google_id": "ChIJUTw5HRrFhkcRoHGx8jCGWBs",
+        "tripadvisor_id": "27464445",
+        "distance_m": 131.45363745396003,
+        "stored_candidate_geo_dist_m": 131.45363745396003,
+        "stored_link_geo_dist_m": 131.45363745396003,
+        "within_50m": false,
+        "within_100m": false,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJfwdIo5THhkcRcHlDCYI_dQg:33746465",
+        "google_id": "ChIJfwdIo5THhkcRcHlDCYI_dQg",
+        "tripadvisor_id": "33746465",
+        "distance_m": 41.48664421489792,
+        "stored_candidate_geo_dist_m": 41.48664421489792,
+        "stored_link_geo_dist_m": 41.48664421489792,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJDfUIAJrBhkcR9Oyzq9hzzoQ:21173067",
+        "google_id": "ChIJDfUIAJrBhkcR9Oyzq9hzzoQ",
+        "tripadvisor_id": "21173067",
+        "distance_m": 9.02121073961106,
+        "stored_candidate_geo_dist_m": 9.02121073961106,
+        "stored_link_geo_dist_m": 9.02121073961106,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJj43CbejGhkcRJbfNOvypQkA:8339599",
+        "google_id": "ChIJj43CbejGhkcRJbfNOvypQkA",
+        "tripadvisor_id": "8339599",
+        "distance_m": 19.615030700806493,
+        "stored_candidate_geo_dist_m": 19.615030700806493,
+        "stored_link_geo_dist_m": 19.615030700806493,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJV8Ou2xDEhkcRidx65ZOywSk:12592916",
+        "google_id": "ChIJV8Ou2xDEhkcRidx65ZOywSk",
+        "tripadvisor_id": "12592916",
+        "distance_m": 12.496895634279175,
+        "stored_candidate_geo_dist_m": 12.496895634279175,
+        "stored_link_geo_dist_m": 12.496895634279175,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJqznqvKnGhkcRvbfb3ce6GlE:25065641",
+        "google_id": "ChIJqznqvKnGhkcRvbfb3ce6GlE",
+        "tripadvisor_id": "25065641",
+        "distance_m": 7.7756669916804695,
+        "stored_candidate_geo_dist_m": 7.7756669916804695,
+        "stored_link_geo_dist_m": 7.7756669916804695,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      },
+      {
+        "candidate_id": "ChIJDz7TH63DhkcRecoUXC4gwHg:15672205",
+        "google_id": "ChIJDz7TH63DhkcRecoUXC4gwHg",
+        "tripadvisor_id": "15672205",
+        "distance_m": 13.19821196960285,
+        "stored_candidate_geo_dist_m": 13.19821196960285,
+        "stored_link_geo_dist_m": 13.19821196960285,
+        "within_50m": true,
+        "within_100m": true,
+        "within_250m": true
+      }
+    ]
+  },
+  "methodological_notes": [
+    "In-sample ER metrics are optimistic because thresholds were calibrated on the same hand-labeled pool; cross-validation gives the generalization estimate.",
+    "Geocoding distances are only observed for candidate pairs that survived the 150 m spatial block; gross geocoding failures appear as missed matches, null coordinate coverage, or UNBLOCKABLE candidates rather than large distances."
+  ]
+}
