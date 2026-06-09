@@ -23,6 +23,8 @@
   - [x] - [schemas transformation](services/transform/) ([google_clean](services/transform/google_clean/), [tripadvisor_clean](services/transform/tripadvisor_clean/), [thefork_clean](services/transform/thefork_clean/))
   - [x] - [schemas matching](services/transform/entity_resolution/) ([schema-matching.md](docs/schema-matching.md), [schema-correspondences.md](docs/schema-correspondences.md))
   - [x] - [schemas integration](services/transform/unified_dataset/)
+    - [x] - [Probabilistic record linkage / entity matching](services/transform/entity_resolution)
+    - [ ] LLM-based record linkage labelling on uncertain pairs
 - [ ] - [Data profiling / data quality](services/quality_assessment/)
   - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
   - [ ] - [post integration](report/post_integration/)
