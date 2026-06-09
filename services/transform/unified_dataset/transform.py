@@ -47,10 +47,17 @@ GOOGLE_AMENITY_FIELDS = (
 )
 
 GOOGLE_PRICE_LEVELS = {
-    "PRICE_LEVEL_INEXPENSIVE": 1,
-    "PRICE_LEVEL_MODERATE": 2,
-    "PRICE_LEVEL_EXPENSIVE": 3,
-    "PRICE_LEVEL_VERY_EXPENSIVE": 4,
+    "PRICE_LEVEL_INEXPENSIVE": "INEXPENSIVE",
+    "PRICE_LEVEL_MODERATE": "MODERATE",
+    "PRICE_LEVEL_EXPENSIVE": "EXPENSIVE",
+    "PRICE_LEVEL_VERY_EXPENSIVE": "VERY_EXPENSIVE",
+}
+
+INT_TO_PRICE_LABEL = {
+    1: "INEXPENSIVE",
+    2: "MODERATE",
+    3: "EXPENSIVE",
+    4: "VERY_EXPENSIVE",
 }
 
 
@@ -234,17 +241,17 @@ def _contact_evidence(
     }
 
 
-def _thefork_price_level(avg_price_eur: Any) -> int | None:
+def _thefork_price_level(avg_price_eur: Any) -> str | None:
     value = _as_float(avg_price_eur)
     if value is None:
         return None
     if value <= 20:
-        return 1
+        return "INEXPENSIVE"
     if value <= 40:
-        return 2
+        return "MODERATE"
     if value <= 70:
-        return 3
-    return 4
+        return "EXPENSIVE"
+    return "VERY_EXPENSIVE"
 
 
 def _price_evidence(
@@ -255,7 +262,9 @@ def _price_evidence(
     google_raw = google_doc.get("price_level")
     google_level = GOOGLE_PRICE_LEVELS.get(str(google_raw)) if not _is_blank(google_raw) else None
     tripadvisor_raw = tripadvisor_doc.get("price_tier_level") if tripadvisor_doc else None
-    tripadvisor_level = int(tripadvisor_raw) if isinstance(tripadvisor_raw, int) else None
+    tripadvisor_level = (
+        INT_TO_PRICE_LABEL.get(int(tripadvisor_raw)) if isinstance(tripadvisor_raw, int) else None
+    )
     thefork_raw = thefork_doc.get("avg_price_eur") if thefork_doc else None
     thefork_level = _thefork_price_level(thefork_raw)
 
@@ -265,35 +274,31 @@ def _price_evidence(
         {"source": "thefork", "level": thefork_level, "raw": thefork_raw},
     ]
     evidence = [item for item in evidence if item["level"] is not None]
+
+    if not evidence:
+        return {"price_level": None, "price_level_source": None, "price_evidence": []}
+
+    counts: dict[str, list[str]] = {}
     for item in evidence:
-        if item["source"] == "google":
-            return {
-                "price_level": item["level"],
-                "price_level_source": "google",
-                "price_level_raw": item["raw"],
-                "price_evidence": evidence,
-            }
-    for item in evidence:
-        if item["source"] == "tripadvisor":
-            return {
-                "price_level": item["level"],
-                "price_level_source": "tripadvisor",
-                "price_level_raw": item["raw"],
-                "price_evidence": evidence,
-            }
-    for item in evidence:
-        if item["source"] == "thefork":
-            return {
-                "price_level": item["level"],
-                "price_level_source": "thefork",
-                "price_level_raw": item["raw"],
-                "price_evidence": evidence,
-            }
+        label = item["level"]
+        counts.setdefault(label, []).append(item["source"])
+
+    max_count = max(len(v) for v in counts.values())
+    winners = sorted(label for label, srcs in counts.items() if len(srcs) == max_count)
+
+    if len(winners) == 1:
+        winner_sources = counts[winners[0]]
+        source_label = winner_sources[0] if len(winner_sources) == 1 else "majority"
+        return {
+            "price_level": winners[0],
+            "price_level_source": source_label,
+            "price_evidence": evidence,
+        }
+
     return {
-        "price_level": None,
-        "price_level_source": None,
-        "price_level_raw": None,
-        "price_evidence": [],
+        "price_level": winners,
+        "price_level_source": "tie",
+        "price_evidence": evidence,
     }
 
 

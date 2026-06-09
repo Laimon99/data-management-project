@@ -268,9 +268,9 @@ def test_builds_all_three_integrated_record_with_rating_metrics():
     assert doc["website_match_status"] == "exact_match"
     assert doc["phone_match_status"] == "exact_match"
     assert doc["phones"] == ["+3902000000"]
-    assert doc["price_level"] == 2
-    assert doc["price_level_source"] == "google"
-    assert doc["price_level_raw"] == "PRICE_LEVEL_MODERATE"
+    assert doc["price_level"] == "MODERATE"
+    assert doc["price_level_source"] == "majority"
+    assert "price_level_raw" not in doc
     assert "multiple_thefork_matches" in doc["integration_flags"]
     assert doc["sources"]["tripadvisor"]["contacts"]["email"] == "info@example.it"
     assert doc["sources"]["thefork"]["price"]["avg_price_eur"] == 35
@@ -348,9 +348,9 @@ def test_top_level_price_falls_back_to_tripadvisor_then_thefork():
     ]
 
     docs, _ = build_integrated_docs(db.google, db.ta, db.tf, links)
-    assert docs[0]["price_level"] == 2
+    assert docs[0]["price_level"] == "MODERATE"
     assert docs[0]["price_level_source"] == "tripadvisor"
-    assert docs[0]["price_level_raw"] == 2
+    assert "price_level_raw" not in docs[0]
 
     db.ta.delete_many({})
     docs, _ = build_integrated_docs(
@@ -377,9 +377,9 @@ def test_top_level_price_falls_back_to_tripadvisor_then_thefork():
             }
         ],
     )
-    assert docs[0]["price_level"] == 2
+    assert docs[0]["price_level"] == "MODERATE"
     assert docs[0]["price_level_source"] == "thefork"
-    assert docs[0]["price_level_raw"] == 35
+    assert "price_level_raw" not in docs[0]
 
 
 def test_unify_replace_destination_replaces_outputs_and_is_idempotent():

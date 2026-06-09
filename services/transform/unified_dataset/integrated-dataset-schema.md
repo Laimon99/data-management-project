@@ -16,7 +16,7 @@ Only Google records with `is_dining=true` and `is_operational=true` are emitted.
 | Platform membership | `has_google`, `has_tripadvisor`, `has_thefork`, `has_all_three_platforms`, `platform_count` |
 | Comparable ratings | `google_rating_5`, `tripadvisor_rating_5`, `thefork_rating_raw_10`, `thefork_rating_5`, `rating_platform_count`, `rating_avg_5`, `rating_range_5` |
 | Comparable review counts | `google_review_count`, `tripadvisor_review_count`, `thefork_review_count` |
-| Top-level contacts/price | `website`, `website_source`, `website_match_status`, `website_evidence`, `phones`, `phone_match_status`, `phone_evidence`, `price_level`, `price_level_source`, `price_level_raw`, `price_evidence` |
+| Top-level contacts/price | `website`, `website_source`, `website_match_status`, `website_evidence`, `phones`, `phone_match_status`, `phone_evidence`, `price_level`, `price_level_source`, `price_evidence` |
 | Audit | `integration_flags`, `_updated_at` |
 | Source evidence | `sources.google`, `sources.tripadvisor`, `sources.thefork` |
 
@@ -69,12 +69,11 @@ root
  |-- phone_evidence: array<struct>
  |    |-- source: string
  |    |-- value: string
- |-- price_level: long
+ |-- price_level: string|array<string>
  |-- price_level_source: string
- |-- price_level_raw: string|long
  |-- price_evidence: array<struct>
  |    |-- source: string
- |    |-- level: long
+ |    |-- level: string
  |    |-- raw: string|long
  |-- has_google: boolean
  |-- has_tripadvisor: boolean
