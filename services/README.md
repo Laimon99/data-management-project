@@ -7,6 +7,8 @@ services/
   extract/   google_places_api/  tripadvisor_scraper/  thefork_scraper/
   load/      mongo/
   transform/ google_clean/  tripadvisor_clean/  thefork_clean/
+             entity_resolution/  entity_resolution_llm/  integrated_dataset/
+             llm_matching_pipeline/  unified_dataset/
 ```
 
 ## Implemented services
@@ -107,6 +109,101 @@ and `extract/thefork_scraper/eda-report.md`.
 
 ---
 
+### `transform/entity_resolution` — Stage 3: Deterministic record linkage
+Google-anchored entity resolution. Generates auditable Google × Tripadvisor and
+Google × TheFork candidate pairs in `entity_resolution_candidates`, with deterministic
+`label`, score components, thresholds, chain flags, and `llm_label=null`.
+
+```bash
+uv run dataman-entity-resolve --replace-destination
+```
+
+See `transform/entity_resolution/README.md`.
+
+---
+
+### `transform/entity_resolution_llm` — Stage 3b: LLM adjudication
+Reviews `label == "UNCERTAIN"` candidate groups from `entity_resolution_candidates` and
+updates the same documents with `llm_label` plus audit metadata. Supports `dry-run`,
+offline `mock`, and real OpenAI modes.
+
+```bash
+uv run dataman-er-llm --mode dry-run --limit 10
+uv run dataman-er-llm --mode mock --limit 10
+DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply
+```
+
+See `transform/entity_resolution_llm/README.md`.
+
+---
+
+### `transform/integrated_dataset` — Stage 4: Final integrated Mongo dataset
+Collapses `MATCH` candidates into one-to-one resolved links and rebuilds the final
+Google-seeded `restaurants_integrated` collection. The final decision rule is
+`llm_label` when present, otherwise the deterministic `label`.
+
+```bash
+uv run dataman-build-integrated --dry-run
+uv run dataman-build-integrated --replace-destination
+```
+
+The service writes `entity_resolution_links` and `restaurants_integrated`. See
+`transform/integrated_dataset/README.md`.
+
+---
+
+### `transform/unified_dataset` — Stage 4: Unified analytical dataset
+Selects one-to-one resolved Google x Tripadvisor and Google x TheFork links, then writes
+the Google-seeded integrated ratings collection with nested source evidence and
+top-level analytical fields.
+
+```bash
+uv run dataman-unify --dry-run
+uv run dataman-unify --replace-destination
+```
+
+See `transform/unified_dataset/README.md` and
+`transform/unified_dataset/integrated-dataset-schema.md`.
+
+---
+
+### `transform/llm_matching_pipeline` — Stage 3b+4: One-command LLM pipeline
+Convenience runner for the LLM matching branch. It runs LLM adjudication and then
+rebuilds `entity_resolution_links` plus `restaurants_integrated`. It assumes the clean
+collections and `entity_resolution_candidates` already exist.
+
+Complete Windows/PowerShell run from Mongo off:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode dry-run -Limit 10
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode mock -Limit 10 -Apply
+$env:DATAMAN_OPENAI_API_KEY="..."
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -Limit 10 -Apply `
+  -OutputJsonl data/quality/llm_er_results_sample.jsonl
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -NoLimit -Apply `
+  -OutputJsonl data/quality/llm_er_results.jsonl
+```
+
+Lower-level commands, when Mongo and prepared collections already exist:
+
+```bash
+docker compose up -d mongo
+uv run dataman-llm-pipeline --mode dry-run --limit 10
+uv run dataman-llm-pipeline --mode mock --limit 10 --apply
+DATAMAN_OPENAI_API_KEY=... uv run dataman-llm-pipeline --mode openai --apply
+```
+
+With `--apply`, the command updates `entity_resolution_candidates`, writes
+`entity_resolution_links`, and rebuilds `restaurants_integrated`.
+
+See `transform/llm_matching_pipeline/README.md`.
+
+---
+
 ### `quality_assessment` — Stage 5: Data Quality Assessment
 Profiles the raw Google Places, Tripadvisor, and TheFork datasets and generates
 report-ready quality artifacts: structured metrics, weighted quality scores,
@@ -126,13 +223,6 @@ powershell -ExecutionPolicy Bypass -File ./report/pre_integration/build_report.p
 ```
 
 ---
-
-## Planned services (not yet implemented)
-
-| Service | Stage | Description |
-|---|---|---|
-| `transform/entity_resolution` | 3 | Record linkage: proximity blocking + name/address similarity → match/no-match/uncertain |
-| `transform/unified_dataset` | 4 | Selects resolved links and writes the Google-seeded integrated ratings collection |
 
 ## Conventions
 

@@ -253,13 +253,14 @@ has an exact phone match. This protects branch-heavy names such as `La Piadineri
 
 ## Step 4 – LLM / Manual Resolution Of Uncertain Pairs
 
-The LLM is **not** responsible for generating all possible matches from scratch. It reads
-from `entity_resolution_candidates`, focuses on pairs that need adjudication, and writes
-its decision back to the same candidate document.
+The implemented service is `transform.entity_resolution_llm`
+(`uv run dataman-er-llm`). The LLM is **not** responsible for generating all possible
+matches from scratch. It reads from `entity_resolution_candidates`, focuses on pairs
+that need adjudication, and writes its decision back to the same candidate document.
 
 ### LLM Input
 
-The LLM resolution step should read candidate documents where:
+The LLM resolution step reads candidate documents where:
 
 * `label == "UNCERTAIN"`, or
 * a later audit rule explicitly requests review of borderline `MATCH` pairs.
@@ -275,10 +276,16 @@ The prompt/context should include:
 
 ### LLM Output
 
-The LLM does not create new records. It updates the candidate document with:
+The LLM does not create new records. With `--apply`, it updates the candidate document
+with:
 
 * `llm_label = "MATCH"` or `"NON_MATCH"`
-* optional audit metadata, if implemented later (`llm_model`, explanation, timestamp)
+* audit metadata: `llm_model`, `llm_confidence`, `llm_reason`,
+  `llm_risk_flags`, `llm_prompt_version`, `llm_input_hash`, and
+  `llm_updated_at`
+
+If the final decision remains `UNCERTAIN`, `llm_label` stays null and the service writes
+`llm_status="UNCERTAIN"` plus audit metadata only.
 
 Final matching decision rule:
 
@@ -288,12 +295,67 @@ effective_label = llm_label if llm_label is not null else label
 
 LLMs are used **only for decision support**, not for data generation.
 
+Operational commands:
+
+```bash
+uv run dataman-er-llm --mode dry-run --limit 10 \
+  --output-jsonl data/quality/llm_er_prompts.jsonl
+uv run dataman-er-llm --mode mock --limit 10
+DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply \
+  --output-jsonl data/quality/llm_er_results.jsonl
+```
+
+Recommended Windows/PowerShell runner for complete local execution:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode dry-run -Limit 10
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode mock -Limit 10 -Apply
+$env:DATAMAN_OPENAI_API_KEY="..."
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -Limit 10 -Apply `
+  -OutputJsonl data/quality/llm_er_results_sample.jsonl
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -NoLimit -Apply `
+  -OutputJsonl data/quality/llm_er_results.jsonl
+```
+
+This wrapper starts Docker Desktop when needed, starts/reuses MongoDB, loads raw data,
+runs clean transforms, rebuilds deterministic ER candidates, then runs the LLM-matching
+branch.
+
+Lower-level runner, when MongoDB and prepared collections already exist:
+
+```bash
+uv run dataman-llm-pipeline --mode dry-run --limit 10
+uv run dataman-llm-pipeline --mode mock --limit 10 --apply
+DATAMAN_OPENAI_API_KEY=... uv run dataman-llm-pipeline --mode openai --apply \
+  --output-jsonl data/quality/llm_er_results.jsonl
+```
+
+The lower-level runner starts from the existing `entity_resolution_candidates` collection. It does
+not run scraping, raw loading, cleaning, or deterministic entity resolution.
+
 ---
 
 ## Step 5 – Unified Dataset Construction
 
-Candidate pairs are still not final restaurant records. The integration stage must first
-collapse candidate pairs into resolved links, then populate the integrated collection.
+Candidate pairs are still not final restaurant records. The implemented service is
+`transform.integrated_dataset` (`uv run dataman-build-integrated`). It first collapses
+candidate pairs into resolved links, then populates the integrated MongoDB collection.
+
+Use this service directly only when you want to rebuild the final dataset without
+rerunning LLM adjudication:
+
+```bash
+uv run dataman-build-integrated --dry-run
+uv run dataman-build-integrated --replace-destination
+```
+
+`--replace-destination` is the recommended final run because it rebuilds
+`entity_resolution_links` for the selected source scope and rewrites
+`restaurants_integrated` from the current candidate collection.
 
 **Implemented service:**
 
