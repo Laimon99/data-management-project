@@ -4,12 +4,12 @@ From cloning the repo to a populated, cleaned MongoDB with the final integrated 
 Pick the section for your OS.
 Run every command **from the repository root** unless told otherwise.
 
-What you'll have at the end: MongoDB running locally on `localhost:27017` with three
-raw collections (`restaurants_raw_google`, `restaurants_raw_tripadvisor`,
-`restaurants_raw_thefork`), three clean collections (`restaurants_clean_google`,
-`restaurants_clean_tripadvisor`, `restaurants_clean_thefork`), the
-`entity_resolution_candidates` collection used for matching review, the selected
-`entity_resolution_links`, and the final `restaurants_integrated` collection.
+What you'll have at the end: MongoDB on `localhost:27017` with three raw collections
+(`restaurants_raw_{google,tripadvisor,thefork}`), three clean collections
+(`restaurants_clean_{google,tripadvisor,thefork}`), `entity_resolution_candidates`,
+`entity_resolution_links`, and `restaurants_integrated`; plus ClickHouse on
+`localhost:8123` with four flat analytics tables (`restaurants_integrated`,
+`restaurants_clean_{google,tripadvisor,thefork}`) ready for the mandatory queries.
 
 **Prerequisites:** [Git](https://git-scm.com/) and
 [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
@@ -128,7 +128,28 @@ This writes `entity_resolution_links` (selected MATCH links) and `restaurants_in
 `uv run dataman-unify --dry-run`. See
 [Unified dataset details](#unified-dataset-details) below for what this writes.
 
-### 10. Generate the quality report PDF
+### 10. Load cleaned and integrated data into ClickHouse
+
+Start ClickHouse (behind the `analytics` profile) and load the four flat analytics tables:
+
+```bash
+docker compose --profile analytics up -d clickhouse
+uv run dataman-load-clickhouse all
+```
+
+Each run is idempotent — the loader truncates each table before inserting, so re-running
+always reflects the current MongoDB state. The command prints a JSON report per table
+(`read`, `inserted`, `skipped`). Verify the tables exist:
+
+```bash
+docker exec -it dataman-clickhouse clickhouse-client --query \
+  "SELECT name FROM system.tables WHERE database='dataman' ORDER BY name"
+```
+
+Expect: `restaurants_clean_google`, `restaurants_clean_thefork`,
+`restaurants_clean_tripadvisor`, `restaurants_integrated`.
+
+### 11. Generate the quality report PDF
 
 The profiling command regenerates `data/quality/`, `docs/data-quality-assessment.md`,
 and `report/pre_integration/tables/`; the LaTeX commands then rebuild
@@ -152,7 +173,7 @@ From the repository root, generate the full report with one command:
 uv run quality-assessment && (cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
 ```
 
-### 11. Verify
+### 12. Verify
 
 ```bash
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -161,6 +182,15 @@ docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
 `restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
 `entity_resolution_candidates`, `entity_resolution_links`, `restaurants_integrated`.
+
+```bash
+docker exec -it dataman-clickhouse clickhouse-client --query \
+  "SELECT name, total_rows FROM system.tables WHERE database='dataman' ORDER BY name"
+```
+
+Expect four tables: `restaurants_clean_google`, `restaurants_clean_thefork`,
+`restaurants_clean_tripadvisor`, `restaurants_integrated` — each with row counts matching
+the corresponding MongoDB collection.
 
 ---
 
@@ -298,7 +328,28 @@ This writes `entity_resolution_links` (selected MATCH links) and `restaurants_in
 `uv run dataman-unify --dry-run`. See
 [Unified dataset details](#unified-dataset-details) below for what this writes.
 
-### 10. Generate the quality report PDF
+### 10. Load cleaned and integrated data into ClickHouse
+
+Start ClickHouse (behind the `analytics` profile) and load the four flat analytics tables:
+
+```powershell
+docker compose --profile analytics up -d clickhouse
+uv run dataman-load-clickhouse all
+```
+
+Each run is idempotent — the loader truncates each table before inserting, so re-running
+always reflects the current MongoDB state. The command prints a JSON report per table
+(`read`, `inserted`, `skipped`). Verify the tables exist:
+
+```powershell
+docker exec -it dataman-clickhouse clickhouse-client --query `
+  "SELECT name FROM system.tables WHERE database='dataman' ORDER BY name"
+```
+
+Expect: `restaurants_clean_google`, `restaurants_clean_thefork`,
+`restaurants_clean_tripadvisor`, `restaurants_integrated`.
+
+### 11. Generate the quality report PDF
 
 The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
 `report/pre_integration/tables/`, and `report/pre_integration/main.pdf`:
@@ -309,7 +360,7 @@ powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.p
 
 This requires a LaTeX distribution with `pdflatex` available on `PATH`.
 
-### 11. Verify
+### 12. Verify
 
 ```powershell
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -318,6 +369,15 @@ docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
 `restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
 `entity_resolution_candidates`, `entity_resolution_links`, `restaurants_integrated`.
+
+```powershell
+docker exec -it dataman-clickhouse clickhouse-client --query `
+  "SELECT name, total_rows FROM system.tables WHERE database='dataman' ORDER BY name"
+```
+
+Expect four tables: `restaurants_clean_google`, `restaurants_clean_thefork`,
+`restaurants_clean_tripadvisor`, `restaurants_integrated` — each with row counts matching
+the corresponding MongoDB collection.
 
 ---
 

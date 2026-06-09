@@ -15,6 +15,7 @@ dependencies = [
     "rapidfuzz>=3.10",
     "tqdm>=4.66",
     "geopy>=2.4",
+    "clickhouse-connect>=0.8",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +36,7 @@ tripadvisor-merge-results = "extract.tripadvisor_scraper.merge_results:main"
 thefork-scraper-extract = "extract.thefork_scraper.main:main"
 thefork-merge-outputs = "extract.thefork_scraper.merge_outputs:main"
 dataman-load = "load.mongo.cli:app"
+dataman-load-clickhouse = "load.clickhouse.cli:app"
 tripadvisor-clean = "transform.tripadvisor_clean.cli:app"
 google-clean = "transform.google_clean.cli:app"
 thefork-clean = "transform.thefork_clean.cli:app"
@@ -52,6 +54,7 @@ build-backend = "hatchling.build"
 "services/extract/tripadvisor_scraper" = "extract/tripadvisor_scraper"
 "services/extract/thefork_scraper" = "extract/thefork_scraper"
 "services/load/mongo" = "load/mongo"
+"services/load/clickhouse" = "load/clickhouse"
 "services/transform/tripadvisor_clean" = "transform/tripadvisor_clean"
 "services/transform/google_clean" = "transform/google_clean"
 "services/transform/thefork_clean" = "transform/thefork_clean"

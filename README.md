@@ -26,7 +26,7 @@
 - [ ] - [Data profiling / data quality](services/quality_assessment/)
   - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
   - [ ] - [post integration](report/post_integration/)
-- [ ] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml)
+- [x] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml) ([clickhouse loader](services/load/clickhouse/))
 - [ ] - Make atleast 2 queries on final dataset to answer some questions
 - [ ] - Submit a project:
   - [ ] - Write a [final report](report/final/)
@@ -319,8 +319,9 @@ macOS, Windows, and Linux:
 * **MongoDB** (`mongo:7`) — current document **system of record** for raw, clean,
   entity-resolution, and integrated collections. Starts on a plain `docker compose up`.
 * **ClickHouse** (`clickhouse/clickhouse-server:26.3`, LTS) — the columnar engine for
-  a future flat analytics export and analytical queries. It is scaffolded behind the
-  opt-in `analytics` profile, so a plain `up` runs Mongo only.
+  flat analytics tables and mandatory queries. Scaffolded behind the opt-in `analytics`
+  profile, so a plain `up` runs Mongo only. Populated by `dataman-load-clickhouse` after
+  the transforms and integration steps have run.
 
 Both services persist their data in **named volumes**, so it survives
 `docker compose down` and is removed only by an explicit `docker compose down -v`.
@@ -367,6 +368,40 @@ Raw MongoDB documents keep the source fields exactly as the extractor wrote them
 edge-case behaviour are documented in
 [`services/load/mongo/README.md`](services/load/mongo/README.md); the wider load/ETL
 design lives in [`docs/etl-design.md`](docs/etl-design.md).
+
+### Loading cleaned and integrated data into ClickHouse
+
+The **ClickHouse Load layer** ([`services/load/clickhouse`](services/load/clickhouse/README.md))
+reads the four MongoDB collections produced by the transform and integration stages and
+writes flat analytics tables to ClickHouse. This must run **after** the three `*-clean`
+transforms and `dataman-unify`.
+
+```bash
+docker compose --profile analytics up -d clickhouse   # start ClickHouse (localhost:8123)
+uv run dataman-load-clickhouse all                    # load all four tables
+```
+
+Each run is idempotent (truncate + reload). Individual targets can also be loaded:
+
+```bash
+uv run dataman-load-clickhouse integrated
+uv run dataman-load-clickhouse clean_google
+uv run dataman-load-clickhouse clean_tripadvisor
+uv run dataman-load-clickhouse clean_thefork
+```
+
+| Target | MongoDB source | ClickHouse table |
+|---|---|---|
+| `integrated` | `restaurants_integrated` | `restaurants_integrated` |
+| `clean_google` | `restaurants_clean_google` | `restaurants_clean_google` |
+| `clean_tripadvisor` | `restaurants_clean_tripadvisor` | `restaurants_clean_tripadvisor` |
+| `clean_thefork` | `restaurants_clean_thefork` | `restaurants_clean_thefork` |
+
+The integrated table exposes flat **source join-key columns** (`google_place_id`,
+`tripadvisor_source_url`, `thefork_source_id`) so the cleaned tables can be re-joined
+for per-platform drill-down queries without reloading the nested evidence. Full table
+schemas, mandatory query examples, and implementation details are in
+[`services/load/clickhouse/README.md`](services/load/clickhouse/README.md).
 
 ---
 

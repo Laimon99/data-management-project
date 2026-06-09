@@ -10,9 +10,11 @@ This repository has runnable extractors for all three sources — **Google Place
 (`services/transform/{google,tripadvisor,thefork}_clean`), **entity resolution**
 (`services/transform/entity_resolution`), a **unified dataset** builder
 (`services/transform/unified_dataset`), a **quality assessment** service
-(`services/quality_assessment`), and **Docker storage infrastructure** (MongoDB as
-system of record + a ClickHouse analytics scaffold). Loading to ClickHouse and the
-final report/queries are still pending. Refer to `docs/` for design details.
+(`services/quality_assessment`), a **ClickHouse Load layer** (`services/load/clickhouse`)
+that loads the cleaned and integrated collections from MongoDB into four flat ClickHouse
+analytics tables, and **Docker storage infrastructure** (MongoDB as system of record +
+ClickHouse analytics behind the `analytics` profile). The final report/queries are still
+pending. Refer to `docs/` for design details.
 
 Services are grouped by pipeline stage: `services/extract/`, `services/load/`,
 `services/transform/` (PEP 420 namespace packages → imports like
@@ -42,6 +44,8 @@ uv run dataman-entity-resolve        # entity resolution across all three platfo
 uv run dataman-er-calibrate          # calibrate entity resolution thresholds
 uv run dataman-unify                 # build unified dataset → restaurants_unified
 uv run quality-assessment            # run quality assessment on integrated data
+docker compose --profile analytics up -d clickhouse  # start ClickHouse (analytics layer)
+uv run dataman-load-clickhouse all   # load cleaned + integrated collections → ClickHouse
 ```
 
 `target-version = "py311"`.
