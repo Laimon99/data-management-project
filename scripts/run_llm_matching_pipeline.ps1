@@ -10,6 +10,9 @@ param(
     [switch]$NoLimit,
     [switch]$Apply,
     [switch]$Force,
+    [string]$Model,
+    [ValidateRange(1, 16)]
+    [int]$Concurrency = 1,
     [string]$OutputJsonl,
 
     [switch]$SkipPrepareData,
@@ -87,6 +90,56 @@ function Wait-Until {
     throw "Timed out waiting for $Label after $TimeoutSeconds seconds"
 }
 
+function Get-MongoCollectionCount {
+    param([string]$CollectionName)
+
+    $output = @'
+import os
+import sys
+from pymongo import MongoClient
+
+mongo_uri = os.environ.get("DATAMAN_MONGO_URI", "mongodb://localhost:27017")
+mongo_db = os.environ.get("DATAMAN_MONGO_DB", "dataman")
+collection = sys.argv[1]
+
+client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
+try:
+    print(client[mongo_db][collection].count_documents({}))
+finally:
+    client.close()
+'@ | uv run python - $CollectionName
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Could not count MongoDB collection $CollectionName"
+    }
+    return [int]($output | Select-Object -Last 1)
+}
+
+function Invoke-LoadSource {
+    param(
+        [string]$Source,
+        [string]$RawPath,
+        [string]$RawCollection
+    )
+
+    if (Test-Path $RawPath) {
+        Invoke-Checked "Load raw data: $Source" {
+            uv run dataman-load $Source
+        }
+        return
+    }
+
+    $existingRows = Get-MongoCollectionCount -CollectionName $RawCollection
+    if ($existingRows -gt 0) {
+        Write-Host ""
+        Write-Host "==> Load raw data: $Source"
+        Write-Host "Raw file missing ($RawPath), but $RawCollection already has $existingRows rows. Skipping load."
+        return
+    }
+
+    throw "Raw file missing ($RawPath) and Mongo collection $RawCollection is empty."
+}
+
 if ($Mode -eq "dry-run" -and $Apply) {
     throw "-Apply is not valid with -Mode dry-run."
 }
@@ -134,9 +187,18 @@ try {
 
     if (-not $SkipPrepareData) {
         if (-not $SkipLoad) {
-            Invoke-Checked "Load raw data into MongoDB" {
-                uv run dataman-load all
-            }
+            Invoke-LoadSource `
+                -Source "google" `
+                -RawPath "data\raw\google_places\restaurants_seed.jsonl" `
+                -RawCollection "restaurants_raw_google"
+            Invoke-LoadSource `
+                -Source "tripadvisor" `
+                -RawPath "data\raw\tripadvisor\tripadvisor_scraper_results.json" `
+                -RawCollection "restaurants_raw_tripadvisor"
+            Invoke-LoadSource `
+                -Source "thefork" `
+                -RawPath "data\raw\thefork\thefork_milan_restaurants_enriched.json" `
+                -RawCollection "restaurants_raw_thefork"
         }
 
         if (-not $SkipClean) {
@@ -181,6 +243,12 @@ try {
     }
     if ($Force) {
         $pipelineArgs += "--force"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($Model)) {
+        $pipelineArgs += @("--model", $Model)
+    }
+    if ($Concurrency -gt 1) {
+        $pipelineArgs += @("--concurrency", [string]$Concurrency)
     }
     if (-not $NoLimit -and $null -ne $Limit) {
         $pipelineArgs += @("--limit", [string]$Limit)

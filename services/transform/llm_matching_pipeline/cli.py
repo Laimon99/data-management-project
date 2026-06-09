@@ -78,6 +78,13 @@ def run(
         "--model",
         help="Override DATAMAN_LLM_MATCH_MODEL for this run.",
     ),
+    concurrency: int | None = typer.Option(
+        None,
+        "--concurrency",
+        min=1,
+        max=16,
+        help="Number of source-venue groups to process in parallel.",
+    ),
     output_jsonl: Path | None = typer.Option(
         None,
         "--output-jsonl",
@@ -102,6 +109,8 @@ def run(
         llm_settings.max_candidates = max_candidates
     if model is not None:
         llm_settings.llm_match_model = model
+    if concurrency is not None:
+        llm_settings.llm_concurrency = concurrency
 
     client = None
     try:

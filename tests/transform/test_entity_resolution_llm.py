@@ -1,3 +1,6 @@
+import threading
+from datetime import UTC, datetime
+
 import mongomock
 
 from transform.entity_resolution_llm.client import MockLlmClient
@@ -118,6 +121,26 @@ def _candidate(
     return doc
 
 
+class BlockingMockLlmClient(MockLlmClient):
+    def __init__(self) -> None:
+        super().__init__()
+        self._barrier = threading.Barrier(2, timeout=2)
+        self._lock = threading.Lock()
+        self._active = 0
+        self.max_active = 0
+
+    def decide(self, group):
+        with self._lock:
+            self._active += 1
+            self.max_active = max(self.max_active, self._active)
+        try:
+            self._barrier.wait()
+            return super().decide(group)
+        finally:
+            with self._lock:
+                self._active -= 1
+
+
 def test_load_groups_reads_uncertain_candidates_and_joins_context():
     db = _db()
     db.google.insert_one(_google())
@@ -146,6 +169,42 @@ def test_load_groups_skips_existing_llm_label_unless_force():
     db.google.insert_one(_google())
     db.ta.insert_one(_ta())
     db.candidates.insert_one(_candidate(llm_label="MATCH"))
+
+    assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings()) == []
+    assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings(), force=True)
+
+
+def test_load_groups_skips_existing_llm_metadata_unless_force():
+    db = _db()
+    db.google.insert_one(_google())
+    db.ta.insert_one(_ta())
+    db.candidates.insert_one(
+        _candidate(
+            llm_label=None,
+            llm_status="UNCERTAIN",
+            llm_updated_at=datetime.now(UTC),
+        )
+    )
+
+    assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings()) == []
+    assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings(), force=True)
+
+
+def test_load_groups_skips_partially_processed_group_for_resume():
+    db = _db()
+    db.google.insert_many([_google("g1"), _google("g2")])
+    db.ta.insert_one(_ta())
+    db.candidates.insert_many(
+        [
+            _candidate(
+                "g1",
+                candidate_id="g1:ta1",
+                llm_status="UNCERTAIN",
+                llm_updated_at=datetime.now(UTC),
+            ),
+            _candidate("g2", candidate_id="g2:ta1"),
+        ]
+    )
 
     assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings()) == []
     assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings(), force=True)
@@ -248,6 +307,49 @@ def test_mock_uncertain_apply_writes_metadata_but_not_llm_label():
     assert doc["llm_final_decision"] == "UNCERTAIN"
 
 
+def test_uncertain_apply_marks_all_candidates_in_group_for_resume():
+    db = _db()
+    db.google.insert_many(
+        [
+            _google("g1", name="Sushi One"),
+            _google("g2", name="Sushi One"),
+            _google("g3", name="Sushi One"),
+            _google("g4", name="Sushi One"),
+            _google("g5", name="Sushi One"),
+            _google("g6", name="Sushi One"),
+        ]
+    )
+    db.ta.insert_one(_ta(name="Sushi One"))
+    db.candidates.insert_many(
+        [
+            _candidate(
+                f"g{idx}",
+                candidate_id=f"g{idx}:ta1",
+                score=0.70 - (idx * 0.01),
+                components={"name_sim": 0.85, "geo_dist_m": 20.0 + idx},
+            )
+            for idx in range(1, 7)
+        ]
+    )
+    report = LlmERReport(mode="mock", apply=True, force=False, source="all")
+    groups = load_groups(db.google, db.ta, db.tf, db.candidates, _settings(), report=report)
+
+    results = run_groups(
+        groups,
+        MockLlmClient(),
+        _settings(),
+        apply=True,
+        force=False,
+        candidate_collection=db.candidates,
+        report=report,
+    )
+
+    assert results[0].final_decision == Decision.UNCERTAIN
+    assert report.candidate_update_counts == {"UNCERTAIN_METADATA_ONLY": 6}
+    assert db.candidates.count_documents({"llm_status": "UNCERTAIN"}) == 6
+    assert load_groups(db.google, db.ta, db.tf, db.candidates, _settings()) == []
+
+
 def test_no_apply_does_not_modify_mongo():
     db = _db()
     db.google.insert_one(_google(phone="+39021234567"))
@@ -261,3 +363,33 @@ def test_no_apply_does_not_modify_mongo():
 
     assert "llm_status" not in db.candidates.find_one({"_id": "g1:ta1"})
     assert db.candidates.find_one({"_id": "g1:ta1"})["llm_label"] is None
+
+
+def test_run_groups_processes_llm_calls_in_parallel_when_configured():
+    db = _db()
+    db.google.insert_many([_google("g1"), _google("g2")])
+    db.ta.insert_many([_ta("ta1"), _ta("ta2")])
+    db.candidates.insert_many(
+        [
+            _candidate("g1", source_id="ta1", candidate_id="g1:ta1"),
+            _candidate("g2", source_id="ta2", candidate_id="g2:ta2"),
+        ]
+    )
+    report = LlmERReport(mode="mock", apply=False, force=False, source="all")
+    settings = _settings(llm_concurrency=2)
+    groups = load_groups(db.google, db.ta, db.tf, db.candidates, settings, report=report)
+    client = BlockingMockLlmClient()
+
+    results = run_groups(
+        groups,
+        client,
+        settings,
+        apply=False,
+        force=False,
+        report=report,
+    )
+
+    assert len(results) == 2
+    assert client.max_active == 2
+    assert report.concurrency == 2
+    assert report.llm_calls == 2

@@ -84,6 +84,13 @@ def adjudicate(
         "--model",
         help="Override DATAMAN_LLM_MATCH_MODEL for this run.",
     ),
+    concurrency: int | None = typer.Option(
+        None,
+        "--concurrency",
+        min=1,
+        max=16,
+        help="Number of source-venue groups to process in parallel.",
+    ),
     output_jsonl: Path | None = typer.Option(
         None,
         "--output-jsonl",
@@ -102,12 +109,15 @@ def adjudicate(
         settings.max_candidates = max_candidates
     if model is not None:
         settings.llm_match_model = model
+    if concurrency is not None:
+        settings.llm_concurrency = concurrency
 
     report = LlmERReport(
         mode=mode.value,
         apply=apply,
         force=force,
         source=source.value,
+        concurrency=settings.llm_concurrency,
         output_jsonl=str(output_jsonl) if output_jsonl is not None else None,
     )
 

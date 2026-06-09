@@ -29,6 +29,8 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1
 
 It starts Docker Desktop when needed, starts/reuses MongoDB, loads raw data, runs clean
 transforms, rebuilds deterministic ER candidates, then runs `dataman-llm-pipeline`.
+If a raw file is missing but the corresponding `restaurants_raw_*` collection already
+contains data, the script skips that source load and continues.
 
 If you run the lower-level commands manually, MongoDB must already be running:
 
@@ -90,15 +92,29 @@ powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1
 ```
 
 Inspect the JSON report and the JSONL audit file before removing `--limit`.
+If the default model is not enabled or has very low limits in your OpenAI project, pass a
+model available in your project:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -Limit 1 -Apply -Model gpt-4.1-mini `
+  -OutputJsonl data/quality/llm_er_results_sample.jsonl
+```
 
 Full run:
 
 ```powershell
 $env:DATAMAN_OPENAI_API_KEY="..."
 powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
-  -Mode openai -NoLimit -Apply `
+  -Mode openai -NoLimit -Apply -Concurrency 3 `
   -OutputJsonl data/quality/llm_er_results.jsonl
 ```
+
+`-Concurrency` controls how many source-venue groups are sent to the LLM in parallel.
+Start with `2` or `3`; higher values can be faster but may hit OpenAI rate limits
+depending on the project quota. The default is `1`, which preserves the old sequential
+behavior. The lower-level CLI option is `--concurrency`, and the matching environment
+variable is `DATAMAN_LLM_CONCURRENCY`.
 
 `--apply` is intentionally explicit because it writes LLM decisions and rebuilds the
 final MongoDB collections.
@@ -115,6 +131,8 @@ If data preparation has already been run and you only want to rerun the LLM bran
 | `--mode openai` | Call the configured OpenAI model through the API. |
 | `--apply` | Persist LLM decisions and rebuild final MongoDB collections. Required for writes. |
 | `--limit N` | Process only the first N source-venue groups before rebuilding the dataset. |
+| `-Model NAME` | PowerShell wrapper option to override the OpenAI model for this run. |
+| `-Concurrency N` | PowerShell wrapper option to process N LLM groups in parallel. |
 | `--source tripadvisor|thefork|all` | Restrict the run to one source or use both. |
 | `--force` | Reprocess candidates that already have a non-null `llm_label`. |
 | `--output-jsonl PATH` | Save prompts or LLM result records for auditability. |

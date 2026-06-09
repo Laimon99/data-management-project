@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from typing import Any, Literal
@@ -72,12 +73,22 @@ class LlmERReport:
     missing_google: int = 0
     missing_source: int = 0
     skipped_empty_groups: int = 0
+    concurrency: int = 1
     decision_counts: dict[str, int] = field(default_factory=dict)
     final_decision_counts: dict[str, int] = field(default_factory=dict)
     candidate_update_counts: dict[str, int] = field(default_factory=dict)
     mongo_modified: int = 0
     mongo_skipped_existing: int = 0
     output_jsonl: str | None = None
+
+
+@dataclass
+class _ProcessedGroup:
+    index: int
+    result: GroupResult
+    update_counts: Counter[str] = field(default_factory=Counter)
+    mongo_modified: int = 0
+    mongo_skipped: int = 0
 
 
 def _selected_sources(source: str) -> tuple[str, ...]:
@@ -92,8 +103,6 @@ def _candidate_query(source: str, *, force: bool) -> dict[str, Any]:
     query: dict[str, Any] = {"label": UNCERTAIN}
     if source != SOURCE_ALL:
         query["source"] = source
-    if not force:
-        query["llm_label"] = None
     return query
 
 
@@ -210,6 +219,12 @@ def load_groups(
 
     groups: list[MatchGroup] = []
     for (group_source, source_id), candidate_docs in raw_groups.items():
+        if not force and any(
+            doc.get("llm_label") is not None or "llm_updated_at" in doc
+            for doc in candidate_docs
+        ):
+            continue
+
         source_doc = _source_doc(
             tripadvisor_collection,
             thefork_collection,
@@ -242,6 +257,7 @@ def load_groups(
                 source_venue=_source_venue(source_doc, group_source, source_id),
                 candidates=prompt_candidates,
                 total_candidate_count=len(candidates),
+                all_candidate_ids=[str(doc["_id"]) for doc in candidate_docs],
             )
         )
         if limit is not None and len(groups) >= limit:
@@ -330,6 +346,53 @@ def apply_uncertain_metadata(
     return int(update_result.modified_count), skipped
 
 
+def _process_group(
+    index: int,
+    group: MatchGroup,
+    client: LlmClient,
+    settings: LlmERSettings,
+    *,
+    apply: bool,
+    force: bool,
+    candidate_collection: Any | None,
+) -> _ProcessedGroup:
+    decision = client.decide(group)
+    result = apply_policy(group, decision, settings, model=client.model)
+    update_counts: Counter[str] = Counter()
+    mongo_modified = mongo_skipped = 0
+
+    if apply:
+        if candidate_collection is None:
+            raise ValueError("candidate_collection is required when apply=True.")
+        if result.candidate_updates:
+            mongo_modified, mongo_skipped = apply_result(
+                candidate_collection,
+                result,
+                force=force,
+            )
+            for label in result.candidate_updates.values():
+                update_counts[label.value] += 1
+        else:
+            candidate_ids = group.all_candidate_ids or [
+                candidate.candidate_id for candidate in group.candidates
+            ]
+            mongo_modified, mongo_skipped = apply_uncertain_metadata(
+                candidate_collection,
+                result,
+                candidate_ids,
+                force=force,
+            )
+            update_counts["UNCERTAIN_METADATA_ONLY"] += len(candidate_ids)
+
+    return _ProcessedGroup(
+        index=index,
+        result=result,
+        update_counts=update_counts,
+        mongo_modified=mongo_modified,
+        mongo_skipped=mongo_skipped,
+    )
+
+
 def run_groups(
     groups: list[MatchGroup],
     client: LlmClient,
@@ -340,39 +403,62 @@ def run_groups(
     candidate_collection: Any | None = None,
     report: LlmERReport | None = None,
 ) -> list[GroupResult]:
-    results: list[GroupResult] = []
     decision_counts: Counter[str] = Counter()
     final_counts: Counter[str] = Counter()
     update_counts: Counter[str] = Counter()
     mongo_modified = mongo_skipped = 0
 
-    for group in groups:
-        decision = client.decide(group)
-        result = apply_policy(group, decision, settings, model=client.model)
+    if apply and candidate_collection is None:
+        raise ValueError("candidate_collection is required when apply=True.")
+
+    configured_concurrency = settings.llm_concurrency
+    concurrency = min(configured_concurrency, len(groups)) if groups else 1
+    processed_groups: list[_ProcessedGroup] = []
+
+    if concurrency <= 1:
+        processed_groups = [
+            _process_group(
+                index,
+                group,
+                client,
+                settings,
+                apply=apply,
+                force=force,
+                candidate_collection=candidate_collection,
+            )
+            for index, group in enumerate(groups)
+        ]
+    else:
+        with ThreadPoolExecutor(max_workers=concurrency) as executor:
+            futures = [
+                executor.submit(
+                    _process_group,
+                    index,
+                    group,
+                    client,
+                    settings,
+                    apply=apply,
+                    force=force,
+                    candidate_collection=candidate_collection,
+                )
+                for index, group in enumerate(groups)
+            ]
+            processed_groups = [future.result() for future in as_completed(futures)]
+        processed_groups.sort(key=lambda item: item.index)
+
+    results: list[GroupResult] = []
+    for processed in processed_groups:
+        result = processed.result
         results.append(result)
         decision_counts[result.llm_decision.value] += 1
         final_counts[result.final_decision.value] += 1
-
-        if apply:
-            if candidate_collection is None:
-                raise ValueError("candidate_collection is required when apply=True.")
-            if result.candidate_updates:
-                modified, skipped = apply_result(candidate_collection, result, force=force)
-                for label in result.candidate_updates.values():
-                    update_counts[label.value] += 1
-            else:
-                modified, skipped = apply_uncertain_metadata(
-                    candidate_collection,
-                    result,
-                    [candidate.candidate_id for candidate in group.candidates],
-                    force=force,
-                )
-                update_counts["UNCERTAIN_METADATA_ONLY"] += len(group.candidates)
-            mongo_modified += modified
-            mongo_skipped += skipped
+        update_counts.update(processed.update_counts)
+        mongo_modified += processed.mongo_modified
+        mongo_skipped += processed.mongo_skipped
 
     if report is not None:
         report.llm_calls = len(groups)
+        report.concurrency = configured_concurrency
         report.decision_counts = dict(sorted(decision_counts.items()))
         report.final_decision_counts = dict(sorted(final_counts.items()))
         report.candidate_update_counts = dict(sorted(update_counts.items()))

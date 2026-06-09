@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Protocol
 
 import httpx
@@ -112,14 +113,51 @@ class OpenAIResponsesClient:
             "Authorization": f"Bearer {self._settings.openai_api_key}",
             "Content-Type": "application/json",
         }
-        with httpx.Client(timeout=self._settings.openai_timeout_seconds) as client:
-            response = client.post(
-                f"{self._settings.openai_base_url.rstrip('/')}/responses",
-                headers=headers,
-                json=payload,
-            )
-            response.raise_for_status()
-        return parse_response_payload(response.json())
+        last_error: Exception | None = None
+        for attempt in range(self._settings.openai_max_retries + 1):
+            try:
+                with httpx.Client(timeout=self._settings.openai_timeout_seconds) as client:
+                    response = client.post(
+                        f"{self._settings.openai_base_url.rstrip('/')}/responses",
+                        headers=headers,
+                        json=payload,
+                    )
+                    response.raise_for_status()
+                return parse_response_payload(response.json())
+            except httpx.HTTPStatusError as exc:
+                last_error = exc
+                if not _retryable_status(exc.response.status_code) or (
+                    attempt >= self._settings.openai_max_retries
+                ):
+                    raise
+                time.sleep(_retry_delay_seconds(self._settings, attempt, exc.response))
+            except (httpx.TimeoutException, httpx.TransportError) as exc:
+                last_error = exc
+                if attempt >= self._settings.openai_max_retries:
+                    raise
+                time.sleep(_retry_delay_seconds(self._settings, attempt, None))
+        raise RuntimeError("OpenAI request failed after retries.") from last_error
+
+
+def _retryable_status(status_code: int) -> bool:
+    return status_code == 429 or status_code in {500, 502, 503, 504}
+
+
+def _retry_delay_seconds(
+    settings: LlmERSettings,
+    attempt: int,
+    response: httpx.Response | None,
+) -> float:
+    retry_after = response.headers.get("Retry-After") if response is not None else None
+    if retry_after is not None:
+        try:
+            return min(float(retry_after), settings.openai_retry_max_seconds)
+        except ValueError:
+            pass
+    return min(
+        settings.openai_retry_initial_seconds * (2**attempt),
+        settings.openai_retry_max_seconds,
+    )
 
 
 def parse_response_payload(payload: dict) -> LlmDecision:

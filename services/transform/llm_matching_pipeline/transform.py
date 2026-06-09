@@ -69,6 +69,7 @@ def run_pipeline_collections(
         apply=apply,
         force=force,
         source=source,
+        concurrency=llm_settings.llm_concurrency,
         output_jsonl=str(output_jsonl) if output_jsonl is not None else None,
     )
     groups = load_groups(

@@ -1,0 +1,19 @@
+{
+  "exported_at": "2026-06-09T17:49:16.235796+00:00",
+  "mongo_db": "dataman",
+  "format": "jsonl",
+  "collections": [
+    {
+      "collection": "restaurants_integrated",
+      "output_file": "data/processed/restaurants_integrated_post_llm.jsonl",
+      "document_count": 10054,
+      "bytes": 62197015
+    },
+    {
+      "collection": "entity_resolution_links",
+      "output_file": "data/processed/entity_resolution_links_post_llm.jsonl",
+      "document_count": 4408,
+      "bytes": 3069018
+    }
+  ]
+}

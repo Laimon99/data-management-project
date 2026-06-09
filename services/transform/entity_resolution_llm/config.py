@@ -24,7 +24,11 @@ class LlmERSettings(BaseSettings):
     openai_api_key: str | None = None
     openai_base_url: str = "https://api.openai.com/v1"
     openai_timeout_seconds: float = Field(default=30.0, gt=0)
+    openai_max_retries: int = Field(default=5, ge=0)
+    openai_retry_initial_seconds: float = Field(default=2.0, gt=0)
+    openai_retry_max_seconds: float = Field(default=30.0, gt=0)
     llm_match_model: str = "gpt-5.4-mini"
+    llm_concurrency: int = Field(default=1, ge=1, le=16)
     prompt_version: str = "v1"
 
     max_candidates: int = Field(default=5, ge=1, le=10)

@@ -85,17 +85,16 @@ def apply_policy(
                 notes.append("downgraded: large distance without contact evidence")
 
     candidate_updates: dict[str, Decision] = {}
+    all_candidate_ids = group.all_candidate_ids or [
+        candidate.candidate_id for candidate in group.candidates
+    ]
     if final_decision == Decision.MATCH and matched is not None:
-        for candidate in group.candidates:
-            candidate_updates[candidate.candidate_id] = (
-                Decision.MATCH
-                if candidate.candidate_id == matched.candidate_id
-                else Decision.NON_MATCH
+        for candidate_id in all_candidate_ids:
+            candidate_updates[candidate_id] = (
+                Decision.MATCH if candidate_id == matched.candidate_id else Decision.NON_MATCH
             )
     elif final_decision == Decision.NON_MATCH:
-        candidate_updates = {
-            candidate.candidate_id: Decision.NON_MATCH for candidate in group.candidates
-        }
+        candidate_updates = {candidate_id: Decision.NON_MATCH for candidate_id in all_candidate_ids}
 
     risk_flags = list(decision.risk_flags)
     if final_decision == Decision.UNCERTAIN and not risk_flags and notes:

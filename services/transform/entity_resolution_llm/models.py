@@ -81,6 +81,7 @@ class MatchGroup(BaseModel):
     source_venue: SourceVenue
     candidates: list[CandidateVenue]
     total_candidate_count: int
+    all_candidate_ids: list[str] = Field(default_factory=list)
 
     @field_validator("candidates")
     @classmethod

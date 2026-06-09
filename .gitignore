@@ -35,6 +35,9 @@ ENV/
 # Generated Mongo export JSONs (large, regenerable)
 data/exports/
 
+# Generated LLM audit outputs from local/resumed runs
+data/quality/llm_er_results*.jsonl
+
 # GitHub blocks normal Git files larger than 100 MiB
 data/raw/google_places/restaurants_seed.jsonl
 

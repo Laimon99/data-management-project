@@ -70,6 +70,16 @@ Real OpenAI mode:
 DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply --output-jsonl data/quality/llm_er_results.jsonl
 ```
 
+To speed up real runs, process multiple source-venue groups in parallel:
+
+```bash
+DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply --concurrency 3
+```
+
+The default is `--concurrency 1`. Use `2` or `3` first; higher values can trigger
+OpenAI rate limits depending on the project quota. The same value can be configured with
+`DATAMAN_LLM_CONCURRENCY`.
+
 Recommended full branch run: use this command when you want to run LLM adjudication and
 then rebuild `entity_resolution_links` plus `restaurants_integrated` immediately after:
 
