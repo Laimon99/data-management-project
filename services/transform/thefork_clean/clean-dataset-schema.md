@@ -10,8 +10,9 @@ Coverage figures match the current Mongo audit of **1,344 clean documents** in
 rating-scale harmonization is deferred to the integrated dataset.
 
 Raw-only inputs such as `price_range`, `discount`, `cuisine_type`, `working_days_hours`,
-`phone_number`, `email`, and review titles are either replaced by clean fields or
-dropped, while the full raw collection remains the audit trail.
+`working_hours_structured`, `website`, `social_links`, `phone_number`, `email`, and
+review titles are either replaced by clean fields or dropped, while the full raw
+collection remains the audit trail.
 
 ## Schema Overview
 
@@ -37,10 +38,10 @@ dropped, while the full raw collection remains the audit trail.
 | `source` | str | 100% | Constant source label, copied unchanged. |
 | `source_id` | str | 100% | TheFork slug plus stable `-r<n>` venue id, copied unchanged as the natural key. |
 | `restaurant_url` | str | 100% | TheFork restaurant detail URL, copied unchanged. |
-| `latitude` | float \| null | 99.8% | TheFork latitude, copied unchanged and never re-geocoded. |
-| `longitude` | float \| null | 99.8% | TheFork longitude, copied unchanged and never re-geocoded. |
-| `photo_count` | int \| null | 99.7% | TheFork photo count, copied unchanged. |
-| `review_snippets` | list[str] | 96.1% non-empty | Short review snippets, copied unchanged. |
+| `latitude` | float \| null | 100% | TheFork latitude, copied unchanged and never re-geocoded. |
+| `longitude` | float \| null | 100% | TheFork longitude, copied unchanged and never re-geocoded. |
+| `photo_count` | int \| null | 99.9% | TheFork photo count, copied unchanged. |
+| `review_snippets` | list[str] | 96.7% non-empty | Short review snippets, copied unchanged. |
 | `scraped_at` | str | 100% | Source scrape timestamp, copied unchanged. |
 | `source_page_number` | int | 100% | Listing page number, copied unchanged. |
 | `detail_scraped` | bool | 100% | Detail-enrichment provenance flag, copied unchanged. |
@@ -55,23 +56,23 @@ dropped, while the full raw collection remains the audit trail.
 | `address` | str \| null | 100% | Normalized from raw `address`: whitespace/commas normalized, `I-` CAP prefix stripped, English `Milan`/`Italy` folded to `Milano`/`Italia`. | Clean full address string. |
 | `street` | str \| null | 100% | Parsed from the first comma-separated address chunk. | Street name. |
 | `house_number` | str \| null | 96.4% | Parsed from the second address chunk when it starts with a digit. | Civic number. |
-| `postal_code` | str \| null | 99.8% | Extracted as a 5-digit CAP from normalized `address`. | Postal code for blocking and consistency checks. |
+| `postal_code` | str \| null | 100% | Extracted as a 5-digit CAP from normalized `address`. | Postal code for blocking and consistency checks. |
 | `city` | str \| null | 100% | Canonicalized from raw `city`: `Milan` to `Milano`. | Canonical city string. |
-| `rating` | float \| null | 96.7% | Validated from raw `rating`; only numeric values inside 0-10 are kept. | TheFork native aggregate rating. |
-| `review_count` | int \| null | 97.0% | Validated from raw `review_count`; only non-negative integers are kept. | TheFork review count. |
+| `rating` | float \| null | 94.1% | Validated from raw `rating`; only numeric values inside 0-10 are kept. | TheFork native aggregate rating. |
+| `review_count` | int \| null | 98.1% | Validated from raw `review_count`; only non-negative integers are kept. | TheFork review count. |
 | `has_rating` | bool | 100% | Created from `rating is not null`. | Rating coverage flag. |
 | `has_review_count` | bool | 100% | Created from `review_count is not null`. | Review-count coverage flag. |
 | `low_review` | bool | 100% | Created from `review_count < low_review_threshold` when count exists. | Count-only quality flag; records are kept. |
 | `avg_price_eur` | int \| null | 100% | Parsed from raw `price_range` by extracting the integer amount. | Average price in EUR. |
-| `discount_pct` | int \| null | 69.4% | Parsed from raw `discount` only when it is clean promo text; noisy/multi-percent text becomes null. | Discount percentage when a valid promotion is present. |
+| `discount_pct` | int \| null | 48.4% | Parsed from raw `discount` only when it is clean promo text; noisy/multi-percent text becomes null. | Discount percentage when a valid promotion is present. |
 | `has_discount` | bool | 100% | Created from raw `discount` being non-empty, independent of parse success. | Promotion coverage flag. |
 | `cuisines` | list[str] | 98.1% non-empty | Split from raw `cuisine_type`; trimmed; de-duplicated; address leaks rejected. | Source cuisine vocabulary. |
-| `dietary_options` | list[str] | 37.8% non-empty | Created by lifting dietary/religious tokens from raw `cuisine_type` and mapping to canonical English tags. | Tags such as `vegetarian`, `vegan`, `gluten_free`, `organic`, `halal`, `kosher`. |
-| `opening_hours` | list[obj] | 63.5% non-empty | Created from structured hours when present, otherwise parsed from `working_days_hours`; day names normalized; past-midnight times folded. | Tidy hours as `{day, opens, closes}` objects, with `closes_next_day` when needed. |
+| `dietary_options` | list[str] | 0.2% non-empty | Created by lifting dietary/religious tokens from raw `cuisine_type` and mapping to canonical English tags. | Tags such as `vegetarian`, `vegan`, `gluten_free`, `organic`, `halal`, `kosher`. |
+| `opening_hours` | list[obj] | 63.6% non-empty | Created from structured hours when present, otherwise parsed from `working_days_hours`; day names normalized; past-midnight times folded. | Tidy hours as `{day, opens, closes}` objects, with `closes_next_day` when needed. |
 | `has_hours` | bool | 100% | Created from `opening_hours` being non-empty. | Opening-hours coverage flag. |
-| `reviews` | list[obj] | 95.2% non-empty | Slimmed from raw `reviews` to capped `{author_name, rating, text, date}` objects; null `title` dropped. | Recent review sample, not the full review population. |
+| `reviews` | list[obj] | 96.7% non-empty | Slimmed from raw `reviews` to capped `{author_name, rating, text, date}` objects; null `title` dropped. | Recent review sample, not the full review population. |
 | `sample_size` | int | 100% | Created as `len(reviews)`. | Number of retained nested reviews. |
-| `sample_avg_rating` | float \| null | 95.2% | Created as the mean of numeric ratings inside the retained review sample. | Sample-only quality signal; never used to backfill platform rating. |
+| `sample_avg_rating` | float \| null | 96.7% | Created as the mean of numeric ratings inside the retained review sample. | Sample-only quality signal; never used to backfill platform rating. |
 | `rating_sample_divergent` | bool | 100% | Created when `abs(rating - sample_avg_rating) > 1.0`. | Flags disagreement between platform rating and recent sample average. |
 | `has_reviews` | bool | 100% | Created from `reviews` being non-empty. | Review-sample coverage flag. |
 | `flags` | list[str] | 19.3% non-empty | Created as a reason list from quality checks; field is present on every document. | May include `no_rating`, `missing_review_count`, `low_review`, `rating_sample_divergent`, `invalid_cuisine_type`; empty list when no flags apply. |
@@ -83,9 +84,12 @@ dropped, while the full raw collection remains the audit trail.
 | Raw Field | Type | Coverage | Deleted / Replaced By | Reason |
 |---|---|---:|---|---|
 | `price_range` | str | 100% | `avg_price_eur` | Replaced by numeric EUR average price. |
-| `discount` | str \| null | 70.6% | `discount_pct`, `has_discount` | Replaced by parsed promotion percentage plus presence flag. |
+| `discount` | str \| null | 48.4% | `discount_pct`, `has_discount` | Replaced by parsed promotion percentage plus presence flag. |
 | `cuisine_type` | str \| null | 98.4% | `cuisines`, `dietary_options` | Replaced by cuisine and dietary-option lists. |
-| `working_days_hours` | str \| null | 63.5% | `opening_hours` | Replaced by tidy opening-hours objects. |
+| `working_days_hours` | str \| null | 63.6% | `opening_hours` | Replaced by tidy opening-hours objects. |
+| `working_hours_structured` | list[obj] | 63.6% | `opening_hours` | Preferred structured opening-hours input, replaced by tidy opening-hours objects. |
+| `website` | str \| null | 0% | deleted | Empty in the current scrape; kept only in raw audit data. |
+| `social_links` | dict | 0% | deleted | Empty in the current scrape; kept only in raw audit data. |
 | `phone_number` | str \| null | 0% | deleted | Empty in the current scrape; kept only in raw audit data. |
 | `email` | str \| null | 0% | deleted | Empty in the current scrape; kept only in raw audit data. |
 | `reviews[].title` | null | 0% | deleted from `reviews` | Always null in nested reviews, so slim review objects omit it. |
