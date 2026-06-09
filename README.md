@@ -530,8 +530,58 @@ anchor pool. Remaining `UNCERTAIN` rows are the review queue for the future LLM/
 adjudication step.
 
 The output remains a candidate/evidence collection, not the final integrated restaurant
-collection. The future LLM/manual step reads `entity_resolution_candidates` and updates
-only `llm_label`; it does not generate new source records.
+collection. The LLM/manual step is implemented by
+[`transform.entity_resolution_llm`](services/transform/entity_resolution_llm/README.md):
+it reads `entity_resolution_candidates`, reviews `label == "UNCERTAIN"` candidate
+groups, and updates only LLM audit fields such as `llm_label`, `llm_confidence`,
+`llm_reason`, and `llm_updated_at`; it does not generate new source records.
+
+```bash
+uv run dataman-er-llm --mode dry-run --limit 10
+uv run dataman-er-llm --mode mock --limit 10
+DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply
+```
+
+For the LLM matching branch on Windows/PowerShell, the full local wrapper starts Docker
+Desktop when needed, starts/reuses MongoDB, prepares the data, runs LLM adjudication, and
+then rebuilds the final MongoDB collections:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode dry-run -Limit 10
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode mock -Limit 10 -Apply
+$env:DATAMAN_OPENAI_API_KEY="..."
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -Limit 10 -Apply `
+  -OutputJsonl data/quality/llm_er_results_sample.jsonl
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 `
+  -Mode openai -NoLimit -Apply `
+  -OutputJsonl data/quality/llm_er_results.jsonl
+```
+
+If Docker/Mongo and the prepared collections are already ready, the lower-level command is:
+
+```bash
+uv run dataman-llm-pipeline --mode dry-run --limit 10
+uv run dataman-llm-pipeline --mode mock --limit 10 --apply
+DATAMAN_OPENAI_API_KEY=... uv run dataman-llm-pipeline --mode openai --apply
+```
+
+This command assumes `entity_resolution_candidates` already exists. It does not rerun
+scraping, raw loading, cleaning, or deterministic entity resolution.
+
+If you need to debug the final build separately after deterministic matching and optional
+LLM adjudication, use:
+
+```bash
+uv run dataman-build-integrated --dry-run
+uv run dataman-build-integrated --replace-destination
+```
+
+This writes `entity_resolution_links` and rebuilds `restaurants_integrated`. The final
+matching rule is `llm_label` when present, otherwise the deterministic `label`, so LLM
+corrections are reflected in the integrated dataset.
 
 Integration quality is measured with false matches, missed matches, and ambiguous
 matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
@@ -542,12 +592,11 @@ matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketc
 * **Output**: an integrated schema plus mapping rules between the integrated schema and the input source schemas.
 * **Methods used**: conflict classification and conflict-resolution transformations.
 
-The planned integrated target is `restaurants_integrated`: one resolved restaurant per
-row/document with source ids, canonical name/address, coordinates, per-platform ratings,
+The implemented integrated target is `restaurants_integrated`: one resolved restaurant
+per document with source ids, canonical name/address, coordinates, per-platform ratings,
 review counts, rating differences, match provenance, and data-quality flags. Mapping
-rules must resolve naming/address conflicts, source-id conflicts, missing fields, rating
-scale conflicts (TheFork 0-10 vs Google/Tripadvisor 0-5), and coordinate authority
-(Google coordinates as backbone; Tripadvisor geocoded only for proximity blocking).
+rules resolve rating scale conflicts (TheFork 0-10 vs Google/Tripadvisor 0-5) and use
+Google as the coordinate authority.
 
 Mandatory query examples for the integrated dataset:
 
