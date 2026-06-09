@@ -32,6 +32,9 @@ ENV/
 !data/
 !data/**
 
+# Generated Mongo export JSONs (large, regenerable)
+data/exports/
+
 # GitHub blocks normal Git files larger than 100 MiB
 data/raw/google_places/restaurants_seed.jsonl
 
