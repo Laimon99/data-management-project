@@ -1,14 +1,15 @@
 # Reproduction Guide
 
-From cloning the repo to a populated, cleaned MongoDB with entity-resolution candidate
-pairs. Pick the section for your OS.
+From cloning the repo to a populated, cleaned MongoDB with the final integrated dataset.
+Pick the section for your OS.
 Run every command **from the repository root** unless told otherwise.
 
 What you'll have at the end: MongoDB running locally on `localhost:27017` with three
 raw collections (`restaurants_raw_google`, `restaurants_raw_tripadvisor`,
-`restaurants_raw_thefork`) and three clean collections (`restaurants_clean_google`,
-`restaurants_clean_tripadvisor`, `restaurants_clean_thefork`), plus the
-`entity_resolution_candidates` collection used for downstream matching review.
+`restaurants_raw_thefork`), three clean collections (`restaurants_clean_google`,
+`restaurants_clean_tripadvisor`, `restaurants_clean_thefork`), the
+`entity_resolution_candidates` collection used for matching review, the selected
+`entity_resolution_links`, and the final `restaurants_integrated` collection.
 
 **Prerequisites:** [Git](https://git-scm.com/) and
 [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
@@ -113,10 +114,25 @@ uv run dataman-entity-resolve --replace-destination \
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
-### 9. Generate the quality report PDF
+### 9. Build the unified (integrated) dataset
+
+Collapse the candidate pairs into one-to-one links and materialize the final
+Google-seeded integrated collection:
+
+```bash
+uv run dataman-unify --replace-destination
+```
+
+This writes `entity_resolution_links` (selected MATCH links) and `restaurants_integrated`
+(one document per dining, operational Google anchor). Preview without writing with
+`uv run dataman-unify --dry-run`. See
+[Unified dataset details](#unified-dataset-details) below for what this writes.
+
+### 10. Generate the quality report PDF
 
 The profiling command regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-and `report/tables/`; the LaTeX commands then rebuild `report/main.pdf`.
+and `report/pre_integration/tables/`; the LaTeX commands then rebuild
+`report/pre_integration/main.pdf`.
 
 On macOS, PDF compilation requires `pdflatex`. Install it once with:
 
@@ -133,10 +149,10 @@ export PATH="/Library/TeX/texbin:$PATH"
 From the repository root, generate the full report with one command:
 
 ```bash
-uv run quality-assessment && (cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
+uv run quality-assessment && (cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
 ```
 
-### 10. Verify
+### 11. Verify
 
 ```bash
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -144,7 +160,7 @@ docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
 `restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
-`entity_resolution_candidates`.
+`entity_resolution_candidates`, `entity_resolution_links`, `restaurants_integrated`.
 
 ---
 
@@ -268,18 +284,32 @@ uv run dataman-entity-resolve --replace-destination `
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
-### 9. Generate the quality report PDF
+### 9. Build the unified (integrated) dataset
 
-The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-`report/tables/`, and `report/main.pdf`:
+Collapse the candidate pairs into one-to-one links and materialize the final
+Google-seeded integrated collection:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+uv run dataman-unify --replace-destination
+```
+
+This writes `entity_resolution_links` (selected MATCH links) and `restaurants_integrated`
+(one document per dining, operational Google anchor). Preview without writing with
+`uv run dataman-unify --dry-run`. See
+[Unified dataset details](#unified-dataset-details) below for what this writes.
+
+### 10. Generate the quality report PDF
+
+The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
+`report/pre_integration/tables/`, and `report/pre_integration/main.pdf`:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
 This requires a LaTeX distribution with `pdflatex` available on `PATH`.
 
-### 10. Verify
+### 11. Verify
 
 ```powershell
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
@@ -287,7 +317,7 @@ docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
 `restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
-`entity_resolution_candidates`.
+`entity_resolution_candidates`, `entity_resolution_links`, `restaurants_integrated`.
 
 ---
 
@@ -561,3 +591,32 @@ Threshold calibration is documented in
 [`services/transform/entity_resolution/README.md`](services/transform/entity_resolution/README.md).
 The root [`README.md`](README.md) records the current calibrated threshold values used in
 this guide.
+
+---
+
+## Unified dataset details
+
+The unified-dataset step runs after `entity_resolution_candidates` exists. It does two
+things in one pass:
+
+1. **Link selection** — collapses candidate pairs into one-to-one Google × Tripadvisor and
+   Google × TheFork links, preferring `llm_label` when present and the automatic ER
+   `label` otherwise. Only `MATCH` pairs are kept; the selected links are written to
+   `entity_resolution_links`.
+2. **Integration** — emits one `restaurants_integrated` document per dining, operational
+   Google anchor, joining the matched Tripadvisor and TheFork evidence. Canonical
+   identity/geography and comparable ratings sit at the top level; source-specific evidence
+   stays nested under `sources.google`, `sources.tripadvisor`, and `sources.thefork`.
+
+```bash
+uv run dataman-unify --dry-run            # preview link/integration counts, no writes
+uv run dataman-unify --replace-destination # rewrite both collections from scratch
+```
+
+The current materialized run writes **10,054** integrated restaurant documents, with
+**3,924** Tripadvisor links, **908** TheFork links, and **745** all-three-platform
+restaurants.
+
+Per-field conflict-handling strategies (which platform wins each top-level field, and why)
+and the full effective schema are documented in
+[`services/transform/unified_dataset/integrated-dataset-schema.md`](services/transform/unified_dataset/integrated-dataset-schema.md).

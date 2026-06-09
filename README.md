@@ -11,7 +11,28 @@
 ![Image](https://www.thetrainline.com/cms/media/5793/empty-seats-at-restaurant-in-milan-italy.jpg?height=440\&mode=crop\&quality=70\&width=660)
 
 ---
-
+## TODO:
+- [x] - [Find datasets and come up with research questions](#1️⃣-domain--research-questions)
+- [x] - [Data Acquisition](#2️⃣-data-sources-faq-5--acquisition):
+  - [x] - [Google Maps](services/extract/google_places_api/)
+  - [x] - [TripAdvisor](services/extract/tripadvisor_scraper/)
+  - [x] - [The Fork](services/extract/thefork_scraper/)
+- [x] - [Store in Mongo](services/load/mongo/)
+- [x] - [Enrich TripAdvisor with geo data](services/transform/tripadvisor_clean/)
+- [x] - [Integrate 3 datasets](#5️⃣-data-integration--enrichment):
+  - [x] - [schemas transformation](services/transform/) ([google_clean](services/transform/google_clean/), [tripadvisor_clean](services/transform/tripadvisor_clean/), [thefork_clean](services/transform/thefork_clean/))
+  - [x] - [schemas matching](services/transform/entity_resolution/) ([schema-matching.md](docs/schema-matching.md), [schema-correspondences.md](docs/schema-correspondences.md))
+  - [x] - [schemas integration](services/transform/unified_dataset/)
+- [ ] - [Data profiling / data quality](services/quality_assessment/)
+  - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
+  - [ ] - [post integration](report/post_integration/)
+- [ ] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml)
+- [ ] - Make atleast 2 queries on final dataset to answer some questions
+- [ ] - Submit a project:
+  - [ ] - Write a [report](report/) ([final](report/final/))
+  - [ ] - Create a presentation
+  - [ ] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
+  - [ ] - Upload to Google Drive and send to the professor 
 
 ## 1️⃣ Domain & research questions
 
@@ -61,7 +82,7 @@ $env:Path = "$HOME\.local\bin;$env:Path"
   (optional, for the Tripadvisor scraper; falls back to Playwright's bundled
   Chromium if none is found)
 
-* **`pdflatex`** — optional, only needed to compile `report/main.pdf`.
+* **`pdflatex`** — optional, only needed to compile `report/pre_integration/main.pdf`.
   On macOS, install it with:
   ```bash
   brew install --cask mactex-no-gui
@@ -295,11 +316,11 @@ The project's stateful databases now run as reproducible **Docker** infrastructu
 defined in [`docker-compose.yml`](docker-compose.yml) so they behave identically on
 macOS, Windows, and Linux:
 
-* **MongoDB** (`mongo:7`) — current document **system of record** for raw and clean
-  per-source collections. Starts on a plain `docker compose up`.
+* **MongoDB** (`mongo:7`) — current document **system of record** for raw, clean,
+  entity-resolution, and integrated collections. Starts on a plain `docker compose up`.
 * **ClickHouse** (`clickhouse/clickhouse-server:26.3`, LTS) — the columnar engine for
-  the future integrated ratings table and analytical queries. It is scaffolded behind
-  the opt-in `analytics` profile, so a plain `up` runs Mongo only.
+  a future flat analytics export and analytical queries. It is scaffolded behind the
+  opt-in `analytics` profile, so a plain `up` runs Mongo only.
 
 Both services persist their data in **named volumes**, so it survives
 `docker compose down` and is removed only by an explicit `docker compose down -v`.
@@ -357,18 +378,18 @@ Pre-integration baseline profiling is implemented as [`services/quality_assessme
 uv run quality-assessment
 ```
 
-Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/tables/`.
+Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/pre_integration/tables/`.
 
 To regenerate the full quality report PDF from the current raw datasets, run:
 
 ```bash
-uv run quality-assessment && cd report && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex
+uv run quality-assessment && cd report/pre_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 
 Windows PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\report\build_report.ps1
+powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
 ### Quality dimensions
@@ -534,7 +555,7 @@ collection. The future LLM/manual step reads `entity_resolution_candidates` and 
 only `llm_label`; it does not generate new source records.
 
 Integration quality is measured with false matches, missed matches, and ambiguous
-matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
+matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current workflow.
 
 ### 03. Schemas integration and mapping generation
 
@@ -542,12 +563,42 @@ matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketc
 * **Output**: an integrated schema plus mapping rules between the integrated schema and the input source schemas.
 * **Methods used**: conflict classification and conflict-resolution transformations.
 
-The planned integrated target is `restaurants_integrated`: one resolved restaurant per
-row/document with source ids, canonical name/address, coordinates, per-platform ratings,
-review counts, rating differences, match provenance, and data-quality flags. Mapping
-rules must resolve naming/address conflicts, source-id conflicts, missing fields, rating
-scale conflicts (TheFork 0-10 vs Google/Tripadvisor 0-5), and coordinate authority
-(Google coordinates as backbone; Tripadvisor geocoded only for proximity blocking).
+The integrated target is implemented by
+[`transform.unified_dataset`](services/transform/unified_dataset/README.md):
+
+```bash
+uv run dataman-unify --dry-run
+uv run dataman-unify --replace-destination
+```
+
+The service writes two MongoDB collections:
+
+* `entity_resolution_links` — selected one-to-one Google × Tripadvisor and Google ×
+  TheFork links, using `llm_label` when present and the automatic ER `label` otherwise.
+* `restaurants_integrated` — final Google-seeded restaurant-rating collection, one
+  document per dining and operational Google anchor.
+
+The current materialized run writes **10,054 integrated restaurant documents**, with
+**3,924 Tripadvisor links**, **908 TheFork links**, and **745 all-three-platform**
+restaurants.
+
+`restaurants_integrated` keeps source-specific evidence nested under `sources.google`,
+`sources.tripadvisor`, and `sources.thefork`, while exposing the analytical fields
+needed for rating comparison at the top level: canonical name/address/coordinates,
+normalized per-platform ratings, review counts, `rating_avg_5`, `rating_range_5`,
+platform-membership booleans, top-level website/phone evidence, and normalized
+`price_level`. The Spark-style schema, and the conflict-handling strategy applied to each
+top-level field (mapped to the Bleiholder & Naumann ignoring/avoiding/resolution
+taxonomy), are documented in
+[`integrated-dataset-schema.md`](services/transform/unified_dataset/integrated-dataset-schema.md).
+
+Conflict resolution is chosen per field by the value's role: authoritative identity and
+geography always take Google (*Trust your friends*); per-platform ratings and review
+counts are deliberately kept side by side for comparison (*Consider all possibilities*);
+`rating_avg_5`/`rating_range_5` are mediated aggregates (*Meet in the middle*); `website`
+prefers a value over null and falls back to Google on disagreement; `phones` keeps the
+de-duplicated union; and `price_level` is decided by majority vote across the three
+normalized price signals (*Cry with the wolves*).
 
 Mandatory query examples for the integrated dataset:
 

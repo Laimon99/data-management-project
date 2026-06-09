@@ -117,12 +117,12 @@ uv run quality-assessment
 ```
 
 Outputs are written under `data/quality/`, `docs/data-quality-assessment.md`,
-and `report/tables/`.
+and `report/pre_integration/tables/`.
 
 The full PDF report can be regenerated from the repository root with:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File ./report/build_report.ps1
+powershell -ExecutionPolicy Bypass -File ./report/pre_integration/build_report.ps1
 ```
 
 ---
@@ -132,7 +132,7 @@ powershell -ExecutionPolicy Bypass -File ./report/build_report.ps1
 | Service | Stage | Description |
 |---|---|---|
 | `transform/entity_resolution` | 3 | Record linkage: proximity blocking + name/address similarity → match/no-match/uncertain |
-| `transform/unified_dataset` | 4 | Joins resolved platform records into a single ratings table |
+| `transform/unified_dataset` | 4 | Selects resolved links and writes the Google-seeded integrated ratings collection |
 
 ## Conventions
 
