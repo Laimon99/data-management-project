@@ -334,36 +334,37 @@ design lives in [`docs/etl-design.md`](docs/etl-design.md).
 
 ---
 
-## 4️⃣ Data profiling & quality assessment 
+## 4️⃣ Data profiling & quality assessment
 
-### Profiling before integration
+Pre-integration baseline profiling is implemented as [`services/quality_assessment`](services/quality_assessment/README.md). It reads the three raw MongoDB collections and produces structured quality metrics, weighted scores, field-coverage tables, anomaly logs, a Markdown report, and LaTeX tables for the PDF report.
 
-For each source:
+```bash
+uv run quality-assessment profile
+```
 
-* **Completeness**:
+Outputs: `data/quality/`, [`docs/data-quality-assessment.md`](docs/data-quality-assessment.md), `report/tables/`.
 
-  * % missing addresses
-  * % missing coordinates
-* **Consistency**:
+### Quality dimensions
 
-  * Rating ranges
-* **Timeliness** (if available):
+| Dimension | What it measures |
+|---|---|
+| Completeness | % non-missing values across all profiled fields |
+| Critical completeness | Coverage of fields required for matching and rating analysis |
+| Validity / consistency | Present values matching source-specific formats (rating scale, phone/URL/email shape, price format, etc.) |
+| Uniqueness | Duplicate source identifiers and duplicate normalized name/address pairs |
+| Timeliness | Refreshability based on collection duration vs a 48h target |
+| Reliability | Share of records with review count ≥ 20 (below that, ratings are sparse evidence) |
+| Overall score | Weighted roll-up of the above |
 
-  * Last review date
+### Pre-integration scores (current dataset)
 
-### Profiling after integration
+| Source | Records | Quality score | Completeness | Critical | Validity | Spatial | Timeliness | Reliable reviews |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Google Places | 10 808 | 93.16% | 93.79% | 98.15% | 100.00% | 100.00% | 67.23% | 79.50% |
+| Tripadvisor | 7 539 | 72.28% | 84.34% | 99.78% | 99.99% | 0.00% | 43.75% | 53.10% |
+| TheFork | 1 344 | 97.69% | 81.16% | 99.04% | 100.00% | 99.78% | 95.83% | 89.21% |
 
-* % restaurants matched successfully
-* % ambiguous matches
-* % unmatched records
-
-### Data quality dimensions used
-
-* Completeness
-* Consistency
-* Accuracy (proxy via cross-platform agreement)
-* Timeliness
-* Uniqueness (duplicates)
+Tripadvisor's 0% spatial readiness is expected — the raw scraper ships no coordinates; geocoding is added by the `tripadvisor_clean` transform.
 
 ---
 
