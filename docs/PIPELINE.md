@@ -47,8 +47,8 @@ LLM/manual uncertain-pair resolution
         │
         ▼
 Resolved links + integrated ratings collection
-   • entity_resolution_links
-   • restaurants_integrated / restaurants_ratings_final
+   • writes entity_resolution_links
+   • writes restaurants_integrated / restaurants_ratings_final  (uv run dataman-unify)
 ```
 
 > **Transform (T) layer — all three sources implemented.** Each source is cleaned
@@ -294,6 +294,24 @@ LLMs are used **only for decision support**, not for data generation.
 
 Candidate pairs are still not final restaurant records. The integration stage must first
 collapse candidate pairs into resolved links, then populate the integrated collection.
+
+**Implemented service:**
+
+```bash
+uv run dataman-unify
+```
+
+For a preview without writes:
+
+```bash
+uv run dataman-unify --dry-run
+```
+
+For a clean full rewrite of the link and integrated collections:
+
+```bash
+uv run dataman-unify --replace-destination
+```
 
 ### Step 5a – Resolved Link Selection
 

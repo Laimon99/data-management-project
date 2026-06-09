@@ -295,11 +295,11 @@ The project's stateful databases now run as reproducible **Docker** infrastructu
 defined in [`docker-compose.yml`](docker-compose.yml) so they behave identically on
 macOS, Windows, and Linux:
 
-* **MongoDB** (`mongo:7`) — current document **system of record** for raw and clean
-  per-source collections. Starts on a plain `docker compose up`.
+* **MongoDB** (`mongo:7`) — current document **system of record** for raw, clean,
+  entity-resolution, and integrated collections. Starts on a plain `docker compose up`.
 * **ClickHouse** (`clickhouse/clickhouse-server:26.3`, LTS) — the columnar engine for
-  the future integrated ratings table and analytical queries. It is scaffolded behind
-  the opt-in `analytics` profile, so a plain `up` runs Mongo only.
+  a future flat analytics export and analytical queries. It is scaffolded behind the
+  opt-in `analytics` profile, so a plain `up` runs Mongo only.
 
 Both services persist their data in **named volumes**, so it survives
 `docker compose down` and is removed only by an explicit `docker compose down -v`.
@@ -534,7 +534,7 @@ collection. The future LLM/manual step reads `entity_resolution_candidates` and 
 only `llm_label`; it does not generate new source records.
 
 Integration quality is measured with false matches, missed matches, and ambiguous
-matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.
+matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current workflow.
 
 ### 03. Schemas integration and mapping generation
 
@@ -542,12 +542,32 @@ matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketc
 * **Output**: an integrated schema plus mapping rules between the integrated schema and the input source schemas.
 * **Methods used**: conflict classification and conflict-resolution transformations.
 
-The planned integrated target is `restaurants_integrated`: one resolved restaurant per
-row/document with source ids, canonical name/address, coordinates, per-platform ratings,
-review counts, rating differences, match provenance, and data-quality flags. Mapping
-rules must resolve naming/address conflicts, source-id conflicts, missing fields, rating
-scale conflicts (TheFork 0-10 vs Google/Tripadvisor 0-5), and coordinate authority
-(Google coordinates as backbone; Tripadvisor geocoded only for proximity blocking).
+The integrated target is implemented by
+[`transform.unified_dataset`](services/transform/unified_dataset/README.md):
+
+```bash
+uv run dataman-unify --dry-run
+uv run dataman-unify --replace-destination
+```
+
+The service writes two MongoDB collections:
+
+* `entity_resolution_links` — selected one-to-one Google × Tripadvisor and Google ×
+  TheFork links, using `llm_label` when present and the automatic ER `label` otherwise.
+* `restaurants_integrated` — final Google-seeded restaurant-rating collection, one
+  document per dining and operational Google anchor.
+
+The current materialized run writes **10,054 integrated restaurant documents**, with
+**3,924 Tripadvisor links**, **908 TheFork links**, and **745 all-three-platform**
+restaurants.
+
+`restaurants_integrated` keeps source-specific evidence nested under `sources.google`,
+`sources.tripadvisor`, and `sources.thefork`, while exposing the analytical fields
+needed for rating comparison at the top level: canonical name/address/coordinates,
+normalized per-platform ratings, review counts, `rating_avg_5`, `rating_range_5`,
+platform-membership booleans, top-level website/phone evidence, and normalized
+`price_level`. The Spark-style schema is documented in
+[`integrated-dataset-schema.md`](services/transform/unified_dataset/integrated-dataset-schema.md).
 
 Mandatory query examples for the integrated dataset:
 
