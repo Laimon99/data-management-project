@@ -29,8 +29,8 @@
 - [ ] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml)
 - [ ] - Make atleast 2 queries on final dataset to answer some questions
 - [ ] - Submit a project:
-  - [ ] - Write a [report](report/) ([final](report/final/))
-  - [ ] - Create a presentation
+  - [ ] - Write a [final report](report/final/)
+  - [ ] - Create a [presentation](report/final/)
   - [ ] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
   - [ ] - Upload to Google Drive and send to the professor 
 
