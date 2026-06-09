@@ -407,16 +407,74 @@ homogeneized output schema in the service README, `eda-report.md`, and where pre
 ### 02. Correspondences investigation
 
 * **Input**: 3 homogeneized cleaned schemas.
-* **Output**: 3 homogeneized schemas plus candidate correspondences between Google, Tripadvisor, and TheFork records.
-* **Methods used**: TODO
+* **Output**: auditable candidate correspondences between Google, Tripadvisor, and
+  TheFork records in `entity_resolution_candidates`.
+* **Methods used**: blocking, feature computation, calibrated scoring thresholds,
+  chain-aware hardening, and later LLM/manual adjudication of uncertain pairs.
 
-Restaurants do **not share IDs**, so integration depends on record linkage. The planned matching workflow is:
+Restaurants do **not share IDs**, so integration depends on record linkage. The current
+implemented record-linkage service is
+[`transform.entity_resolution`](services/transform/entity_resolution/README.md).
+Google is always the anchor: the service creates Google × Tripadvisor and Google ×
+TheFork candidate pairs, but it does **not** directly match Tripadvisor × TheFork.
 
-1. **Blocking** by geographic proximity, e.g. distance under 200 meters.
-2. **Similarity metrics** over normalized names and addresses, e.g. Levenshtein / Jaro-Winkler.
-3. **Composite matching score** combining distance, name similarity, address similarity, and platform-specific evidence.
-4. **Decision labels**: match, no match, uncertain.
-5. **LLM-based tie breaking**: breaking uncertain pairs using LLM based approach. 
+Baseline run:
+
+```bash
+uv run dataman-entity-resolve --dry-run
+uv run dataman-entity-resolve --replace-destination
+```
+
+Thresholds are calibrated from hand-labeled candidate samples. Normal venues and
+chain-brand venues are sampled separately because chain branches such as McDonald's,
+La Piadineria, Spontini, and Burger King need stricter branch-level evidence.
+
+```bash
+# Export normal-venue candidates for hand labeling.
+uv run dataman-er-calibrate export \
+  --output data/quality/entity_resolution_calibration_normal.csv \
+  --sample-size 400 \
+  --source all \
+  --chain-filter non_chain
+
+# HAND LABEL this CSV: fill human_label with MATCH or NON_MATCH.
+
+uv run dataman-er-calibrate analyze \
+  data/quality/entity_resolution_calibration_normal.csv
+
+# Export chain-venue candidates for hand labeling.
+uv run dataman-er-calibrate export \
+  --output data/quality/entity_resolution_calibration_chains.csv \
+  --sample-size 200 \
+  --source all \
+  --chain-filter chain
+
+# HAND LABEL this CSV: fill human_label with MATCH or NON_MATCH.
+
+uv run dataman-er-calibrate analyze \
+  data/quality/entity_resolution_calibration_chains.csv
+```
+
+The final ER rewrite combines the normal thresholds and the chain thresholds suggested
+by those two analyzer runs:
+
+```bash
+uv run dataman-entity-resolve --replace-destination \
+  --dmin-tripadvisor <normal-ta-dmin> \
+  --dmax-tripadvisor <normal-ta-dmax> \
+  --dmin-thefork <normal-tf-dmin> \
+  --dmax-thefork <normal-tf-dmax> \
+  --dmin-chain-tripadvisor <chain-ta-dmin> \
+  --dmax-chain-tripadvisor <chain-ta-dmax> \
+  --dmin-chain-thefork <chain-tf-dmin> \
+  --dmax-chain-thefork <chain-tf-dmax>
+```
+
+The output remains a candidate/evidence collection, not the final integrated restaurant
+collection. Each document stores `score`, score components, the effective `dmin`/`dmax`
+used for that pair, provisional `label`, chain flags when applicable, and `llm_label`
+for later review. The future LLM/manual step reads `entity_resolution_candidates` and
+updates only `llm_label`; it does not generate new source records.
 
 Integration quality is measured with false matches, missed matches, and ambiguous
 matches. See [`docs/PIPELINE.md`](docs/PIPELINE.md) for the current design sketch.

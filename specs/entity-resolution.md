@@ -227,6 +227,11 @@ Write to Mongo collection `entity_resolution_candidates` (upsert keyed on `_id`)
   "block_source": "geo" | "postal_code" | "geo+postal_code" | "fast_path" | "unblockable",
   "fast_path": "phone" | "website" | null,
   "score": 0.87,
+  "dmin": 0.40,
+  "dmax": 0.85,
+  "is_chain": false,
+  "chain_brand": null,
+  "chain_hardening": [],
   "components": {
     "name_sim": 0.92,
     "geo_dist_m": 43.2,

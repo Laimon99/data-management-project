@@ -35,10 +35,20 @@ Transform layer (clean / normalize / structure / flag)  — all three implemente
    • thefork_clean             → restaurants_clean_thefork       (uv run thefork-clean)
         │
         ▼
-LLM-based Entity Matching
+Entity-resolution candidate generation
+   • Google × Tripadvisor
+   • Google × TheFork
+   • writes entity_resolution_candidates        (uv run dataman-entity-resolve)
         │
         ▼
-Unified Ratings Table (+ geo analysis)
+LLM/manual uncertain-pair resolution
+   • reads entity_resolution_candidates
+   • writes llm_label on candidate docs
+        │
+        ▼
+Resolved links + integrated ratings collection
+   • entity_resolution_links
+   • restaurants_integrated / restaurants_ratings_final
 ```
 
 > **Transform (T) layer — all three sources implemented.** Each source is cleaned
@@ -150,7 +160,7 @@ only) is part of that transform, **not** a separate stage.
 
 ---
 
-## Step 3 – Entity Resolution Problem
+## Step 3 – Entity Resolution Candidate Generation
 
 Direct joins are **not reliable** because:
 
@@ -158,28 +168,123 @@ Direct joins are **not reliable** because:
 * addresses may be abbreviated or formatted differently
 * chains and branches introduce ambiguity
 
-This creates a **classic entity resolution problem**, even when geographic proximity is available.
+This creates a **classic entity resolution problem**, even when geographic proximity is
+available. The current implemented service handles the first ER layer by generating
+auditable candidate pairs before any LLM is used.
+
+**Implemented service:**
+
+```bash
+uv run dataman-entity-resolve
+```
+
+**Input collections:**
+
+* `restaurants_clean_google` — anchor pool, filtered to `is_dining=true` and
+  `is_operational=true`.
+* `restaurants_clean_tripadvisor`
+* `restaurants_clean_thefork`
+
+**Output collection:**
+
+* `entity_resolution_candidates`
+
+Google is always the anchor. The service generates two independent pair sets:
+
+* Google × Tripadvisor
+* Google × TheFork
+
+Tripadvisor and TheFork are **not** matched directly. They are connected downstream only
+through the shared Google `place_id`.
+
+Each candidate document stores:
+
+* `google_id`
+* `source` (`tripadvisor` or `thefork`)
+* `source_id`
+* `block_source` (`geo`, `postal_code`, `fast_path`, `unblockable`)
+* `score`
+* `dmin` / `dmax` thresholds used for that candidate label
+* `is_chain`, `chain_brand`, and `chain_hardening` for curated repeated brands
+* `components` (`name_sim`, `geo_dist_m`, `street_sim`, contacts, postal match, etc.)
+* provisional `label` (`MATCH`, `NON_MATCH`, `UNCERTAIN`, `UNBLOCKABLE`)
+* `llm_label`, initially `null`
+
+The command supports calibrated thresholds per source:
+
+```bash
+uv run dataman-entity-resolve \
+  --dmin-tripadvisor 0.57 \
+  --dmax-tripadvisor 0.62 \
+  --dmin-thefork 0.68 \
+  --dmax-thefork 0.90
+```
+
+Normal and chain venues can be calibrated separately. Chain thresholds are optional and
+fall back to the source thresholds when omitted:
+
+```bash
+uv run dataman-entity-resolve \
+  --dmin-tripadvisor 0.57 \
+  --dmax-tripadvisor 0.62 \
+  --dmin-thefork 0.68 \
+  --dmax-thefork 0.90 \
+  --dmin-chain-tripadvisor 0.65 \
+  --dmax-chain-tripadvisor 0.85 \
+  --dmin-chain-thefork 0.75 \
+  --dmax-chain-thefork 0.92
+```
+
+For a clean full rewrite of the candidate collection:
+
+```bash
+uv run dataman-entity-resolve --replace-destination
+```
+
+By default reruns upsert candidate documents and preserve rows where `llm_label != null`.
+`--replace-destination` is an explicit opt-in destructive rewrite.
+
+Curated repeated chain brands use stricter branch matching: automatic `MATCH` labels are
+capped to `UNCERTAIN` unless the pair is within the chain-specific distance threshold or
+has an exact phone match. This protects branch-heavy names such as `La Piadineria`,
+`McDonald's`, `Alice Pizza`, `Spontini`, `Burger King`, and `KFC`.
 
 ---
 
-## Step 4 – LLM-Based Matching
+## Step 4 – LLM / Manual Resolution Of Uncertain Pairs
 
-Entity resolution is performed using **LLM APIs** (e.g. OpenAI models).
+The LLM is **not** responsible for generating all possible matches from scratch. It reads
+from `entity_resolution_candidates`, focuses on pairs that need adjudication, and writes
+its decision back to the same candidate document.
 
-### Matching Logic
+### LLM Input
 
-For each restaurant in `restaurants_seed`, candidate rows from each platform are compared using:
+The LLM resolution step should read candidate documents where:
 
-* name similarity
-* address similarity
-* geographic proximity (latitude / longitude)
-* contextual consistency
+* `label == "UNCERTAIN"`, or
+* a later audit rule explicitly requests review of borderline `MATCH` pairs.
 
-The LLM outputs:
+The prompt/context should include:
 
-* `MATCH`
-* `NO MATCH`
-* optional confidence score
+* Google and source names
+* address parts and postal code
+* geographic distance
+* phone/website evidence when available
+* score components
+* cuisine/price/hours only as weak contextual signals
+
+### LLM Output
+
+The LLM does not create new records. It updates the candidate document with:
+
+* `llm_label = "MATCH"` or `"NON_MATCH"`
+* optional audit metadata, if implemented later (`llm_model`, explanation, timestamp)
+
+Final matching decision rule:
+
+```text
+effective_label = llm_label if llm_label is not null else label
+```
 
 LLMs are used **only for decision support**, not for data generation.
 
@@ -187,10 +292,102 @@ LLMs are used **only for decision support**, not for data generation.
 
 ## Step 5 – Unified Dataset Construction
 
-**`restaurants_ratings_final`**
+Candidate pairs are still not final restaurant records. The integration stage must first
+collapse candidate pairs into resolved links, then populate the integrated collection.
+
+### Step 5a – Resolved Link Selection
+
+Read from:
+
+* `entity_resolution_candidates`
+
+Write to:
+
+* `entity_resolution_links`
+
+For each source independently:
+
+* Google × Tripadvisor
+* Google × TheFork
+
+Select links where:
+
+```text
+effective_label == MATCH
+```
+
+Then enforce one-to-one assignment:
+
+* one Google restaurant can have at most one Tripadvisor link
+* one Google restaurant can have at most one TheFork link
+* one Tripadvisor record can link to at most one Google restaurant
+* one TheFork record can link to at most one Google restaurant
+
+If multiple `MATCH` candidates compete, choose the best link using:
+
+1. `llm_label == MATCH` over automatic-only `MATCH`
+2. higher `score`
+3. `fast_path` phone/website evidence
+4. lower `components.geo_dist_m`
+5. higher `components.name_sim`
+
+Ambiguity should be retained as `integration_flags`, for example:
+
+* `multiple_tripadvisor_matches`
+* `multiple_thefork_matches`
+* `source_record_matched_multiple_google`
+* `llm_override`
+
+### Step 5b – Integrated Restaurant Records
+
+Read from:
+
+* `restaurants_clean_google`
+* `restaurants_clean_tripadvisor`
+* `restaurants_clean_thefork`
+* `entity_resolution_links`
+
+Write to:
+
+* `restaurants_integrated` (or final analytics alias `restaurants_ratings_final`)
+
+The integrated collection is Google-seeded:
+
+```text
+one integrated record = one Google restaurant anchor
+```
+
+Tripadvisor and TheFork fields are attached only when a resolved link exists.
+
+**`restaurants_integrated` / `restaurants_ratings_final`**
 
 | restaurant_id | name | address | latitude | longitude | google_rating | tripadvisor_rating | thefork_rating |
 | ------------- | ---- | ------- | -------- | --------- | ------------- | ------------------ | -------------- |
+
+Core mapping rules:
+
+* `restaurant_id` / `integrated_restaurant_id` is minted from the Google `place_id`.
+* canonical `name`, address, `latitude`, and `longitude` come from Google.
+* `google_rating_5` is Google `rating`.
+* `tripadvisor_rating_5` is Tripadvisor `rating`.
+* `thefork_rating_raw_10` is TheFork `rating`.
+* `thefork_rating_5 = thefork_rating_raw_10 / 2`.
+* source ids are preserved: `google_place_id`, `tripadvisor_location_id`, `thefork_id`.
+* match evidence is preserved source-by-source from `entity_resolution_links`.
+* unresolved `UNCERTAIN`, `NON_MATCH`, and `UNBLOCKABLE` candidates are not attached to
+  the integrated record by default.
+
+Derived analytics fields:
+
+* `rating_platform_count`
+* `rating_avg_5`
+* `rating_range_5`
+* `has_google`
+* `has_tripadvisor`
+* `has_thefork`
+* `has_all_three_platforms`
+* source-specific review counts
+* source-specific quality flags
 
 This table enables:
 

@@ -12,6 +12,7 @@ dependencies = [
     "pydantic-settings>=2.3",
     "pymongo>=4.8",
     "playwright>=1.60.0",
+    "rapidfuzz>=3.10",
     "tqdm>=4.66",
     "geopy>=2.4",
 ]
@@ -37,6 +38,8 @@ dataman-load = "load.mongo.cli:app"
 tripadvisor-clean = "transform.tripadvisor_clean.cli:app"
 google-clean = "transform.google_clean.cli:app"
 thefork-clean = "transform.thefork_clean.cli:app"
+dataman-entity-resolve = "transform.entity_resolution.cli:app"
+dataman-er-calibrate = "transform.entity_resolution.calibrate:app"
 
 [build-system]
 requires = ["hatchling"]
@@ -50,6 +53,7 @@ build-backend = "hatchling.build"
 "services/transform/tripadvisor_clean" = "transform/tripadvisor_clean"
 "services/transform/google_clean" = "transform/google_clean"
 "services/transform/thefork_clean" = "transform/thefork_clean"
+"services/transform/entity_resolution" = "transform/entity_resolution"
 "services/transform/common" = "transform/common"
 
 [tool.ruff]
