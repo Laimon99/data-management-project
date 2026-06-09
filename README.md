@@ -38,7 +38,7 @@
 
 ### Domain
 
-Online restaurant review platforms provide ratings that strongly influence consumer behavior. However, ratings may differ across platforms due to **data quality issues**, **sampling bias**, or **integration errors**.
+Online restaurant review platforms provide ratings that strongly influence consumer behaviour. However, ratings may differ across platforms due to **data quality issues**, **sampling bias**, or **integration errors**.
 
 The project focuses on restaurants located in **Milan and surrounding municipalities**.
 
@@ -72,7 +72,7 @@ Windows (PowerShell):
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
-If the current PowerShell session does not recognize `uv` immediately after install,
+If the current PowerShell session does not recognise `uv` immediately after install,
 refresh the session `PATH` before continuing:
 ```powershell
 $env:Path = "$HOME\.local\bin;$env:Path"
@@ -129,13 +129,13 @@ Places API will not work.
 ---
 
 
-## 2️⃣ Data sources (FAQ 5 – acquisition)
+## 2️⃣ Data sources (Acquisition)
 
 ### Source A — Google Maps / Google Places API
 
 * **Type**: Official API via Places API (New)
 * **Data**: see [`dataset-schema.md`](services/extract/google_places_api/dataset-schema.md)
-* **Why**: high coverage in Milan, rich metadata, coordinates become the project geographic backbone
+* **Why**: high coverage in Milan, rich metadata, and coordinates become the project's geographic backbone
 * **Tools**: Python + `httpx`, Tiled Nearby Search + Place Details, raw JSONL output in `data/raw/google_places/`
 
 #### How the current seed dataset was collected
@@ -159,7 +159,7 @@ Both runs are idempotent. See [`services/extract/google_places_api/README.md`](s
 
 ---
 
-### Source B — Tripadvisor
+### Source B — TripAdvisor
 
 * **Type**: Web scraping via Playwright
 * **Data**: see [`dataset-schema.md`](services/extract/tripadvisor_scraper/dataset-schema.md)
@@ -212,7 +212,7 @@ uv run tripadvisor-scraper-extract --order bottom
 Use `--order bottom` when another teammate is already scraping from the top of the
 URL list (default is `--order top`). The scraper auto-detects an installed
 Chromium-based browser on macOS, Windows, and Linux, trying Brave, Chrome, Edge,
-Vivaldi, Opera, and Chromium in that order; if none is found it falls back to
+Vivaldi, Opera, and Chromium in that order; if none is found, it falls back to
 Playwright's bundled Chromium. Pass `--browser-path <path>` if your browser is
 installed somewhere non-standard. (The old `--brave-path` flag still works as a
 deprecated alias.)
@@ -230,8 +230,8 @@ deprecated alias.)
 #### How the current dataset was collected
 
 The current shareable dataset is
-`data/raw/thefork/thefork_milan_restaurants_enriched.json`. Milan listing pages were
-scraped first to collect restaurant URLs/source ids and listing fallback fields, then
+`data/raw/thefork/thefork_milan_restaurants_enriched.json`. Milan's listing pages were
+scraped first to collect restaurant URLs/source IDs and listing fallback fields, then
 deduplicated and enriched from detail pages using JSON-LD, embedded JSON, visible HTML,
 links/attributes, and fallbacks. The final run was produced on **2026-06-06** by
 splitting detail enrichment across two machines with the GraphQL/CDP parallel proxy
@@ -243,7 +243,7 @@ yielding **1,344 unique restaurants**, all with `detail_scraped=true`.
 | Date | **2026-06-06** |
 | Workers | Windows slots 0-6; Mac Mini slots 7-13 |
 | Saved reviews cap | 15 per restaurant |
-| Final validation | 1,344 unique restaurants, all detail enriched |
+| Final validation | 1,344 unique restaurants, all are detail-enriched |
 
 Collection caveats are documented in
 [`DATASET_CHANGES.md`](docs/the_fork_migration/DATASET_CHANGES.md):
@@ -268,8 +268,8 @@ The scraper is packaged as `services/extract/thefork_scraper`. It collects Milan
 listings, then optionally enriches each restaurant from its detail page, writing
 the raw enriched JSON output under `data/raw/thefork/`. It tries the installed Chrome
 channel, then Edge, then Playwright's bundled Chromium. See
-`services/extract/thefork_scraper/README.md` for the full CLI reference and
-`docs/antibot-comparison.md` for detail-page anti-bot behaviour.
+`services/extract/thefork_scraper/README.md` for the full CLI reference. ~~~and
+`docs/antibot-comparison.md` for detail-page anti-bot behaviour.~~~
 
 ```bash
 uv run thefork-scraper-extract
@@ -278,7 +278,7 @@ uv run thefork-scraper-extract
 ---
 
 
-## 3️⃣ Data storage & modeling (FAQ 6)
+## 3️⃣ Data storage & modeling
 
 ### Current raw acquisition persistence
 
@@ -338,10 +338,10 @@ from `data/raw/` into MongoDB as a **pure raw passthrough** (no transformation),
 source's natural identifier (`place_id`, `source_url`, `source_id`) so loads are
 **idempotent** — re-running never creates duplicates.
 
-First make sure the raw extractor files are present locally under **`data/raw`**
+First, make sure the raw extractor files are present locally under **`data/raw`**
 (Windows: `data\raw`). Either run the three extractors yourself (see above), or reuse our
 shared output by copying the **`raw`** folder from our **Google Drive** into **`data/raw`**.
-Either way you should end up with
+Either way, you should end up with
 `data/raw/google_places/restaurants_seed.jsonl`,
 `data/raw/tripadvisor/tripadvisor_scraper_results.json`, and
 `data/raw/thefork/thefork_milan_restaurants_enriched.json`.
@@ -447,13 +447,13 @@ powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.p
 | Tripadvisor | 7 539 | 72.28% | 84.34% | 99.78% | 99.99% | 0.00% | 43.75% | 53.10% |
 | TheFork | 1 344 | 97.63% | 76.15% | 98.88% | 100.00% | 100.00% | 95.83% | 88.84% |
 
-Tripadvisor's 0% spatial readiness is expected — the raw scraper ships no coordinates; geocoding is added by the `tripadvisor_clean` transform.
+TripAdvisor's 0% spatial readiness is expected — the raw scraper ships no coordinates; geocoding is added by the `tripadvisor_clean` transform.
 
 ---
 
 ## 5️⃣ Data integration & enrichment
 
-The integration stage follows the following workflow: first create clean source schemas, then discover correspondences, then build the integrated schema and mapping rules.
+The integration stage follows the following workflow: first, create clean source schemas, then discover correspondences, then build the integrated schema and mapping rules.
 
 ### 01. Schema transformation / pre-integration
 
@@ -474,11 +474,11 @@ uv run thefork-clean       # restaurants_raw_thefork     → restaurants_clean_t
 * **Google** ([`google_clean`](services/transform/google_clean/README.md)) — projects lean
   fields out of the raw `details` blob, normalizes name/city, lifts structured address
   parts, copies the authoritative coordinates (**never** re-geocoded), and flags dining
-  relevance so non-dining venues can be excluded.
+  relevance, so non-dining venues can be excluded.
 * **Tripadvisor** ([`tripadvisor_clean`](services/transform/tripadvisor_clean/README.md)) —
   type-repairs the Italian display strings, structures price/cuisine/hours/reviews, lifts
   `ta_location_id`, and **geocodes** the cleaned address via Nominatim (Tripadvisor ships
-  no coordinates). Resumable; `--skip-geocode` for a fast clean-only pass.
+  no coordinates). Resumable; `--skip-geocode` for a fast, clean-only pass.
 * **TheFork** ([`thefork_clean`](services/transform/thefork_clean/README.md)) — parses the
   1NF-violation fields (price/cuisine/discount/hours), normalizes name/city/address,
   lifts `tf_id`, and slims reviews; already typed and geocoded upstream, so no type-repair
@@ -490,7 +490,7 @@ homogeneized output schema in the service README, `eda-report.md`, and where pre
 
 ### 02. Correspondences investigation
 
-* **Input**: 3 homogeneized cleaned schemas.
+* **Input**: 3 homogeneized, cleaned schemas.
 * **Output**: auditable candidate correspondences between Google, Tripadvisor, and
   TheFork records in `entity_resolution_candidates`.
 * **Methods used**: blocking, feature computation, calibrated scoring thresholds,
@@ -509,38 +509,38 @@ uv run dataman-entity-resolve --dry-run
 uv run dataman-entity-resolve --replace-destination
 ```
 
-This writes candidate pair documents into MongoDB collection
+This writes candidate pair documents into the MongoDB collection
 `dataman.entity_resolution_candidates`. Each pair is keyed by
 `<google_place_id>:<source_id>` and stores the Google id, source id, block strategy,
 score, score components, effective thresholds, provisional label, chain flags, and a
 nullable `llm_label`.
 
 Thresholds are calibrated from candidate samples. Normal venues and chain-brand venues
-are sampled separately because chain branches such as McDonald's, La Piadineria,
-Spontini, and Burger King need stricter branch-level evidence.
+are sampled separately because chain branches such as **McDonald's**, **La Piadineria**,
+**Spontini**, **Burger King**, **etc.** need stricter branch-level evidence.
 
 ```bash
-# Export normal-venue candidates for hand labeling.
+# Export normal-venue candidates for hand labelling.
 uv run dataman-er-calibrate export \
   --output data/quality/entity_resolution_calibration_normal.csv \
   --sample-size 400 \
   --source all \
   --chain-filter non_chain
 
-# Manually label this CSV using the available row evidence; use web search for separate
+# Manually label this CSV using the available row evidence; use a web search for separate
 # ambiguous cases. Fill human_label with MATCH or NON_MATCH.
 
 uv run dataman-er-calibrate analyze \
   data/quality/entity_resolution_calibration_normal.csv
 
-# Export chain-venue candidates for hand labeling.
+# Export chain-venue candidates for hand labelling.
 uv run dataman-er-calibrate export \
   --output data/quality/entity_resolution_calibration_chains.csv \
   --sample-size 200 \
   --source all \
   --chain-filter chain
 
-# Manually label this CSV using the available row evidence; use web search for separate
+# Manually label this CSV using the available row evidence; use a web search for separate
 # ambiguous cases. Fill human_label with MATCH or NON_MATCH.
 
 uv run dataman-er-calibrate analyze \
@@ -622,7 +622,7 @@ restaurants.
 needed for rating comparison at the top level: canonical name/address/coordinates,
 normalized per-platform ratings, review counts, `rating_avg_5`, `rating_range_5`,
 platform-membership booleans, top-level website/phone evidence, and normalized
-`price_level`. The Spark-style schema, and the conflict-handling strategy applied to each
+`price_level`. The Spark-style schema and the conflict-handling strategy applied to each
 top-level field (mapped to the Bleiholder & Naumann ignoring/avoiding/resolution
 taxonomy), are documented in
 [`integrated-dataset-schema.md`](services/transform/unified_dataset/integrated-dataset-schema.md).
