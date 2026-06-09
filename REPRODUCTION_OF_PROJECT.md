@@ -1,12 +1,14 @@
 # Reproduction Guide
 
-From cloning the repo to a populated, cleaned MongoDB. Pick the section for your OS.
+From cloning the repo to a populated, cleaned MongoDB with entity-resolution candidate
+pairs. Pick the section for your OS.
 Run every command **from the repository root** unless told otherwise.
 
 What you'll have at the end: MongoDB running locally on `localhost:27017` with three
 raw collections (`restaurants_raw_google`, `restaurants_raw_tripadvisor`,
 `restaurants_raw_thefork`) and three clean collections (`restaurants_clean_google`,
-`restaurants_clean_tripadvisor`, `restaurants_clean_thefork`).
+`restaurants_clean_tripadvisor`, `restaurants_clean_thefork`), plus the
+`entity_resolution_candidates` collection used for downstream matching review.
 
 **Prerequisites:** [Git](https://git-scm.com/) and
 [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
@@ -92,14 +94,34 @@ uv run thefork-clean
 
 See [Transform details](#transform-details) below for what each transform does.
 
-### 8. Verify
+### 8. Generate entity-resolution candidates
+
+Generate Google-anchored candidate pairs for entity resolution:
+
+```bash
+uv run dataman-entity-resolve --replace-destination \
+  --dmin-tripadvisor 0.58 \
+  --dmax-tripadvisor 0.63 \
+  --dmin-thefork 0.86 \
+  --dmax-thefork 0.94 \
+  --dmin-chain-tripadvisor 0.49 \
+  --dmax-chain-tripadvisor 0.52 \
+  --dmin-chain-thefork 0.76 \
+  --dmax-chain-thefork 0.79
+```
+
+See [Entity resolution candidate details](#entity-resolution-candidate-details) below
+for what this writes and how to inspect/calibrate it.
+
+### 9. Verify
 
 ```bash
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 ```
 
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
-`restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`.
+`restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
+`entity_resolution_candidates`.
 
 ---
 
@@ -204,14 +226,34 @@ uv run thefork-clean
 
 See [Transform details](#transform-details) below for what each transform does.
 
-### 8. Verify
+### 8. Generate entity-resolution candidates
+
+Generate Google-anchored candidate pairs for entity resolution:
+
+```powershell
+uv run dataman-entity-resolve --replace-destination `
+  --dmin-tripadvisor 0.58 `
+  --dmax-tripadvisor 0.63 `
+  --dmin-thefork 0.86 `
+  --dmax-thefork 0.94 `
+  --dmin-chain-tripadvisor 0.49 `
+  --dmax-chain-tripadvisor 0.52 `
+  --dmin-chain-thefork 0.76 `
+  --dmax-chain-thefork 0.79
+```
+
+See [Entity resolution candidate details](#entity-resolution-candidate-details) below
+for what this writes and how to inspect/calibrate it.
+
+### 9. Verify
 
 ```powershell
 docker exec -it dataman-mongo mongosh dataman --eval "db.getCollectionNames()"
 ```
 
 Expect: `restaurants_raw_google`, `restaurants_raw_tripadvisor`, `restaurants_raw_thefork`,
-`restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`.
+`restaurants_clean_google`, `restaurants_clean_tripadvisor`, `restaurants_clean_thefork`,
+`entity_resolution_candidates`.
 
 ---
 
@@ -441,3 +483,47 @@ Tripadvisor additionally reports geocoding counters:
 
 Google additionally reports relevance counters:
 `tier_restaurant`, `tier_cafe_bar_bakery`, `tier_non_dining`, `is_dining`, `dropped_junk`, `dropped_non_dining`.
+
+---
+
+## Entity resolution candidate details
+
+Candidate-pair generation starts after all three clean collections exist. Google is the
+anchor source: the service creates Google × Tripadvisor and Google × TheFork candidates,
+but it does not directly match Tripadvisor × TheFork.
+
+The reproducible command above writes to `dataman.entity_resolution_candidates`. Each
+candidate document stores the Google id, source id, blocking strategy, score, score
+components, effective thresholds, provisional `label`, chain flags, and `llm_label=null`
+for later manual/LLM adjudication.
+
+The current calibrated run produces **137,880** candidate pair documents:
+
+| Label | Count |
+|---|---:|
+| `MATCH` | 5,218 |
+| `NON_MATCH` | 131,655 |
+| `UNCERTAIN` | 906 |
+| `UNBLOCKABLE` | 101 |
+
+By source, this contains **4,303** Tripadvisor matches and **915** TheFork matches against
+the Google anchor pool. The remaining `UNCERTAIN` rows are the review queue for the
+future adjudication step; this collection is candidate/evidence data, not the final
+integrated restaurant table.
+
+Preview candidate volume without writing:
+
+```bash
+uv run dataman-entity-resolve --dry-run
+```
+
+Inspect the generated collection:
+
+```bash
+uv run python scripts/inspect_er_candidates.py
+```
+
+Threshold calibration is documented in
+[`services/transform/entity_resolution/README.md`](services/transform/entity_resolution/README.md).
+The root [`README.md`](README.md) records the current calibrated threshold values used in
+this guide.
