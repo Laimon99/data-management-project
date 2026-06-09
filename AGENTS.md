@@ -5,13 +5,14 @@ This file provides guidance to AI agents when working with code in this reposito
 Data Management project. The goal is to compare restaurant ratings across **Google Maps**, **Tripadvisor**, and **TheFork** for the Milan area — analyzing consistency, quality, and discrepancies.
 
 This repository has runnable extractors for all three sources — **Google Places**
-(seed acquisition), **Tripadvisor**, and **TheFork** — plus a runnable **MongoDB
-Load layer** (`services/load/mongo`), a **Tripadvisor transform**
-(clean + geocode, `services/transform/tripadvisor_clean`), a **Google Places transform**
-(clean + normalize + relevance-flag, `services/transform/google_clean`), and **Docker
-storage infrastructure** (MongoDB as system of record + a ClickHouse analytics
-scaffold). Entity resolution, unified dataset creation, and quality assessment are
-still in the planning/scaffolding phase. Refer to `docs/` for the current design intent.
+(seed acquisition), **Tripadvisor**, and **TheFork** — plus a **MongoDB Load layer**
+(`services/load/mongo`), transforms for all three platforms
+(`services/transform/{google,tripadvisor,thefork}_clean`), **entity resolution**
+(`services/transform/entity_resolution`), a **unified dataset** builder
+(`services/transform/unified_dataset`), a **quality assessment** service
+(`services/quality_assessment`), and **Docker storage infrastructure** (MongoDB as
+system of record + a ClickHouse analytics scaffold). Loading to ClickHouse and the
+final report/queries are still pending. Refer to `docs/` for design details.
 
 Services are grouped by pipeline stage: `services/extract/`, `services/load/`,
 `services/transform/` (PEP 420 namespace packages → imports like
@@ -36,6 +37,11 @@ docker compose up -d mongo           # start MongoDB (storage layer)
 uv run dataman-load all              # load raw files into MongoDB (Load layer)
 uv run tripadvisor-clean             # clean + geocode Tripadvisor → restaurants_clean_tripadvisor (transform)
 uv run google-clean                  # clean+normalize Google → restaurants_clean_google (transform)
+uv run thefork-clean                 # clean+normalize TheFork → restaurants_clean_thefork (transform)
+uv run dataman-entity-resolve        # entity resolution across all three platforms
+uv run dataman-er-calibrate          # calibrate entity resolution thresholds
+uv run dataman-unify                 # build unified dataset → restaurants_unified
+uv run quality-assessment            # run quality assessment on integrated data
 ```
 
 `target-version = "py311"`.
@@ -61,11 +67,11 @@ Five sequential stages — each should live in its own module/directory:
 
 2. **Per-platform data collection** — Tripadvisor extraction is implemented in `services/extract/tripadvisor_scraper` and TheFork extraction in `services/extract/thefork_scraper`. Each platform collects ratings and review counts independently into its own raw output/table. Raw files are then loaded into MongoDB by the **Load layer** (`services/load/mongo`, `uv run dataman-load`): a pure raw passthrough that idempotently upserts into `restaurants_raw_{google,tripadvisor,thefork}`, keyed on each source's natural id.
 
-3. **Entity resolution** — link platform records back to the seed via record linkage. Blocking by proximity + name/address similarity before any expensive matching step. Output: match, no match, uncertain. Measure false matches, missed matches, and ambiguous matches. Tripadvisor records (which lack coordinates) are cleaned and enriched with lat/lon beforehand by the **Tripadvisor transform** `services/transform/tripadvisor_clean` (`uv run tripadvisor-clean`, Mongo→Mongo): it normalizes/type-coerces the raw records and geocodes the cleaned address (Nominatim/OpenStreetMap) into `restaurants_clean_tripadvisor`, enabling proximity blocking. Geocoding is a sub-step of this transform, not a separate stage. The Google seed is cleaned beforehand by `services/transform/google_clean` (`uv run google-clean`, Mongo→Mongo) into `restaurants_clean_google`: it projects the lean fields out of the raw `details` blob, normalizes name/city, lifts structured address parts, copies the authoritative coordinates (never re-geocoded), and flags dining relevance (`is_dining` / `category_tier`) so non-dining noise (gas stations, supermarkets, hotels) can be excluded from matching.
+3. **Entity resolution** — implemented in `services/transform/entity_resolution` (`uv run dataman-entity-resolve`). Links platform records back to the seed via record linkage: blocking by proximity + name/address similarity, scoring, and calibration (`uv run dataman-er-calibrate`). Output: match, no match, uncertain. Prerequisites: all three platform transforms must run first. Tripadvisor records are enriched with lat/lon by `services/transform/tripadvisor_clean` (`uv run tripadvisor-clean`, Nominatim geocoding). Google seed is cleaned by `services/transform/google_clean` (`uv run google-clean`): projects lean fields, normalizes name/city, flags dining relevance (`is_dining` / `category_tier`). TheFork is cleaned by `services/transform/thefork_clean` (`uv run thefork-clean`).
 
-4. **Unified dataset** — single table joining all platform ratings per restaurant, with geographic coordinates. Must support at least two queries (e.g. rating difference > 1 star, avg rating by area).
+4. **Unified dataset** — implemented in `services/transform/unified_dataset` (`uv run dataman-unify`). Joins all platform ratings per resolved restaurant into `restaurants_unified`, with geographic coordinates. Supports queries such as rating difference > 1 star or avg rating by area.
 
-5. **Quality assessment** — evaluate completeness, consistency, uniqueness, timeliness. Show before/after metrics for at least: duplicate removal, name normalization, address standardization, low-review filtering.
+5. **Quality assessment** — implemented in `services/quality_assessment` (`uv run quality-assessment`). Evaluates completeness, consistency, uniqueness, timeliness. Pre-integration report is at `report/pre_integration/main.pdf`; post-integration assessment is pending.
 
 ---
 
