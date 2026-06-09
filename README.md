@@ -31,7 +31,7 @@
 - [ ] - Submit a project:
   - [ ] - Write a [report](report/) ([final](report/final/))
   - [ ] - Create a presentation
-  - [ ] - Create operational guide for reproduction of the project
+  - [ ] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
   - [ ] - Upload to Google Drive and send to the professor 
 
 ## 1️⃣ Domain & research questions
