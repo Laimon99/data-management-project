@@ -151,9 +151,29 @@ data\raw\thefork\thefork_milan_restaurants_enriched.json
 
 Make sure Docker Desktop is running, then:
 
+> **Reproduction feedback (Windows):** if `docker` is not recognized even though Docker
+> Desktop is installed, add Docker Desktop's CLI directory to the current PowerShell
+> session and verify it before continuing:
+>
+> ```powershell
+> Test-Path "C:\Program Files\Docker\Docker\resources\bin\docker.exe"
+> $env:Path = "C:\Program Files\Docker\Docker\resources\bin;$env:Path"
+> docker --version
+> docker compose version
+> ```
+
 ```powershell
 docker compose up -d mongo
 ```
+
+> **Reproduction feedback (Windows):** if the first run fails while downloading
+> `mongo:7`, for example with `failed to fetch oauth token` or `504 Gateway Timeout`,
+> pull the image manually and then retry:
+>
+> ```powershell
+> docker pull mongo:7
+> docker compose up -d mongo
+> ```
 
 Mongo is now on `localhost:27017`. Its data lives in a Docker volume and survives restarts.
 
