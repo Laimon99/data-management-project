@@ -24,12 +24,11 @@
   - [x] - [schemas matching](services/transform/entity_resolution/) ([schema-matching.md](docs/schema-matching.md), [schema-correspondences.md](docs/schema-correspondences.md))
   - [x] - [schemas integration](services/transform/unified_dataset/)
     - [x] - [Probabilistic record linkage / entity matching](services/transform/entity_resolution)
-    - [ ] LLM-based record linkage labelling on uncertain pairs
-- [ ] - [Data profiling / data quality](services/quality_assessment/)
-  - [x] - [pre integration](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
-  - [x] - [post integration](docs/post-integration-assessment.md) ([report](report/post_integration/main.pdf))
+    - [x] LLM-based record linkage labelling on uncertain pairs
+- [x] - [Data profiling / data quality](services/quality_assessment/) on [pre-integration raw data](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
+- [x] - [Integration quality assessment](docs/post-integration-assessment.md) ([report](report/post_integration/main.pdf))
 - [x] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml) ([clickhouse loader](services/load/clickhouse/))
-- [ ] - Make atleast 2 queries on final dataset to answer some questions
+- [ ] - Make at least 2 queries on the final dataset to answer some questions
 - [ ] - Submit a project:
   - [ ] - Write a [final report](report/final/)
   - [ ] - Create a [presentation](report/final/)
