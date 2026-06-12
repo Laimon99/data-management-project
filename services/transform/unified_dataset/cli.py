@@ -38,6 +38,11 @@ def unify(
         "--skip-links",
         help="Reuse existing entity_resolution_links and rebuild only restaurants_integrated.",
     ),
+    source: str = typer.Option(
+        "all",
+        "--source",
+        help="Restrict link selection to one platform: tripadvisor, thefork, or all (default).",
+    ),
 ) -> None:
     """Create ER links and the Google-seeded integrated restaurant collection."""
 
@@ -66,6 +71,7 @@ def unify(
             dry_run=dry_run,
             replace_destination=replace_destination,
             skip_links=skip_links,
+            source=source,
         )
     except PyMongoError as exc:
         typer.echo(f"MongoDB error: {exc}", err=True)

@@ -632,8 +632,8 @@ If you need to debug the final build separately after deterministic matching and
 LLM adjudication, use:
 
 ```bash
-uv run dataman-build-integrated --dry-run
-uv run dataman-build-integrated --replace-destination
+uv run dataman-unify --dry-run
+uv run dataman-unify --replace-destination
 ```
 
 This writes `entity_resolution_links` and rebuilds `restaurants_integrated`. The final

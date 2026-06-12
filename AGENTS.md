@@ -10,7 +10,8 @@ This repository has runnable extractors for all three sources — **Google Place
 (`services/transform/{google,tripadvisor,thefork}_clean`), **entity resolution**
 (`services/transform/entity_resolution`), a **unified dataset** builder
 (`services/transform/unified_dataset`), a **quality assessment** service
-(`services/quality_assessment`), a **ClickHouse Load layer** (`services/load/clickhouse`)
+(`services/quality_assessment`), a **post-integration assessment** service
+(`services/integration_assessment`), a **ClickHouse Load layer** (`services/load/clickhouse`)
 that loads the cleaned and integrated collections from MongoDB into four flat ClickHouse
 analytics tables, and **Docker storage infrastructure** (MongoDB as system of record +
 ClickHouse analytics behind the `analytics` profile). The final report/queries are still
@@ -42,8 +43,10 @@ uv run google-clean                  # clean+normalize Google → restaurants_cl
 uv run thefork-clean                 # clean+normalize TheFork → restaurants_clean_thefork (transform)
 uv run dataman-entity-resolve        # entity resolution across all three platforms
 uv run dataman-er-calibrate          # calibrate entity resolution thresholds
-uv run dataman-unify                 # build unified dataset → restaurants_unified
-uv run quality-assessment            # run quality assessment on integrated data
+uv run dataman-llm-pipeline --mode openai --apply  # optional: LLM adjudication of uncertain candidates
+uv run dataman-unify --replace-destination         # build unified dataset → entity_resolution_links + restaurants_integrated
+uv run quality-assessment            # pre-integration data quality assessment
+uv run integration-assessment        # post-integration ER error and enrichment assessment
 docker compose --profile analytics up -d clickhouse  # start ClickHouse (analytics layer)
 uv run dataman-load-clickhouse all   # load cleaned + integrated collections → ClickHouse
 ```
@@ -75,7 +78,7 @@ Five sequential stages — each should live in its own module/directory:
 
 4. **Unified dataset** — implemented in `services/transform/unified_dataset` (`uv run dataman-unify`). Joins all platform ratings per resolved restaurant into `restaurants_unified`, with geographic coordinates. Supports queries such as rating difference > 1 star or avg rating by area.
 
-5. **Quality assessment** — implemented in `services/quality_assessment` (`uv run quality-assessment`). Evaluates completeness, consistency, uniqueness, timeliness. Pre-integration report is at `report/pre_integration/main.pdf`; post-integration assessment is pending.
+5. **Quality assessment** — two services. Pre-integration: `services/quality_assessment` (`uv run quality-assessment`) evaluates completeness, consistency, uniqueness, timeliness; report at `report/pre_integration/main.pdf`. Post-integration: `services/integration_assessment` (`uv run integration-assessment`) measures entity-resolution classifier error, one-to-one link survival, and Tripadvisor geocoding error against hand-labeled gold CSVs; report at `docs/post-integration-assessment.md`.
 
 ---
 

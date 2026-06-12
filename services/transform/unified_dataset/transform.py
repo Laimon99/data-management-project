@@ -14,6 +14,7 @@ from pymongo.errors import PyMongoError
 
 from .config import UnifiedSettings
 
+SOURCE_ALL = "all"
 SOURCE_TRIPADVISOR = "tripadvisor"
 SOURCE_THEFORK = "thefork"
 SOURCES = (SOURCE_TRIPADVISOR, SOURCE_THEFORK)
@@ -138,7 +139,15 @@ def _as_float(value: Any) -> float | None:
         return None
 
 
-def _sort_key(candidate: dict[str, Any]) -> tuple[int, float, int, float, float]:
+def _selected_sources(source: str) -> tuple[str, ...]:
+    if source == SOURCE_ALL:
+        return SOURCES
+    if source in SOURCES:
+        return (source,)
+    raise ValueError(f"source must be one of: {', '.join(SOURCES)}, all")
+
+
+def _sort_key(candidate: dict[str, Any]) -> tuple[int, float, int, float, float, str]:
     components = candidate.get("components") or {}
     score = _as_float(candidate.get("score"))
     geo_dist_m = _as_float(components.get("geo_dist_m"))
@@ -149,6 +158,7 @@ def _sort_key(candidate: dict[str, Any]) -> tuple[int, float, int, float, float]
         1 if not _is_blank(candidate.get("fast_path")) else 0,
         float("-inf") if geo_dist_m is None else -geo_dist_m,
         -1.0 if name_sim is None else name_sim,
+        str(candidate.get("_id", "")),
     )
 
 
@@ -306,6 +316,13 @@ def _source_conflict_flag(source: str) -> str:
     return f"multiple_{source}_matches"
 
 
+def _match_confidence(candidate: dict[str, Any]) -> float | None:
+    llm_label = candidate.get("llm_label")
+    if not _is_blank(llm_label) and candidate.get("llm_confidence") is not None:
+        return _as_float(candidate.get("llm_confidence"))
+    return _as_float(candidate.get("score"))
+
+
 def _link_doc(
     candidate: dict[str, Any],
     *,
@@ -331,6 +348,7 @@ def _link_doc(
         "label": label,
         "llm_label": llm_label,
         "match_method": method,
+        "match_confidence": _match_confidence(candidate),
         "score": candidate.get("score"),
         "dmin": candidate.get("dmin"),
         "dmax": candidate.get("dmax"),
@@ -430,12 +448,16 @@ def select_links_for_source(
     return links, report
 
 
-def select_links(candidates_collection: Any) -> tuple[list[dict[str, Any]], list[SourceLinkReport]]:
+def select_links(
+    candidates_collection: Any,
+    source: str = SOURCE_ALL,
+) -> tuple[list[dict[str, Any]], list[SourceLinkReport]]:
     """Select links for Tripadvisor and TheFork from the candidate collection."""
+    selected_sources = _selected_sources(source)
     candidates = list(
         candidates_collection.find(
             {
-                "source": {"$in": list(SOURCES)},
+                "source": {"$in": list(selected_sources)},
                 "$or": [{"label": MATCH}, {"llm_label": MATCH}],
                 "llm_label": {"$ne": "NON_MATCH"},
             }
@@ -444,8 +466,8 @@ def select_links(candidates_collection: Any) -> tuple[list[dict[str, Any]], list
     links: list[dict[str, Any]] = []
     reports: list[SourceLinkReport] = []
     now = datetime.now(UTC)
-    for source in SOURCES:
-        source_links, source_report = select_links_for_source(candidates, source, now=now)
+    for src in selected_sources:
+        source_links, source_report = select_links_for_source(candidates, src, now=now)
         links.extend(source_links)
         reports.append(source_report)
     return links, reports
@@ -834,9 +856,11 @@ def unify_collections(
     dry_run: bool = False,
     replace_destination: bool = False,
     skip_links: bool = False,
+    source: str = SOURCE_ALL,
     writer: Writer = bulk_replace,
 ) -> UnifiedRunReport:
     """Build selected ER links and the final Google-seeded integrated collection."""
+    selected_sources = _selected_sources(source)
     report = UnifiedRunReport(
         dry_run=dry_run,
         replace_destination=replace_destination,
@@ -846,7 +870,7 @@ def unify_collections(
     if skip_links:
         links = list(links_collection.find({"source": {"$in": list(SOURCES)}}))
     else:
-        links, link_reports = select_links(candidates_collection)
+        links, link_reports = select_links(candidates_collection, source)
         report.links = link_reports
         if not dry_run:
             for source_report in report.links:
@@ -863,6 +887,10 @@ def unify_collections(
                     writer,
                     replace=replace_destination,
                 )
+            if source != SOURCE_ALL:
+                other_sources = [s for s in SOURCES if s not in selected_sources]
+                existing_other = list(links_collection.find({"source": {"$in": other_sources}}))
+                links = links + existing_other
 
     integrated_docs, integrated_report = build_integrated_docs(
         google_collection,

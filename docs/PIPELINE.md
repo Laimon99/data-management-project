@@ -342,20 +342,22 @@ not run scraping, raw loading, cleaning, or deterministic entity resolution.
 ## Step 5 – Unified Dataset Construction
 
 Candidate pairs are still not final restaurant records. The implemented service is
-`transform.integrated_dataset` (`uv run dataman-build-integrated`). It first collapses
-candidate pairs into resolved links, then populates the integrated MongoDB collection.
+`transform.unified_dataset` (`uv run dataman-unify`). It first collapses candidate pairs
+into resolved links, then populates the integrated MongoDB collection with nested
+per-source evidence and top-level analytical fields.
 
 Use this service directly only when you want to rebuild the final dataset without
 rerunning LLM adjudication:
 
 ```bash
-uv run dataman-build-integrated --dry-run
-uv run dataman-build-integrated --replace-destination
+uv run dataman-unify --dry-run
+uv run dataman-unify --replace-destination
 ```
 
 `--replace-destination` is the recommended final run because it rebuilds
 `entity_resolution_links` for the selected source scope and rewrites
-`restaurants_integrated` from the current candidate collection.
+`restaurants_integrated` from the current candidate collection. You can also restrict
+the rebuild to a single platform with `--source tripadvisor` or `--source thefork`.
 
 **Implemented service:**
 

@@ -12,7 +12,6 @@ from pymongo import MongoClient
 from pymongo.errors import PyMongoError
 
 from transform.entity_resolution_llm.config import LlmERSettings
-from transform.integrated_dataset.config import IntegratedSettings
 
 from .transform import run_pipeline_collections
 
@@ -55,7 +54,7 @@ def run(
     apply: bool = typer.Option(
         False,
         "--apply",
-        help="Write LLM decisions and rebuild entity_resolution_links/restaurants_integrated.",
+        help="Write LLM decisions back to entity_resolution_candidates.",
     ),
     force: bool = typer.Option(
         False,
@@ -66,7 +65,7 @@ def run(
         None,
         "--limit",
         "-n",
-        help="Only process the first N source-venue groups before rebuilding the dataset.",
+        help="Only process the first N source-venue groups.",
     ),
     max_candidates: int | None = typer.Option(
         None,
@@ -90,13 +89,8 @@ def run(
         "--output-jsonl",
         help="Write prompt records or LLM result records to a JSONL audit file.",
     ),
-    replace_destination: bool = typer.Option(
-        True,
-        "--replace-destination/--no-replace-destination",
-        help="Rebuild resolved links and restaurants_integrated after applying LLM decisions.",
-    ),
 ) -> None:
-    """Run LLM adjudication and final integrated-dataset construction in one command."""
+    """Run LLM adjudication and write llm_label decisions to entity_resolution_candidates."""
 
     _configure_logging()
     if mode == ModeOption.dry_run and apply:
@@ -104,7 +98,6 @@ def run(
         raise typer.Exit(code=2)
 
     llm_settings = LlmERSettings()
-    integrated_settings = IntegratedSettings()
     if max_candidates is not None:
         llm_settings.max_candidates = max_candidates
     if model is not None:
@@ -116,24 +109,19 @@ def run(
     try:
         client = MongoClient(llm_settings.mongo_uri, serverSelectionTimeoutMS=5000)
         client.admin.command("ping")
-        llm_db = client[llm_settings.mongo_db]
-        integrated_db = client[integrated_settings.mongo_db]
+        db = client[llm_settings.mongo_db]
         report = run_pipeline_collections(
-            llm_db[llm_settings.google_collection],
-            llm_db[llm_settings.tripadvisor_collection],
-            llm_db[llm_settings.thefork_collection],
-            llm_db[llm_settings.candidates_collection],
-            integrated_db[integrated_settings.links_collection],
-            integrated_db[integrated_settings.integrated_collection],
+            db[llm_settings.google_collection],
+            db[llm_settings.tripadvisor_collection],
+            db[llm_settings.thefork_collection],
+            db[llm_settings.candidates_collection],
             llm_settings,
-            integrated_settings,
             mode=mode.value,
             source=source.value,
             apply=apply,
             force=force,
             limit=limit,
             output_jsonl=output_jsonl,
-            replace_destination=replace_destination,
         )
     except PyMongoError as exc:
         typer.echo(f"MongoDB error: {exc}", err=True)

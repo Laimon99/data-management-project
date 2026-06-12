@@ -5,10 +5,11 @@ Services are grouped by **pipeline stage** — `extract/`, `load/`, `transform/`
 ```
 services/
   extract/   google_places_api/  tripadvisor_scraper/  thefork_scraper/
-  load/      mongo/
+  load/      mongo/  clickhouse/
   transform/ google_clean/  tripadvisor_clean/  thefork_clean/
-             entity_resolution/  entity_resolution_llm/  integrated_dataset/
+             entity_resolution/  entity_resolution_llm/
              llm_matching_pipeline/  unified_dataset/
+  quality_assessment/  integration_assessment/
 ```
 
 ## Implemented services
@@ -137,21 +138,6 @@ See `transform/entity_resolution_llm/README.md`.
 
 ---
 
-### `transform/integrated_dataset` — Stage 4: Final integrated Mongo dataset
-Collapses `MATCH` candidates into one-to-one resolved links and rebuilds the final
-Google-seeded `restaurants_integrated` collection. The final decision rule is
-`llm_label` when present, otherwise the deterministic `label`.
-
-```bash
-uv run dataman-build-integrated --dry-run
-uv run dataman-build-integrated --replace-destination
-```
-
-The service writes `entity_resolution_links` and `restaurants_integrated`. See
-`transform/integrated_dataset/README.md`.
-
----
-
 ### `transform/unified_dataset` — Stage 4: Unified analytical dataset
 Selects one-to-one resolved Google x Tripadvisor and Google x TheFork links, then writes
 the Google-seeded integrated ratings collection with nested source evidence and
@@ -197,8 +183,9 @@ uv run dataman-llm-pipeline --mode mock --limit 10 --apply
 DATAMAN_OPENAI_API_KEY=... uv run dataman-llm-pipeline --mode openai --apply
 ```
 
-With `--apply`, the command updates `entity_resolution_candidates`, writes
-`entity_resolution_links`, and rebuilds `restaurants_integrated`.
+With `--apply`, the command writes `llm_label` decisions back to
+`entity_resolution_candidates`. Run `dataman-unify --replace-destination`
+afterwards to rebuild the final dataset.
 
 See `transform/llm_matching_pipeline/README.md`.
 
@@ -221,6 +208,24 @@ The full PDF report can be regenerated from the repository root with:
 ```bash
 powershell -ExecutionPolicy Bypass -File ./report/pre_integration/build_report.ps1
 ```
+
+---
+
+### `integration_assessment` — Stage 5b: Post-Integration Assessment
+Measures entity-resolution classifier error, one-to-one link survival, and
+Tripadvisor geocoding error against hand-labeled gold CSVs. Runs after
+`dataman-unify`.
+
+```bash
+uv run integration-assessment
+uv run integration-assessment \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_normal.csv \
+  --in-calibration-gold-csv data/quality/entity_resolution_calibration_chains.csv \
+  --gold-csv data/quality/my_out_of_sample_gold.csv
+```
+
+Outputs: `data/quality/integration_assessment/`, `docs/post-integration-assessment.md`,
+`report/post_integration/tables/*.tex`. See `integration_assessment/README.md`.
 
 ---
 
