@@ -27,6 +27,13 @@ dev = [
     "pre-commit>=3.7",
     "mongomock>=4.1",
 ]
+analysis = [
+    "jupyter>=1.0",
+    "nbconvert>=7.16",
+    "plotly>=5.22",
+    "pandas>=2.2",
+    "kaleido>=0.2",
+]
 
 [project.scripts]
 google-places-api-extract = "extract.google_places_api.cli:app"
@@ -68,6 +75,7 @@ build-backend = "hatchling.build"
 "services/transform/common" = "transform/common"
 "services/quality_assessment" = "quality_assessment"
 "services/integration_assessment" = "integration_assessment"
+"services/analysis" = "analysis"
 
 [tool.ruff]
 line-length = 100
@@ -77,7 +85,7 @@ target-version = "py312"
 select = ["E", "F", "I"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["extract", "load", "transform", "quality_assessment", "integration_assessment"]
+known-first-party = ["extract", "load", "transform", "quality_assessment", "integration_assessment", "analysis"]
 
 [tool.pytest.ini_options]
 pythonpath = ["services"]
