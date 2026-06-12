@@ -56,6 +56,16 @@ The project focuses on restaurants located in **Milan and surrounding municipali
 > * Does inconsistency increase for smaller or less popular restaurants?
 > * Does geographic location (center vs periphery) affect data completeness?
 
+### Extended questions (feature-driven)
+
+These exploit the richer attributes of the integrated dataset (cuisine, price,
+platform coverage, visual content) beyond ratings alone.
+
+> 5. **Does rating consistency or level vary by cuisine type?** (cuisine labels from Tripadvisor/TheFork)
+> 6. **Do higher-priced restaurants receive higher or more consistent ratings?** (price band/level/avg price across platforms)
+> 7. **Are restaurants listed on more platforms rated differently** — a visibility/selection effect? (rating vs platform coverage)
+> 8. **Does the amount of visual content (photo count) track review volume or rating?** (per-platform photo counts)
+
 ---
 
 
