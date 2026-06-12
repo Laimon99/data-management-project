@@ -1,11 +1,29 @@
 {
   "version": 1,
   "skills": {
+    "data-analyst": {
+      "source": "shubhamsaboo/awesome-llm-apps",
+      "sourceType": "github",
+      "skillPath": "awesome_agent_skills/data-analyst/SKILL.md",
+      "computedHash": "4fd5f18349b1eea7d7026e7d8a5d22b7856477ffb6796de9cdc68e374777a8c2"
+    },
+    "data-visualization": {
+      "source": "owl-listener/designer-skills",
+      "sourceType": "github",
+      "skillPath": "ui-design/skills/data-visualization/SKILL.md",
+      "computedHash": "640f408d628fa774fd6300038bc555248159f0e60387aff374f00c620254535d"
+    },
     "fun-brainstorming": {
       "source": "roin-orca/skills",
       "sourceType": "github",
       "skillPath": "skills/fun-brainstorming/SKILL.md",
       "computedHash": "b1873510f9c511f65db575ffb5721b6caa8bac4cf4f81515618b339186f6ca56"
+    },
+    "plotly": {
+      "source": "tondevrel/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/plotly/SKILL.md",
+      "computedHash": "6afa68dddeda5177f25ce5099024781c5ea47a00b11bd1c8f65117c31a810e2e"
     }
   }
 }
