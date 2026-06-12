@@ -1,0 +1,4 @@
+pair,venues,mean_abs_diff,median_abs_diff,pct_within_0_5,pct_within_1_0
+google vs thefork,886,0.246,0.2,92.7,99.2
+google vs tripadvisor,3913,0.494,0.4,66.9,89.9
+tripadvisor vs thefork,729,0.482,0.4,62.0,92.3

@@ -1,0 +1,4 @@
+pair,venues,mean_signed_diff
+google - thefork,886,-0.068
+google - tripadvisor,3913,0.352
+tripadvisor - thefork,729,-0.371
