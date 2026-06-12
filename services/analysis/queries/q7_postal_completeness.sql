@@ -7,7 +7,7 @@ SELECT
     round(100 * avgIf(google_has_website, has_google = 1), 1) AS pct_google_website,
     round(avg(ifNull(google_photo_count, 0)), 1) AS mean_google_photos
 FROM {INTEGRATED}
-WHERE canonical_postal_code != ''
+WHERE canonical_city = 'Milano' AND canonical_postal_code != ''
 GROUP BY postal_code
 HAVING restaurants >= {min_restaurants}
 ORDER BY restaurants DESC

@@ -162,6 +162,8 @@ def test_q7_uses_real_completeness_not_coordinates():
     # Coordinates must NOT be used as a completeness metric (TA coords were
     # enriched downstream via Nominatim).
     assert "has_coordinates" not in sql
+    # The Google seed includes out-of-area venues; the geo cut is Milan-only.
+    assert "canonical_city = 'Milano'" in sql
 
 
 def test_q9_groups_by_normalized_price_tier():

@@ -13,3 +13,4 @@ SELECT
     google_review_count, tripadvisor_review_count, thefork_review_count,
     rating_range_5
 FROM {INTEGRATED}
+WHERE canonical_city = 'Milano'
