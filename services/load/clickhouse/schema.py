@@ -44,6 +44,29 @@ CREATE TABLE IF NOT EXISTS {db}.restaurants_integrated
     google_review_count       Nullable(Int64),
     tripadvisor_review_count  Nullable(Int64),
     thefork_review_count      Nullable(Int64),
+    -- Per-platform photo counts (visual-content richness; lifted from sources.*)
+    google_photo_count        Nullable(Int64),
+    tripadvisor_photo_count   Nullable(Int64),
+    thefork_photo_count       Nullable(Int64),
+    -- Per-platform contact completeness (presence of website/phone/email per source)
+    google_has_website        UInt8,
+    google_has_phone          UInt8,
+    tripadvisor_has_website   UInt8,
+    tripadvisor_has_phone     UInt8,
+    tripadvisor_has_email     UInt8,
+    -- Cuisine labels (Tripadvisor / TheFork vocabularies kept separate)
+    tripadvisor_cuisines      Array(String),
+    thefork_cuisines          Array(String),
+    primary_cuisine           String,
+    -- Per-platform price + normalized cross-platform tier (1=cheapest .. 4)
+    google_price_level        String,
+    tripadvisor_price_band    String,
+    tripadvisor_price_tier_level  Nullable(Int64),
+    thefork_avg_price_eur     Nullable(Int64),
+    price_tier                Nullable(Int64),
+    -- Google classification (dining relevance)
+    google_category_tier      String,
+    google_is_dining          UInt8,
     -- Top-level contact / price (coerced to flat Strings)
     website                   String,
     website_source            String,

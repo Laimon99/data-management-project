@@ -82,6 +82,16 @@ MongoDB). Key analytical columns:
 | `rating_avg_5` | Nullable(Float64) | Mean of available `_5` ratings |
 | `rating_range_5` | Nullable(Float64) | max − min spread (key for discrepancy queries) |
 | `google_review_count` / `tripadvisor_review_count` / `thefork_review_count` | Nullable(Int64) | |
+| `google_photo_count` / `tripadvisor_photo_count` / `thefork_photo_count` | Nullable(Int64) | Per-platform photo counts (visual-content richness) |
+| `google_has_website` / `google_has_phone` | UInt8 | Google contact completeness (from `sources.google.contacts`) |
+| `tripadvisor_has_website` / `tripadvisor_has_phone` / `tripadvisor_has_email` | UInt8 | Tripadvisor contact completeness |
+| `tripadvisor_cuisines` / `thefork_cuisines` | Array(String) | Cuisine labels (platform-native vocabularies, kept separate) |
+| `primary_cuisine` | String | First cuisine label, Tripadvisor preferred then TheFork |
+| `google_price_level` | String | Google categorical level, e.g. `PRICE_LEVEL_MODERATE` |
+| `tripadvisor_price_band` / `tripadvisor_price_tier_level` | String / Nullable(Int64) | Tripadvisor euro band and its 1–4 tier |
+| `thefork_avg_price_eur` | Nullable(Int64) | TheFork average price (EUR) |
+| `price_tier` | Nullable(Int64) | Normalized cross-platform price tier 1–4 (Tripadvisor tier → Google level → TheFork EUR bins) |
+| `google_category_tier` / `google_is_dining` | String / UInt8 | Google dining-relevance classification |
 | `price_level` | String | Normalized; list-tie coerced to `"val1 / val2"` |
 | `integration_flags` | Array(String) | Audit flags from the integration step |
 | `updated_at` | DateTime | From MongoDB `_updated_at` |
@@ -89,7 +99,10 @@ MongoDB). Key analytical columns:
 The **source join-key columns** (`google_place_id`, `tripadvisor_source_url`,
 `thefork_source_id`) are extracted from the nested `sources.*.ids` sub-documents during
 projection so the three cleaned tables can be joined back for per-platform detail without
-reloading the full nested evidence:
+reloading the full nested evidence. The per-platform **photo / contact / cuisine / price**
+columns above are likewise lifted from the nested `sources.*` evidence (photo_count,
+contacts, cuisines, price, classification), so the most common analytical features are
+available directly on `restaurants_integrated` without a join:
 
 ```sql
 -- Example: join integrated → clean_google for category_tier
@@ -188,7 +201,9 @@ services/load/clickhouse/
 `projections.py` contains one pure `project_*(doc) -> dict | None` function per collection.
 Responsibilities:
 - Extract flat columns; for `restaurants_integrated`, lift source join-keys from
-  `sources.*.ids` nested sub-documents.
+  `sources.*.ids` and per-platform features (photo counts, contact-presence flags,
+  cuisines, price band/level, and the normalized `price_tier`) from the nested
+  `sources.*` sub-documents.
 - Coerce `price_level` string-or-list → `String` (list joined with `" / "`).
 - Map Python booleans → `UInt8` (0/1).
 - Pass `None` through for `Nullable` columns.

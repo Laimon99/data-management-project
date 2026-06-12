@@ -67,6 +67,68 @@ def _nested(doc: dict[str, Any], *keys: str) -> Any:
     return cur
 
 
+def _int_or_none(val: Any) -> int | None:
+    """Coerce to int; map None/non-numeric to None."""
+    if val is None:
+        return None
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        return None
+
+
+def _present(doc: dict[str, Any], *keys: str) -> int:
+    """1 when the nested value is a non-empty string, else 0 (contact presence)."""
+    return 1 if _str(_nested(doc, *keys)).strip() else 0
+
+
+# Google's categorical price level → normalized 1..4 tier.
+_GOOGLE_PRICE_TIER = {
+    "PRICE_LEVEL_INEXPENSIVE": 1,
+    "PRICE_LEVEL_MODERATE": 2,
+    "PRICE_LEVEL_EXPENSIVE": 3,
+    "PRICE_LEVEL_VERY_EXPENSIVE": 4,
+}
+
+
+def _thefork_price_tier(avg_price_eur: Any) -> int | None:
+    """Bin TheFork's average price (EUR) into a 1..4 tier."""
+    eur = _int_or_none(avg_price_eur)
+    if eur is None:
+        return None
+    if eur <= 15:
+        return 1
+    if eur <= 30:
+        return 2
+    if eur <= 50:
+        return 3
+    return 4
+
+
+def _price_tier(doc: dict[str, Any]) -> int | None:
+    """Normalized cross-platform price tier (1=cheapest..4).
+
+    Prefers Tripadvisor's 1..4 band (most directly comparable), then Google's
+    categorical level, then a binning of TheFork's average EUR price.
+    """
+    ta = _int_or_none(_nested(doc, "sources", "tripadvisor", "price", "price_tier_level"))
+    if ta:
+        return ta
+    google_level = _str(_nested(doc, "sources", "google", "price", "price_level"))
+    if google_level in _GOOGLE_PRICE_TIER:
+        return _GOOGLE_PRICE_TIER[google_level]
+    return _thefork_price_tier(_nested(doc, "sources", "thefork", "price", "avg_price_eur"))
+
+
+def _primary_cuisine(doc: dict[str, Any]) -> str:
+    """First cuisine label, preferring Tripadvisor (broadest vocabulary)."""
+    for platform in ("tripadvisor", "thefork"):
+        cuisines = _array_of_str(_nested(doc, "sources", platform, "cuisines"))
+        if cuisines:
+            return cuisines[0]
+    return ""
+
+
 # ---------------------------------------------------------------------------
 # Integrated
 # ---------------------------------------------------------------------------
@@ -100,6 +162,24 @@ INTEGRATED_COLUMNS: list[str] = [
     "google_review_count",
     "tripadvisor_review_count",
     "thefork_review_count",
+    "google_photo_count",
+    "tripadvisor_photo_count",
+    "thefork_photo_count",
+    "google_has_website",
+    "google_has_phone",
+    "tripadvisor_has_website",
+    "tripadvisor_has_phone",
+    "tripadvisor_has_email",
+    "tripadvisor_cuisines",
+    "thefork_cuisines",
+    "primary_cuisine",
+    "google_price_level",
+    "tripadvisor_price_band",
+    "tripadvisor_price_tier_level",
+    "thefork_avg_price_eur",
+    "price_tier",
+    "google_category_tier",
+    "google_is_dining",
     "website",
     "website_source",
     "website_match_status",
@@ -155,6 +235,41 @@ def project_integrated(doc: dict[str, Any]) -> dict[str, Any] | None:
         "google_review_count": doc.get("google_review_count"),
         "tripadvisor_review_count": doc.get("tripadvisor_review_count"),
         "thefork_review_count": doc.get("thefork_review_count"),
+        # Per-platform photo counts (lifted from nested sources.*)
+        "google_photo_count": _int_or_none(_nested(doc, "sources", "google", "photo_count")),
+        "tripadvisor_photo_count": _int_or_none(
+            _nested(doc, "sources", "tripadvisor", "photo_count")
+        ),
+        "thefork_photo_count": _int_or_none(_nested(doc, "sources", "thefork", "photo_count")),
+        # Per-platform contact completeness
+        "google_has_website": _present(doc, "sources", "google", "contacts", "website"),
+        "google_has_phone": _present(doc, "sources", "google", "contacts", "phone"),
+        "tripadvisor_has_website": _present(doc, "sources", "tripadvisor", "contacts", "website"),
+        "tripadvisor_has_phone": _present(doc, "sources", "tripadvisor", "contacts", "phone"),
+        "tripadvisor_has_email": _present(doc, "sources", "tripadvisor", "contacts", "email"),
+        # Cuisine labels
+        "tripadvisor_cuisines": _array_of_str(_nested(doc, "sources", "tripadvisor", "cuisines")),
+        "thefork_cuisines": _array_of_str(_nested(doc, "sources", "thefork", "cuisines")),
+        "primary_cuisine": _primary_cuisine(doc),
+        # Per-platform price + normalized tier
+        "google_price_level": _str(_nested(doc, "sources", "google", "price", "price_level")),
+        "tripadvisor_price_band": _str(
+            _nested(doc, "sources", "tripadvisor", "price", "price_band")
+        ),
+        "tripadvisor_price_tier_level": _int_or_none(
+            _nested(doc, "sources", "tripadvisor", "price", "price_tier_level")
+        ),
+        "thefork_avg_price_eur": _int_or_none(
+            _nested(doc, "sources", "thefork", "price", "avg_price_eur")
+        ),
+        "price_tier": _price_tier(doc),
+        # Google classification
+        "google_category_tier": _str(
+            _nested(doc, "sources", "google", "classification", "category_tier")
+        ),
+        "google_is_dining": _bool_to_u8(
+            _nested(doc, "sources", "google", "classification", "is_dining")
+        ),
         "website": _str(doc.get("website")),
         "website_source": _str(doc.get("website_source")),
         "website_match_status": _str(doc.get("website_match_status")),

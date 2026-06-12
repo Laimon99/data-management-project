@@ -201,6 +201,79 @@ def test_integrated_happy_path():
     assert isinstance(row["updated_at"], datetime)
 
 
+def test_integrated_projects_per_platform_features():
+    doc = _integrated_doc(
+        sources={
+            "google": {
+                "ids": {"place_id": "ChIJabc"},
+                "photo_count": 10,
+                "contacts": {"website": "https://g.it", "phone": "+39 02 1"},
+                "price": {"price_level": "PRICE_LEVEL_MODERATE"},
+                "classification": {"category_tier": "restaurant", "is_dining": True},
+            },
+            "tripadvisor": {
+                "ids": {"source_url": "https://ta.com/r1"},
+                "photo_count": 2730,
+                "contacts": {"website": "https://ta.it", "email": "x@y.it"},
+                "price": {"price_band": "€€-€€€", "price_tier_level": 2},
+                "cuisines": ["Italiana", "Pizza"],
+            },
+            "thefork": {
+                "ids": {"source_id": "tf:99"},
+                "photo_count": 43,
+                "price": {"avg_price_eur": 25},
+                "cuisines": ["Di Carne"],
+            },
+        }
+    )
+    row = project_integrated(doc)
+    assert row is not None
+    assert row["google_photo_count"] == 10
+    assert row["tripadvisor_photo_count"] == 2730
+    assert row["thefork_photo_count"] == 43
+    assert row["google_has_website"] == 1
+    assert row["google_has_phone"] == 1
+    assert row["tripadvisor_has_website"] == 1
+    assert row["tripadvisor_has_phone"] == 0  # absent in contacts
+    assert row["tripadvisor_has_email"] == 1
+    assert row["tripadvisor_cuisines"] == ["Italiana", "Pizza"]
+    assert row["thefork_cuisines"] == ["Di Carne"]
+    assert row["primary_cuisine"] == "Italiana"  # Tripadvisor preferred
+    assert row["google_price_level"] == "PRICE_LEVEL_MODERATE"
+    assert row["tripadvisor_price_band"] == "€€-€€€"
+    assert row["tripadvisor_price_tier_level"] == 2
+    assert row["thefork_avg_price_eur"] == 25
+    assert row["price_tier"] == 2  # Tripadvisor tier preferred
+    assert row["google_category_tier"] == "restaurant"
+    assert row["google_is_dining"] == 1
+
+
+def test_integrated_per_platform_features_default_when_absent():
+    doc = _integrated_doc()
+    doc["sources"] = {}
+    row = project_integrated(doc)
+    assert row is not None
+    assert row["google_photo_count"] is None
+    assert row["tripadvisor_has_website"] == 0
+    assert row["tripadvisor_cuisines"] == []
+    assert row["primary_cuisine"] == ""
+    assert row["price_tier"] is None
+    assert row["google_is_dining"] == 0
+
+
+def test_integrated_price_tier_falls_back_to_google_then_thefork():
+    google_only = _integrated_doc(
+        sources={"google": {"price": {"price_level": "PRICE_LEVEL_EXPENSIVE"}}}
+    )
+    assert project_integrated(google_only)["price_tier"] == 3
+
+    thefork_only = _integrated_doc(sources={"thefork": {"price": {"avg_price_eur": 60}}})
+    assert project_integrated(thefork_only)["price_tier"] == 4
+
+    thefork_cheap = _integrated_doc(sources={"thefork": {"price": {"avg_price_eur": 12}}})
+    assert project_integrated(thefork_cheap)["price_tier"] == 1
+
+
 def test_integrated_price_level_list_coercion():
     doc = _integrated_doc(price_level=["moderate", "expensive"], price_level_source="tie")
     row = project_integrated(doc)
