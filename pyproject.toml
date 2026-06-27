@@ -33,6 +33,7 @@ analysis = [
     "plotly>=5.22",
     "pandas>=2.2",
     "kaleido>=0.2",
+    "pillow>=10.0",
 ]
 
 [project.scripts]
