@@ -133,6 +133,11 @@ def q4_rating_rows() -> str:
     return load_sql("q4_rating_rows")
 
 
+def q4_rating_volume_rows() -> str:
+    """Row-level rating + review count per platform (Q4 volatility tiers)."""
+    return load_sql("q4_rating_volume_rows")
+
+
 # --- Q5 — platform bias ----------------------------------------------------
 def q5_platform_rows() -> str:
     return load_sql("q5_platform_rows")

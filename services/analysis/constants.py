@@ -22,6 +22,18 @@ CENTER_RADIUS_KM = 2.0
 # evidence. Used by Q4 (sparse inflation) and Q6 (popularity bins).
 SPARSE_REVIEW_THRESHOLD = 20
 
+# Review-volume reliability tiers (Q4). The per-bucket SD gradient shows rating
+# volatility is highest below ~20 reviews and keeps falling until it plateaus
+# around ~100, so a single sparse/well-reviewed cut is misleading — 20 reviews is
+# not yet "well-reviewed". We use three honest tiers instead. Lower bound is
+# inclusive, upper bound exclusive (None = open-ended). Verified by the SD
+# gradient and Levene variance tests in the Q4 notebook section.
+REVIEW_VOLUME_TIERS = (
+    ("thin (<20)", 0, 20),
+    ("moderate (20-99)", 20, 100),
+    ("established (100+)", 100, None),
+)
+
 # Cross-platform agreement tolerance bands on the 0-5 scale (Q1).
 TOLERANCE_BANDS_5 = (0.5, 1.0)
 

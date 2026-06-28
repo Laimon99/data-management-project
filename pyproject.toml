@@ -34,6 +34,7 @@ analysis = [
     "pandas>=2.2",
     "kaleido>=0.2",
     "pillow>=10.0",
+    "scipy>=1.11",
 ]
 
 [project.scripts]

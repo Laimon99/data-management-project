@@ -146,6 +146,14 @@ def test_q4_excludes_null_ratings_and_counts_per_platform():
     assert "thefork_rating_5 IS NOT NULL AND thefork_review_count IS NOT NULL" in sql
 
 
+def test_q4_volume_rows_returns_rating_and_review_count_per_platform():
+    sql = queries.q4_rating_volume_rows()
+    # Row-level rating + review volume, used to build the Q4 volatility tiers.
+    assert "google_review_count AS reviews" in sql
+    assert "tripadvisor_rating_5 AS rating" in sql
+    assert "thefork_rating_5 IS NOT NULL AND thefork_review_count IS NOT NULL" in sql
+
+
 def test_q6_drops_median_uses_mean_with_spread():
     sql = queries.q6_popularity_bins()
     assert "avg(rating_range_5)" in sql

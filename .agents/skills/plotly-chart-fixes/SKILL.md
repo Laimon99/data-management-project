@@ -1,7 +1,7 @@
 ---
 name: plotly-chart-fixes
 description: Battle-tested fixes for Plotly static-image (kaleido/PNG) charts in this project's notebooks — diagnosing "broken" charts, adding on-figure storytelling captions, choosing mean vs median, and placing platform/brand logos as axis labels. Use when a Plotly figure renders wrong (bars look horizontal, faint, squashed, axis stretched), when asked to add a narrative caption onto a chart, when a notebook cell raises an error on run, or when polishing the Q1–Q11 research-questions charts. Pairs with the `plotly` and `data-visualization` skills.
-version: 1.0
+version: 1.1
 license: MIT
 ---
 
@@ -87,6 +87,62 @@ may not — see "ValidationError" below.
   prove it's clean, then tell the user **Restart Kernel & Run All** with the `uv`
   kernel. Reproduce nothing with dummy data if the real data path is one command away.
 
+### Unreadable violins (thin, squished, tiny inner boxes)
+- **Symptom (user words):** "the violins aren't readable, can we scale them properly?"
+- **Cause:** default px.violin with many groups, KDE tails extrapolated past the real
+  data range, and (with very unequal n) `scalemode="count"` shrinking the small group.
+- **Fix:** `scalemode="width"` (equal widths regardless of n — Q4 groups differ ~100×),
+  `spanmode="hard"` (clip the KDE to the actual min/max, killing fake tails), `width=0.85`,
+  `box_visible=True`, `meanline_visible=True`, and give the figure vertical room.
+- **Best for a 2-way comparison: split violins.** One distribution on each half-violin —
+  far cleaner than overlaying. Needs `go.Violin` (px can't split by colour):
+  ```python
+  fig = go.Figure()
+  for tier, side in [("thin", "negative"), ("established", "positive")]:
+      s = df[df.tier == tier]
+      fig.add_trace(go.Violin(x=s.platform, y=s.rating, side=side, name=tier,
+          scalemode="width", spanmode="hard", width=0.9, box_visible=True,
+          meanline_visible=True, line_color=C[tier], fillcolor=C[tier], opacity=0.65))
+  fig.update_layout(violinmode="overlay", violingap=0)
+  ```
+
+### Legend eats horizontal space
+- **Fix:** move it above the plot: `fig.update_layout(legend=dict(orientation="h",
+  yanchor="bottom", y=1.02, xanchor="right", x=1))`. Applied to every Q4 chart.
+
+## Picking the metric: don't chase the mean when the signal is variance
+
+The most valuable Q4 lesson, and a recurring analyst trap. When a hypothesis is framed as
+"X inflates the rating" (sparse reviews, a cuisine, a price tier…), check the **dispersion
+before committing to a mean comparison**:
+- Compute mean **and** SD across the grouping. If the means are flat but the SD changes a
+  lot, the story is **volatility/polarization, not level** — and a bar-of-means chart hides
+  the entire finding (Q4: thin-review venues have ~equal means but ~2–3× the SD, with a 5★
+  pile-up *and* a low tail).
+- **Test it, don't eyeball it.** `scipy.stats.levene(a, b, center="median")` for the
+  variance difference, `ttest_ind(a, b, equal_var=False)` for the mean. With large n a tiny
+  mean gap is "significant" yet meaningless — report the **effect size** (SD ratio, %-extreme)
+  alongside the p. (scipy is in the `analysis` extra.)
+- **Push back on the framing if the data rejects it.** The original Q4 markdown claimed
+  "higher sparse mean → inflation"; the data showed the opposite sign. Fix the narrative,
+  don't decorate the wrong one.
+
+## Binning a continuous driver: show the gradient, don't defend a threshold
+
+When asked "2 buckets or 3? which cutoff?", the honest answer is usually **neither — plot
+the gradient**:
+- Aggregate the metric (e.g. SD) across ~6–7 ordered review-volume buckets and draw it as a
+  line per series. A monotonic curve that *flattens* shows there's no magic threshold, and
+  reveals where one tier ends (Q4: volatility plateaus ~100 reviews, so "≥20 = well-reviewed"
+  is wrong — 20 is still in the steep part).
+- If you still need discrete tiers, pick boundaries **where the curve bends** and give them
+  honest names (`thin <20` / `moderate 20–99` / `established 100+`), not loaded ones
+  ("sparse/well-reviewed"). Single-source them in `analysis.constants` (e.g.
+  `REVIEW_VOLUME_TIERS`).
+- Shade the tiers behind the gradient line with `fig.add_vrect(x0=..., x1=...,
+  fillcolor=..., opacity=0.06, line_width=0, annotation_text=...)` to tie the two views
+  together.
+
 ## On-figure storytelling captions
 
 Users often want a narrative paragraph drawn **on the image** (survives PNG export,
@@ -170,6 +226,13 @@ much better. Verified approach:
   (logos span paper-y −0.04→−0.17 ⇒ put `"vs"` at `y=-0.105, yanchor="middle"`).
 - Save the cleaned logos under `assets/logos/` for reuse; resolve the dir by walking
   up from CWD so it works from `notebooks/` or repo root.
+- **Series identified by colour/legend (e.g. a line per platform), not by x-axis:** drop
+  the legend (`showlegend=False`) and drop a logo at the **end of each line** instead —
+  `add_layout_image(xref="x", yref="y", x=<last x + a bit>, y=<last value>,
+  xanchor="center", yanchor="middle", sizing="contain")`, then widen the right margin and
+  extend the x-range to make room. Cleaner than a colour legend and keeps the brand cue.
+- Factor the helper (`logo_uri`, `add_xaxis_logos`) into the notebook's **setup cell** so
+  every chart shares one definition instead of redefining it per cell.
 
 ## House style (this project's charts)
 
