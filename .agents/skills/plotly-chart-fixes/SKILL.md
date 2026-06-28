@@ -1,7 +1,7 @@
 ---
 name: plotly-chart-fixes
 description: Battle-tested fixes for Plotly static-image (kaleido/PNG) charts in this project's notebooks — diagnosing "broken" charts, adding on-figure storytelling captions, choosing mean vs median, and placing platform/brand logos as axis labels. Use when a Plotly figure renders wrong (bars look horizontal, faint, squashed, axis stretched), when asked to add a narrative caption onto a chart, when a notebook cell raises an error on run, or when polishing the Q1–Q11 research-questions charts. Pairs with the `plotly` and `data-visualization` skills.
-version: 1.1
+version: 1.2
 license: MIT
 ---
 
@@ -142,6 +142,43 @@ the gradient**:
 - Shade the tiers behind the gradient line with `fig.add_vrect(x0=..., x1=...,
   fillcolor=..., opacity=0.06, line_width=0, annotation_text=...)` to tie the two views
   together.
+
+## Audit which signals actually vary before charting them (Q7)
+
+When a question is "does X affect <quality/completeness>?", don't chart the first columns
+you have — **measure each candidate's spread across the grouping first**:
+- Compute the metric for each candidate signal in each group (e.g. center vs periphery) and
+  rank by gap/ratio. Drop the ones that are **saturated or flat** — they carry no signal and
+  pad the chart (Q7: photos are ~90% non-empty and phone ~84% present *everywhere*, so both
+  are useless as completeness signals; websites 71%→50%, cuisine 48%→37%, listings and
+  review volume are the real discriminators).
+- Saying *why* a flat signal was dropped is itself a finding — put it in the caption
+  ("photos/phones are saturated everywhere, so they carry no location signal").
+- Beware signals your own pipeline created. Q7 excludes coordinates because Tripadvisor's
+  were enriched downstream — they'd measure the pipeline, not the platform.
+
+## "Quantity over space": colour-by-metric grid, not a point-density heatmap
+
+A `px.density_map` shows where points *are*, not how a metric varies — two density maps of
+"all venues" vs "richest venues" look nearly identical and answer nothing. To map a **rate
+or score** over space, aggregate to a grid and colour by the metric:
+```python
+g = df.assign(glat=(df.lat / 0.009).round() * 0.009, glon=(df.lon / 0.013).round() * 0.013)
+cell = g.groupby(["glat", "glon"], as_index=False).agg(n=("flag", "size"), rate=("flag", "mean"))
+cell = cell[cell.n >= 4]                      # drop noisy near-empty cells
+px.scatter_map(cell, lat="glat", lon="glon", color="rate", size="n",
+               color_continuous_scale="RdYlGn", map_style="open-street-map", ...)
+```
+~0.009° lat / 0.013° lon ≈ 1 km at Milan's latitude. Map PNGs need basemap tiles at render
+time — kaleido fetches them during `nbconvert`; in a standalone prototype use
+`dangerouslyDisableSandbox` for the fetch.
+
+## Dumbbell for a two-group comparison across several metrics
+
+Cleaner than grouped bars when comparing two groups (center/periphery, before/after) on
+several signals: one row per signal, a grey connector, two coloured dots. Sort rows by value
+so the eye reads the gaps. `go.Scatter` lines + two marker traces; widen the left margin for
+the labels (`margin=dict(l=150)`).
 
 ## On-figure storytelling captions
 
