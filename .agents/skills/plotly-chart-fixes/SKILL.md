@@ -1,7 +1,7 @@
 ---
 name: plotly-chart-fixes
 description: Battle-tested fixes for Plotly static-image (kaleido/PNG) charts in this project's notebooks — diagnosing "broken" charts, adding on-figure storytelling captions, choosing mean vs median, and placing platform/brand logos as axis labels. Use when a Plotly figure renders wrong (bars look horizontal, faint, squashed, axis stretched), when asked to add a narrative caption onto a chart, when a notebook cell raises an error on run, or when polishing the Q1–Q11 research-questions charts. Pairs with the `plotly` and `data-visualization` skills.
-version: 1.2
+version: 1.3
 license: MIT
 ---
 
@@ -174,6 +174,69 @@ px.scatter_map(cell, lat="glat", lon="glon", color="rate", size="n",
 ~0.009° lat / 0.013° lon ≈ 1 km at Milan's latitude. Map PNGs need basemap tiles at render
 time — kaleido fetches them during `nbconvert`; in a standalone prototype use
 `dangerouslyDisableSandbox` for the fetch.
+
+**Colormap on a basemap — avoid the tiles' own colours.** OSM tiles already use green
+(parks), red/orange (roads), blue (water) and grey (urban), so a green→red scale (`RdYlGn`)
+fights the map and a *diverging* scale (`RdBu`) washes out its pale midpoint into the light
+background — mid-value cells vanish. Use a high-saturation **sequential** scale whose hues
+are absent from tiles: `Plotly3` (blue→magenta) and `Plasma` (purple→yellow) both read
+cleanly; verified by rendering each and eyeballing. Also size markers by **count = how many
+rows back the cell** (reliability), not by the metric — colour already encodes the metric,
+and double-encoding hides the sample size. Shrink `size_max` (e.g. 15) so the dense centre
+is a readable grid, not one blob.
+
+## Composite "score" map + per-component grid of small maps (Q7)
+
+When a metric is itself a **mean of several present-flags** (the report's
+`quality_assessment` completeness = mean of per-field coverage), don't map just one field —
+map the **composite** and then a **grid of the components** so the reader sees what drives it.
+
+- **Composite per venue:** `geo["completeness"] = geo[[flag1, flag2, …]].mean(axis=1)`, then
+  the same grid-cell recipe colours by `mean(completeness)`. Audit each candidate flag's
+  group gap *first* and keep only the ones that vary — Q7 kept website/cuisine/on-TA/on-TF
+  (gaps +12/+11/+10/+5) and dropped Google photos/phone/reviews (saturated, gap ≈0).
+- **Per-component grid = real map subplots** (verified, plotly 6.8): `make_subplots` with
+  `specs=[[{"type":"map"},…]]`, add a `go.Scattermap` per panel (px can't target a subplot),
+  and crucially give **every** subplot its own map config or only the first renders:
+  ```python
+  _mk = dict(style="open-street-map", center=CENTER, zoom=10.6)
+  figG.update_layout(map=_mk, map2=_mk, map3=_mk, map4=_mk)   # map, map2, map3, … per panel
+  ```
+  Show one shared colourbar (`showscale=(i==0)`, `colorbar=dict(x=1.02)`) and size markers by
+  cell count, not the rate. Zoom out the small panels (~10.6) vs the headline map (~11.4).
+- **Zoom the headline map in.** The default Milan view (zoom ~10.8, center 9.19) wastes frame
+  on hinterland; `zoom=11.4, center={"lat":45.464,"lon":9.190}` fills it with the comune.
+
+## Continuous "rate surface" that covers the whole area: per-venue Nadaraya–Watson, low mask
+
+The histogram2d-then-`gaussian_filter` surface (an earlier Q7 fix) clips to the dense core
+because the support mask (`_Ns > 1.5`) drops sparse peripheries — so northern quartieri
+(Niguarda, Bicocca, Greco, Affori, Comasina) that *do* show on the cell map vanish.
+
+- **Misdiagnosis (don't repeat):** thinking the surface needs "per-venue instead of
+  aggregated" data — the histogram surface is already per-venue. The coverage limiter is the
+  **mask threshold and bandwidth**, not aggregation.
+- **Fix:** an explicit per-venue Gaussian kernel (Nadaraya–Watson) makes the bandwidth and
+  support mask first-class. Loop a Gaussian over every venue for the **rate**, and a separate
+  hard radius for a **footprint mask** — then mask where the *local venue count* is real, not
+  on a fraction of the smoothed weight:
+  ```python
+  for i in range(len(lat)):
+      w = np.exp(-0.5*(((gl-lat[i])/bw_lat)**2 + ((go-lon[i])/bw_lon)**2)); W += w; WY += w*y[i]
+      N += (((gl-lat[i])/r_lat)**2 + ((go-lon[i])/r_lon)**2) <= 1.0   # ~550 m hard radius
+  rate = (100*WY/np.maximum(W,1e-9)).reshape(LA.shape)
+  m = N.reshape(LA.shape) >= 4        # render where ≥4 venues sit within ~550 m
+  ```
+  ~600 m bandwidth (`bw_lat≈0.006, bw_lon≈0.0082`) + a fine grid (≈0.002°) reads as smooth.
+- **Don't mask on `W > W.max()*frac`** (a fraction of peak smoothed weight). It is
+  density-relative, so it over-extends from the dense centre and the wash **bleeds into
+  empty neighbouring municipalities** — the user will (rightly) ask "did we filter to the
+  city?". A local-count footprint mask (`N >= k` within a fixed radius) is density-invariant:
+  it hugs the actual venue footprint, keeps sparse-but-real quartieri, and drops empty
+  hinterland. (The data was already city-filtered; only the *smoothing* bled.)
+- **Make continuous surfaces more transparent than cell maps** — `opacity≈0.40` (vs ~0.62 for
+  cells) so basemap street/label context survives under the wash; marker `size≈13` closes the
+  grid gaps into a continuous sheet.
 
 ## Dumbbell for a two-group comparison across several metrics
 
