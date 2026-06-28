@@ -128,11 +128,15 @@ def load_target(
     *,
     writer: Writer = ch_insert,
     batch_size: int = BATCH_SIZE,
+    recreate: bool = False,
 ) -> LoadReport:
     """Load one Mongo collection into a ClickHouse table.
 
     Steps:
-    1. Ensure the table exists (``CREATE TABLE IF NOT EXISTS``).
+    1. Ensure the table exists (``CREATE TABLE IF NOT EXISTS``). When ``recreate``
+       is set, ``DROP TABLE`` first so schema changes (new/changed columns) take
+       effect — a plain ``CREATE IF NOT EXISTS`` leaves an existing table's schema
+       untouched, so new columns would never appear.
     2. Truncate the table (full-reload semantics; idempotent).
     3. Stream all docs from Mongo, project each to a flat row, skip on None.
     4. Flush rows to ClickHouse in ``batch_size`` chunks.
@@ -145,7 +149,9 @@ def load_target(
 
     report = LoadReport(source=spec.name, collection=spec.table)
 
-    # 1. Create table if absent
+    # 1. Create table (dropping first when a schema change must be applied).
+    if recreate:
+        ch_client.command(f"DROP TABLE IF EXISTS {table}")
     ch_client.command(ddl)
     # 2. Truncate for idempotent reload
     ch_client.command(f"TRUNCATE TABLE IF EXISTS {table}")

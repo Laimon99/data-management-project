@@ -30,6 +30,15 @@ def load(
             " 'clean_thefork', or 'all'."
         ),
     ),
+    recreate: bool = typer.Option(
+        False,
+        "--recreate",
+        help=(
+            "DROP and recreate each target table before loading. Required after a schema"
+            " change (new/changed columns): a plain reload only does CREATE IF NOT EXISTS,"
+            " so an existing table would keep its old schema."
+        ),
+    ),
 ) -> None:
     """Load cleaned and integrated MongoDB collections into ClickHouse (truncate + reload)."""
 
@@ -55,7 +64,7 @@ def load(
         mongo_client = None
         try:
             mongo_client, mongo_collection = open_mongo(settings, spec.mongo_collection)
-            report = load_target(spec, mongo_collection, ch_client)
+            report = load_target(spec, mongo_collection, ch_client, recreate=recreate)
         except PyMongoError as exc:
             typer.echo(f"MongoDB error while loading '{spec.name}': {exc}", err=True)
             raise typer.Exit(code=1) from None

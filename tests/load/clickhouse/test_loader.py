@@ -142,6 +142,31 @@ def test_load_target_happy_path():
     assert total_rows == 3
 
 
+def test_load_target_recreate_drops_table_before_create():
+    """--recreate must DROP the table before CREATE so schema changes take effect."""
+    spec = TARGETS["integrated"]
+    coll = _mongo_collection(spec.mongo_collection)
+    coll.insert_one(_integrated_doc("r1"))
+    ch = FakeClickHouseClient()
+
+    load_target(spec, coll, ch, writer=_fake_writer, recreate=True)
+
+    drop_idx = next(i for i, cmd in enumerate(ch.commands) if cmd.startswith("DROP TABLE"))
+    create_idx = next(i for i, cmd in enumerate(ch.commands) if "CREATE TABLE" in cmd)
+    assert drop_idx < create_idx  # dropped first, then recreated
+
+
+def test_load_target_default_does_not_drop_table():
+    spec = TARGETS["integrated"]
+    coll = _mongo_collection(spec.mongo_collection)
+    coll.insert_one(_integrated_doc("r1"))
+    ch = FakeClickHouseClient()
+
+    load_target(spec, coll, ch, writer=_fake_writer)
+
+    assert not any(cmd.startswith("DROP TABLE") for cmd in ch.commands)
+
+
 def test_load_target_skips_missing_key():
     spec = TARGETS["integrated"]
     coll = _mongo_collection(spec.mongo_collection)

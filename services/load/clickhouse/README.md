@@ -23,6 +23,15 @@ Each run is fully idempotent: the loader issues `CREATE TABLE IF NOT EXISTS` fol
 by `TRUNCATE TABLE` before inserting, so re-running always converges to the current
 MongoDB state with no duplicates.
 
+> **Schema changes need `--recreate`.** Because the loader only does
+> `CREATE TABLE IF NOT EXISTS`, editing a table's columns in `schema.py` does **not**
+> alter an existing table — a plain reload keeps the old schema and new columns never
+> appear. After a schema change, drop and recreate the affected tables:
+>
+> ```bash
+> uv run dataman-load-clickhouse all --recreate   # DROP + CREATE + reload
+> ```
+
 ## Targets
 
 | CLI selector | MongoDB source | ClickHouse table | Natural key |
