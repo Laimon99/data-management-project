@@ -5,6 +5,10 @@ SELECT
     round(100 * avg(has_tripadvisor), 1) AS pct_on_tripadvisor,
     round(100 * avg(has_thefork), 1) AS pct_on_thefork,
     round(100 * avg(website != ''), 1) AS pct_has_website,
+    -- Completeness signal = did a *human* review platform (Tripadvisor/TheFork) tag a
+    -- cuisine. This is intentionally `primary_cuisine` (raw TA/TF, ~34% coverage), NOT the
+    -- canonical `cuisine_primary` used in Q8 (~93%, Google-derived) — the latter is
+    -- saturated everywhere and would carry no location signal here.
     round(100 * avg(primary_cuisine != ''), 1) AS pct_has_cuisine,
     round(median(google_review_count), 0) AS median_google_reviews
 FROM {INTEGRATED}
