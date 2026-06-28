@@ -7,8 +7,9 @@ license: MIT
 
 # Plotly Chart Fixes (static PNG notebooks)
 
-Concrete, verified fixes from real debugging sessions on
-`notebooks/research_questions_analysis.ipynb`. This notebook renders Plotly as
+Concrete, verified fixes from real debugging sessions on the per-question analysis
+notebooks `notebooks/qNN_*.ipynb` (each opens with `from analysis.notebook import *`).
+These render Plotly as
 **static PNG via kaleido** (`pio.renderers.default = "png"`) so charts show in VS
 Code, GitHub's notebook viewer, and exported HTML. That changes what "good" means:
 no hover/zoom to rescue a cluttered chart — everything must read from the static
@@ -43,11 +44,12 @@ Then Read that PNG back to inspect it. For a notebook, after editing a cell,
 re-run end-to-end and extract the embedded output rather than trusting the code:
 
 ```bash
-uv run jupyter nbconvert --to notebook --execute --inplace notebooks/research_questions_analysis.ipynb
+uv run jupyter nbconvert --to notebook --execute --inplace notebooks/q07_location_completeness.ipynb
+# (or notebooks/q*.ipynb for all of them)
 # then extract a cell's image: json.load -> cells[i].outputs[*].data['image/png'] -> base64decode -> Read
 ```
 
-Prereqs for this notebook: ClickHouse must be up and loaded
+Prereqs for these notebooks: ClickHouse must be up and loaded
 (`docker compose --profile analytics up -d clickhouse`; the data persists in the
 volume across restarts). `uv run` uses the project venv; a user's Jupyter kernel
 may not — see "ValidationError" below.

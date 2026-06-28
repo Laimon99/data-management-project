@@ -61,10 +61,12 @@ Provide **both** cuts:
 
 ## Functional Requirements
 
-- A Jupyter notebook (e.g. `notebooks/research_questions_analysis.ipynb`) is the
-  primary artifact, organized as one clearly-titled section per research question
-  (Q1–Q7), each containing: the SQL query, the rendered result, at least one
-  chart where it aids interpretation, and a short written answer.
+- A set of Jupyter notebooks (`notebooks/qNN_*.ipynb`, one per research question,
+  plus `q00_overview`) is the primary artifact — each clearly titled for its
+  question and containing: the SQL query, the rendered result, at least one chart
+  where it aids interpretation, and a short written answer. Each notebook is
+  self-contained, opening with `from analysis.notebook import *` for the shared
+  ClickHouse client and helpers.
 - The notebook connects to ClickHouse using the same configuration convention as
   `load.clickhouse` (`DATAMAN_CLICKHOUSE_*` env vars, defaults `localhost:8123`,
   db `dataman`, user `default`), loading from `.env` when present.
