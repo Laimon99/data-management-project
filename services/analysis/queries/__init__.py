@@ -93,7 +93,21 @@ def q1_pairwise_agreement() -> str:
 
 
 # --- Q2 — highest disagreement (pairwise) ---------------------------------
-def q2_top_pair(a: str, b: str, *, top_n: int = 20, min_diff: float = 1.0) -> str:
+def q2_top_pair(
+    a: str,
+    b: str,
+    *,
+    top_n: int = 20,
+    min_diff: float = 1.0,
+    min_reviews_a: int = 0,
+    min_reviews_b: int = 0,
+) -> str:
+    """Largest rating gaps for a platform pair.
+
+    ``min_reviews_a`` / ``min_reviews_b`` gate each side on review volume so the
+    *robust* disagreements (both platforms well-reviewed, not a 1.0-star off a
+    single review) can be isolated from sparse-review artefacts.
+    """
     return load_sql(
         "q2_top_pair",
         a=a,
@@ -104,6 +118,8 @@ def q2_top_pair(a: str, b: str, *, top_n: int = 20, min_diff: float = 1.0) -> st
         review_b=REVIEW_COLS[b],
         top_n=top_n,
         min_diff=min_diff,
+        min_reviews_a=min_reviews_a,
+        min_reviews_b=min_reviews_b,
     )
 
 

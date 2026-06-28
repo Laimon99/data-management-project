@@ -1,6 +1,6 @@
 SELECT
     canonical_name,
-    canonical_city,
+    canonical_street,
     google_rating_5,
     tripadvisor_rating_5,
     thefork_rating_5,
