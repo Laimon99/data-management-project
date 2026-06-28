@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -26,6 +27,22 @@ class AnalysisSettings(BaseSettings):
     clickhouse_db: str = "dataman"
     clickhouse_user: str = "default"
     clickhouse_password: str = ""
+
+    @field_validator(
+        "clickhouse_host", "clickhouse_port", "clickhouse_db", "clickhouse_user", mode="before"
+    )
+    @classmethod
+    def _strip_inline_comment(cls, value: Any) -> Any:
+        """Tolerate inline ``# ...`` comments in ``.env`` values.
+
+        pydantic-settings' dotenv parser keeps everything after ``#`` on a line,
+        so ``DATAMAN_CLICKHOUSE_PORT=8123  # HTTP`` would otherwise fail to parse
+        as an int. Drop an inline comment and surrounding whitespace for these
+        non-secret fields (password is left untouched in case ``#`` is meaningful).
+        """
+        if isinstance(value, str) and "#" in value:
+            value = value.split("#", 1)[0]
+        return value.strip() if isinstance(value, str) else value
 
 
 def clickhouse_client(settings: AnalysisSettings | None = None) -> Any:
