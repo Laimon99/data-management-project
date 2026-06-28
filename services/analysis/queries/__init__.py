@@ -178,8 +178,16 @@ def q7_postal_completeness(min_restaurants: int = 30) -> str:
 
 
 # --- Q8 — cuisine (extended) ----------------------------------------------
-def q8_cuisine(top_n: int = 15, min_restaurants: int = 30) -> str:
+def q8_cuisine(top_n: int = 20, min_restaurants: int = 20) -> str:
     return load_sql("q8_cuisine", top_n=top_n, min_restaurants=min_restaurants)
+
+
+def q8_cuisine_agreement(top_n: int = 20, min_restaurants: int = 20) -> str:
+    return load_sql("q8_cuisine_agreement", top_n=top_n, min_restaurants=min_restaurants)
+
+
+def q8_coverage() -> str:
+    return load_sql("q8_coverage")
 
 
 # --- Q9 — price (extended) -------------------------------------------------
