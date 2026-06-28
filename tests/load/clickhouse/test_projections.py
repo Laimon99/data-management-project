@@ -47,6 +47,11 @@ def _integrated_doc(**overrides):
         "google_review_count": 120,
         "tripadvisor_review_count": 80,
         "thefork_review_count": None,
+        "cuisine_tags": ["Italian", "Pizza"],
+        "cuisine_primary": "Pizza",
+        "cuisine_primary_source": "tripadvisor",
+        "cuisine_n_sources": 2,
+        "cuisine_agreement": "agree",
         "website": "https://pizza.it",
         "website_source": "google",
         "website_match_status": "exact_match",
@@ -238,7 +243,13 @@ def test_integrated_projects_per_platform_features():
     assert row["tripadvisor_has_email"] == 1
     assert row["tripadvisor_cuisines"] == ["Italiana", "Pizza"]
     assert row["thefork_cuisines"] == ["Di Carne"]
-    assert row["primary_cuisine"] == "Italiana"  # Tripadvisor preferred
+    assert row["primary_cuisine"] == "Italiana"  # Tripadvisor preferred (raw passthrough)
+    # Canonical cuisine is computed upstream in the integration step and passed through.
+    assert row["cuisine_tags"] == ["Italian", "Pizza"]
+    assert row["cuisine_primary"] == "Pizza"
+    assert row["cuisine_primary_source"] == "tripadvisor"
+    assert row["cuisine_n_sources"] == 2
+    assert row["cuisine_agreement"] == "agree"
     assert row["google_price_level"] == "PRICE_LEVEL_MODERATE"
     assert row["tripadvisor_price_band"] == "€€-€€€"
     assert row["tripadvisor_price_tier_level"] == 2
@@ -251,12 +262,24 @@ def test_integrated_projects_per_platform_features():
 def test_integrated_per_platform_features_default_when_absent():
     doc = _integrated_doc()
     doc["sources"] = {}
+    for key in (
+        "cuisine_tags",
+        "cuisine_primary",
+        "cuisine_primary_source",
+        "cuisine_n_sources",
+        "cuisine_agreement",
+    ):
+        doc.pop(key, None)
     row = project_integrated(doc)
     assert row is not None
     assert row["google_photo_count"] is None
     assert row["tripadvisor_has_website"] == 0
     assert row["tripadvisor_cuisines"] == []
     assert row["primary_cuisine"] == ""
+    assert row["cuisine_tags"] == []
+    assert row["cuisine_primary"] == ""
+    assert row["cuisine_n_sources"] == 0
+    assert row["cuisine_agreement"] == ""
     assert row["price_tier"] is None
     assert row["google_is_dining"] == 0
 

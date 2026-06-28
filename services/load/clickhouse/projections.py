@@ -173,6 +173,11 @@ INTEGRATED_COLUMNS: list[str] = [
     "tripadvisor_cuisines",
     "thefork_cuisines",
     "primary_cuisine",
+    "cuisine_tags",
+    "cuisine_primary",
+    "cuisine_primary_source",
+    "cuisine_n_sources",
+    "cuisine_agreement",
     "google_price_level",
     "tripadvisor_price_band",
     "tripadvisor_price_tier_level",
@@ -251,6 +256,12 @@ def project_integrated(doc: dict[str, Any]) -> dict[str, Any] | None:
         "tripadvisor_cuisines": _array_of_str(_nested(doc, "sources", "tripadvisor", "cuisines")),
         "thefork_cuisines": _array_of_str(_nested(doc, "sources", "thefork", "cuisines")),
         "primary_cuisine": _primary_cuisine(doc),
+        # Canonical cuisine reconciled across all three platforms (computed in the integration step)
+        "cuisine_tags": _array_of_str(doc.get("cuisine_tags")),
+        "cuisine_primary": _str(doc.get("cuisine_primary")),
+        "cuisine_primary_source": _str(doc.get("cuisine_primary_source")),
+        "cuisine_n_sources": doc.get("cuisine_n_sources") or 0,
+        "cuisine_agreement": _str(doc.get("cuisine_agreement")),
         # Per-platform price + normalized tier
         "google_price_level": _str(_nested(doc, "sources", "google", "price", "price_level")),
         "tripadvisor_price_band": _str(

@@ -54,10 +54,16 @@ CREATE TABLE IF NOT EXISTS {db}.restaurants_integrated
     tripadvisor_has_website   UInt8,
     tripadvisor_has_phone     UInt8,
     tripadvisor_has_email     UInt8,
-    -- Cuisine labels (Tripadvisor / TheFork vocabularies kept separate)
+    -- Cuisine labels (Tripadvisor / TheFork raw vocabularies kept separate)
     tripadvisor_cuisines      Array(String),
     thefork_cuisines          Array(String),
     primary_cuisine           String,
+    -- Canonical cuisine reconciled across all three platforms (see transform/cuisine.py)
+    cuisine_tags              Array(String),
+    cuisine_primary           String,
+    cuisine_primary_source    String,
+    cuisine_n_sources         UInt8,
+    cuisine_agreement         String,
     -- Per-platform price + normalized cross-platform tier (1=cheapest .. 4)
     google_price_level        String,
     tripadvisor_price_band    String,
