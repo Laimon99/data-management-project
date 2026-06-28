@@ -16,9 +16,26 @@ Only Google records with `is_dining=true` and `is_operational=true` are emitted.
 | Platform membership | `has_google`, `has_tripadvisor`, `has_thefork`, `has_all_three_platforms`, `platform_count` |
 | Comparable ratings | `google_rating_5`, `tripadvisor_rating_5`, `thefork_rating_raw_10`, `thefork_rating_5`, `rating_platform_count`, `rating_avg_5`, `rating_range_5` |
 | Comparable review counts | `google_review_count`, `tripadvisor_review_count`, `thefork_review_count` |
+| Canonical cuisine | `cuisine_tags`, `cuisine_primary`, `cuisine_primary_source`, `cuisine_n_sources`, `cuisine_agreement` |
 | Top-level contacts/price | `website`, `website_source`, `website_match_status`, `website_evidence`, `phones`, `phone_match_status`, `phone_evidence`, `price_level`, `price_level_source`, `price_evidence` |
 | Audit | `integration_flags`, `_updated_at` |
 | Source evidence | `sources.google`, `sources.tripadvisor`, `sources.thefork` |
+
+## Canonical Cuisine
+
+The three platforms speak three cuisine vocabularies — Tripadvisor uses Italian feminine
+adjectives (`Italiana`), TheFork masculine (`Italiano`) plus regional Italians, and Google an
+English `primary_type`/`types[]` controlled vocabulary (`italian_restaurant`). `cuisine.py`
+maps every raw label to a small canonical list and reconciles them per venue:
+
+- `cuisine_tags` — sorted union of all canonical buckets across the platforms (a venue is
+  typically multi-cuisine, e.g. `["Italian", "Pizza"]`).
+- `cuisine_primary` — the single headline bucket: the most *specific* tag wins (`Pizza`
+  beats umbrella `Italian`; `Chinese` beats `Asian`), ties broken by source precedence
+  Tripadvisor > TheFork > Google.
+- `cuisine_primary_source` — which platform the primary came from.
+- `cuisine_n_sources` — how many platforms supplied a cuisine.
+- `cuisine_agreement` — `single` / `agree` / `disagree` on the per-source primary bucket.
 
 ## Source Evidence
 

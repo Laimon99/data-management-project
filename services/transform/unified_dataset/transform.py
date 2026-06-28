@@ -13,6 +13,7 @@ from pymongo import ReplaceOne
 from pymongo.errors import PyMongoError
 
 from .config import UnifiedSettings
+from .cuisine import merge_cuisine
 
 SOURCE_ALL = "all"
 SOURCE_TRIPADVISOR = "tripadvisor"
@@ -86,6 +87,7 @@ class IntegratedReport:
     with_thefork: int = 0
     with_all_three: int = 0
     missing_linked_source_docs: int = 0
+    cuisine_unmapped: set[str] = field(default_factory=set)
 
 
 @dataclass
@@ -805,6 +807,13 @@ def build_integrated_docs(
         contact_fields = _contact_evidence(google, ta_doc)
         price_fields = _price_evidence(google, ta_doc, tf_doc)
 
+        cuisine = merge_cuisine(
+            ta_doc.get("cuisines") if ta_doc else None,
+            tf_doc.get("cuisines") if tf_doc else None,
+            {"primary_type": google.get("primary_type"), "types": google.get("types")},
+        )
+        report.cuisine_unmapped.update(cuisine["unmapped"])
+
         doc = {
             "_id": restaurant_id,
             "integrated_restaurant_id": restaurant_id,
@@ -834,6 +843,11 @@ def build_integrated_docs(
             "google_review_count": google.get("review_count"),
             "tripadvisor_review_count": tripadvisor_review_count,
             "thefork_review_count": thefork_review_count,
+            "cuisine_tags": cuisine["tags"],
+            "cuisine_primary": cuisine["primary"],
+            "cuisine_primary_source": cuisine["primary_source"],
+            "cuisine_n_sources": cuisine["n_sources"],
+            "cuisine_agreement": cuisine["agreement"],
             "integration_flags": sorted(set(integration_flags)),
             "sources": sources,
             "_updated_at": now,

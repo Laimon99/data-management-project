@@ -263,6 +263,12 @@ def test_builds_all_three_integrated_record_with_rating_metrics():
     assert doc["rating_range_5"] == 1.0
     assert doc["tripadvisor_review_count"] == 80
     assert doc["thefork_review_count"] == 50
+    # Canonical cuisine reconciles Tripadvisor "Italiana" + TheFork "Italiano" into one bucket.
+    assert doc["cuisine_tags"] == ["Italian"]
+    assert doc["cuisine_primary"] == "Italian"
+    assert doc["cuisine_primary_source"] == "tripadvisor"
+    assert doc["cuisine_n_sources"] == 2
+    assert doc["cuisine_agreement"] == "agree"
     assert doc["website"] == "example.it"
     assert doc["website_source"] == "google_tripadvisor"
     assert doc["website_match_status"] == "exact_match"
