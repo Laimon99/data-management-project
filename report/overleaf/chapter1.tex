@@ -1,0 +1,98 @@
+\chapter{Data Acquisition}
+
+The raw data acquisition phase was structured across three distinct data sources, leveraging an Application Programming Interface (API) and two differentiated web scraping methodologies. Specifically, three industry-leading platforms predominantly utilized for restaurant evaluation and selection were targeted: Google, TripAdvisor and TheFork. The subsequent sections delineate the technical frameworks and specific acquisition methodologies deployed for each platform.
+
+\section{Google Places - API}
+
+The objective of this acquisition phase was to build a comprehensive repository of restaurants located in Milan and its metropolitan area, which would subsequently serve as the reference dataset for cross-platform integration.
+
+Due to the limitations imposed by the Google Places API, namely the restriction to circular search areas and the maximum number of results returned per request, a dedicated acquisition strategy was developed. The territory was divided into partially overlapping search regions (\textit{tiles}), each generating an independent Nearby Search request. Since dense urban areas can saturate API results and hide additional venues, the seed was collected through a progressive multi-pass strategy rather than through a single city-wide crawl.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{2cm}p{2.8cm}p{4.2cm}p{5cm}}
+\toprule
+\textbf{Pass} & \textbf{Tile radius} & \textbf{Area} & \textbf{Purpose} \\
+\midrule
+1 & 750 m & Whole-city search around Milan & Broad coverage of the metropolitan restaurant universe. \\
+2 & 300 m & Whole-city refinement & Denser tiling to recover venues missed because of result saturation. \\
+3 & 100 m & Dense neighbourhood anchors & Fine-grained recovery in high-density restaurant districts. \\
+\bottomrule
+\end{tabular}
+\captionsetup{font=small}
+\caption{Progressive Google Places acquisition strategy used to improve spatial coverage and reduce API saturation effects.}
+\label{tab:google_acquisition_passes}
+\end{table}
+
+To further improve coverage in highly dense areas, a multi-centre strategy was adopted by defining additional neighbourhood anchors in districts characterized by a high concentration of restaurants, such as Navigli, Brera, Porta Venezia, and Porta Romana (Table \ref{tab:google_anchors}).
+
+
+\begin{table}[htbp]
+\centering
+
+\begin{tabular}{llll}
+\toprule
+\textbf{Neighbourhood} & \textbf{Anchor} & \textbf{Center Coordinates} & \textbf{Outer Radius} \\
+\midrule
+Duomo & duomo & (45.4642, 9.1900) & 1200 m \\
+
+Navigli & navigli\_1 & (45.4520, 9.1760) & 600 m \\
+Navigli & navigli\_2 & (45.4485, 9.1720) & 600 m \\
+Navigli & navigli\_3 & (45.4450, 9.1680) & 600 m \\
+
+Brera & brera & (45.4720, 9.1880) & 600 m \\
+
+Isola & isola & (45.4870, 9.1880) & 600 m \\
+
+Porta Venezia & porta\_venezia\_1 & (45.4740, 9.2050) & 600 m \\
+Porta Venezia & porta\_venezia\_2 & (45.4790, 9.2110) & 600 m \\
+
+Porta Romana & porta\_romana\_1 & (45.4540, 9.2010) & 600 m \\
+Porta Romana & porta\_romana\_2 & (45.4490, 9.2050) & 600 m \\
+
+Sempione & sempione\_1 & (45.4790, 9.1740) & 600 m \\
+Sempione & sempione\_2 & (45.4830, 9.1680) & 600 m \\
+Sempione & sempione\_3 & (45.4870, 9.1620) & 600 m \\
+
+Loreto & loreto & (45.4860, 9.2160) & 600 m \\
+\bottomrule
+\end{tabular}
+
+\captionsetup{font=small}
+\caption{Neighbourhood anchors used to increase restaurant coverage in high-density areas of the Milan metropolitan area.}
+\label{tab:google_anchors}
+
+\end{table}
+
+To ensure efficiency and reproducibility, overlapping search results were automatically deduplicated using the unique Google \texttt{place\_id}, while a checkpoint mechanism allowed interrupted executions to be resumed without repeating completed requests.
+
+The acquisition process produced a raw dataset containing 10,808 unique restaurants. For each venue, core information such as identifier, name, address, geographic coordinates, categories, rating, and review count was collected. The dataset was subsequently enriched through the Place Details endpoint, adding supplementary attributes including contact information, opening hours, pricing details, service options, accessibility features, photographs, and user reviews. Owing to its complete geographic coverage and rich metadata, the resulting dataset was adopted as the primary reference source for the subsequent integration and analysis stages.
+
+\section{TripAdvisor - Web Scraping}
+
+Since Tripadvisor does not provide a public API suitable for large-scale data extraction, a dedicated web scraping pipeline was developed to collect restaurant information directly from the platform. Tripadvisor was selected as a complementary source because it represents one of the largest restaurant-review platforms and provides valuable user-generated content that can be compared with ratings from other sources.
+
+The acquisition process was implemented using Python and Playwright. Given Tripadvisor's anti-automation mechanisms, including browser fingerprinting and behavioural analysis, the scraper relied on Playwright's \textit{launch\_persistent\_context()} functionality. This approach maintains browser cookies and session data across executions, allowing the scraper to emulate a real user and reducing the probability of being blocked.
+
+The workflow was organized into two phases. The first phase explored restaurant listing pages within the Milan metropolitan area and collected restaurant profile URLs, while the second phase visited each profile page to extract detailed information. Checkpoint files were used throughout the process to ensure fault tolerance and allow interrupted executions to resume without repeating completed operations.
+
+The acquisition process generated 7,539 unique restaurant records stored in JSON format. The collected information includes restaurant identification data, ratings, review counts, cuisine categories, opening hours, price ranges, and user reviews. Unlike the other sources, the raw dataset preserves values exactly as displayed on Tripadvisor, postponing normalization and type conversion to the subsequent transformation stage. For example, ratings are stored with Italian comma decimals, review counts may contain thousands separators and textual wrappers, and price bands are represented using source-specific symbols.
+
+The Tripadvisor scraper does not obtain geospatial attributes natively like Google Places, but it offers a considerably richer collection of user reviews. For this reason, it represents an important source for analysing restaurant reputation and investigating rating consistency across platforms. Geographic enrichment is therefore deferred to the Tripadvisor cleaning stage, where addresses are geocoded before integration.
+
+
+\section{TheFork - Web Scraping}
+
+TheFork was selected as the third data source due to its specialization in restaurant reservations and its widespread adoption within the European restaurant industry. Since no public API is available for large-scale extraction, a dedicated web scraping pipeline was developed in Python.
+
+The acquisition process followed a two-stage workflow. First, restaurant listing pages were explored to identify venues operating within the Milan metropolitan area. Subsequently, each restaurant page was visited to collect detailed information including ratings, cuisine categories, prices, discounts, opening hours, contact information, geospatial data, photographs, and customer reviews.
+
+A distinctive characteristic of the TheFork pipeline is the integration of data normalization directly within the acquisition process. Unlike Tripadvisor, where the extracted values are preserved in their original form, TheFork records are standardized immediately after extraction. Ratings, review counts, URLs, and structured attributes are converted into a consistent format, producing a dataset that is already aligned with the integration requirements of the project.
+
+Given the anti-automation mechanisms adopted by TheFork, the scraper incorporates a proxy-rotation strategy to mitigate blocking events and HTTP 403 responses. Requests can be distributed across multiple proxy servers, improving scalability and allowing the acquisition process to continue even when individual endpoints become temporarily unavailable.
+
+An additional resilience mechanism was implemented through Playwright and the Chrome DevTools Protocol (CDP). Instead of relying exclusively on traditional browser navigation, the scraper can interact with TheFork's internal GraphQL services through an authenticated browser session. This approach reduces the risk of triggering anti-bot protections and improves the recovery of missing information from restaurant profiles.
+
+The acquisition framework also supports parallel and distributed execution, allowing multiple browser instances or machines to process different subsets of restaurants simultaneously. This significantly reduces collection time while preserving consistency across the generated records.
+
+The resulting dataset adopts a normalized schema specifically designed to facilitate integration with Google Places and Tripadvisor. By combining automated normalization, validation procedures, and enriched restaurant metadata, TheFork provides a highly structured source that requires less type repair than Tripadvisor, while still passing through a dedicated cleaning stage to standardize prices, cuisines, discounts, opening hours, reviews, and quality flags.

@@ -1,0 +1,213 @@
+\chapter{Data Storage and Loading}
+
+This chapter describes the process through which the extracted files were loaded into MongoDB and organized into separate raw collections.
+
+The loading phase was designed as part of an ELT pipeline, this architectural choice allows the original data to be preserved as faithfully as possible, avoiding early transformations that could alter the raw information collected from the different sources.
+
+The storage architecture is supported by a Docker-based infrastructure, which ensures that the database environment can be reproduced consistently across different machines. This is particularly important in a collaborative project, where multiple contributors may execute the same pipeline components on different operating systems and configurations.
+
+\section{Raw Data Loading into MongoDB}
+
+MongoDB was adopted as the storage system for the raw datasets because the project integrates information collected from heterogeneous sources with different structures, formats, and levels of completeness. Google Places, Tripadvisor and TheFork do not expose the same attributes and do not organize restaurant information according to a shared schema. A document-oriented database is therefore appropriate because it allows each restaurant record to be stored as a flexible JSON-like document without requiring a rigid relational schema at the loading stage.
+
+This choice is coherent with the objectives of the project. Since the analysis aims to compare ratings, metadata quality, and platform-specific discrepancies, it is important to preserve the original structure of each source before applying cleaning, integration and normalization procedures. MongoDB acts as the document-oriented system of record, storing the extracted datasets in their original form and later hosting the clean and integrated collections. The analytical SQL layer is introduced downstream through ClickHouse, after the integrated dataset has been materialized.
+
+The loading layer follows an ELT approach. Its role is limited to transferring the already extracted raw files from the local data directory into MongoDB. No parsing, normalization, deduplication, enrichment, or schema coercion is performed during this phase. All transformation operations are deliberately postponed to later stages, where the data can be cleaned and integrated in a controlled and reproducible manner.
+
+A single generic loader was implemented for all three sources. Instead of developing one loader for each extractor, the loading logic is driven by a source registry. This registry specifies, for each platform, the raw file path, the file format, the natural key used as document identifier, and the destination MongoDB collection. This design reduces code duplication and ensures that all sources are loaded through the same operational logic.
+
+\begin{table}[htbp]
+\centering
+
+\begin{tabular}{p{2.5cm} p{1.8cm} p{1.8cm} p{2.3cm} p{2.3cm} p{3.8cm}}
+\toprule
+\textbf{Source} &
+\textbf{Records} &
+\textbf{Size} &
+\textbf{Format} &
+\textbf{Natural Key} &
+\textbf{Destination Collection} \\
+\midrule
+
+Google Places &
+10,808 &
+249 MB &
+JSON Lines &
+{\footnotesize\texttt{place\_id}} &
+{\scriptsize\texttt{restaurants\_raw\_google}} \\[0.3cm]
+
+Tripadvisor &
+7,539 &
+49 MB &
+JSON Array &
+{\footnotesize\texttt{source\_url}} &
+{\scriptsize\texttt{restaurants\_raw\_tripadvisor}} \\[0.3cm]
+
+TheFork &
+1,344 &
+11.1 MB &
+JSON Array &
+{\footnotesize\texttt{source\_id}} &
+{\scriptsize\texttt{restaurants\_raw\_thefork}} \\
+
+\bottomrule
+\end{tabular}
+
+\captionsetup{font=small}
+\caption{Configuration adopted by the generic MongoDB loading layer for each data source.}
+\label{tab:mongo_sources}
+
+\end{table}
+
+For each source, the natural key is used as the MongoDB document identifier. If the same source is loaded multiple times, existing documents are replaced rather than duplicated. 
+The loading strategy also accounts for differences in file size and format. The Google Places file is stored as JSON Lines and is streamed line by line, avoiding full materialization in memory. This is necessary because the file contains 10,808 records and has a size of approximately 249 MB. Conversely, the Tripadvisor and TheFork datasets are stored as JSON arrays and can be loaded in memory due to their smaller size.
+
+During loading, each document is enriched only with minimal technical metadata. In particular, a loading timestamp and the source file path are attached to each record. These metadata fields are separated from the original source attributes and are used exclusively to support traceability and auditing of the loading process.
+
+Records are written to MongoDB in batches using bulk upsert operations. This approach limits memory consumption while reducing the number of database round-trips. At the end of each loading execution, a structured report is produced, summarizing the number of records read, successfully loaded, updated, and skipped because of missing or invalid natural keys.
+
+\section{Data Quality Assessment}
+
+Before performing any integration, matching or enrichment operation, a preliminary data quality assessment was conducted on the raw datasets collected from Google Places, Tripadvisor, and TheFork. This is a pre-integration assessment: it evaluates the sources as acquired, before the cleaning, geocoding, entity-resolution, and integration stages. The objective was to evaluate the suitability of each source for the subsequent integration phase and to identify potential weaknesses requiring cleaning or enrichment.
+
+The metrics were computed according to the following definitions:
+
+\begin{itemize}
+
+\item \textbf{Completeness}
+\[
+Completeness =
+100 \times
+\frac{\text{Present field values}}
+{\text{Expected field values}}
+\]
+
+\item \textbf{Critical Completeness}
+\[
+CriticalCompleteness =
+100 \times
+\frac{\text{Present critical fields}}
+{\text{Expected critical fields}}
+\]
+
+\item \textbf{Validity}
+\[
+Validity =
+100 \times
+\frac{\text{Valid values}}
+{\text{Present values checked}}
+\]
+
+\item \textbf{Spatial Readiness}
+\[
+SpatialReadiness =
+100 \times
+\frac{\text{Records with valid coordinates}}
+{\text{Total records}}
+\]
+
+\item \textbf{Timeliness}
+\[
+Timeliness =
+\max
+\left(
+0,
+100 \times
+\left(
+1 -
+\frac{\text{Collection Duration}}
+{\text{Refresh Target}}
+\right)
+\right)
+\]
+
+\item \textbf{Reliability}
+\[
+Reliability =
+100 \times
+\frac{\text{Records with review count } \geq 20}
+{\text{Total records}}
+\]
+
+\item \textbf{Uniqueness}
+\[
+Uniqueness =
+100 -
+100 \times
+\frac{\text{Duplicate records}}
+{\text{Total records}}
+\]
+
+\item \textbf{Score}
+\[
+\begin{aligned}
+Score =\;&
+0.25 \cdot CriticalCompleteness + 0.20 \cdot Validity + 0.15 \cdot SpatialReadiness +\\
+&+ 0.15 \cdot Uniqueness + 0.10 \cdot Timeliness + 0.15 \cdot Reliability
+\end{aligned}
+\]
+
+\end{itemize}
+
+
+The weights prioritize dimensions that are critical for the project goals. Critical completeness and validity receive the largest weights because missing or invalid identifiers, addresses, ratings, and review counts would directly affect matching and rating comparison. Spatial readiness is also emphasized because geographic evidence is central to the Google-anchored entity-resolution strategy.
+
+Table \ref{tab:quality_summary} summarizes the results obtained for the three acquisition sources.
+
+\begin{table}[htbp]
+\centering
+
+\begin{tabular}{p{4cm} c c c}
+\toprule
+\textbf{Metric} & \textbf{Google} & \textbf{Tripadvisor} & \textbf{TheFork} \\
+\midrule
+
+Records & 10808 & 7539 & 1344 \\
+
+Quality Score & 93.16\% & 72.28\% & 97.63\% \\
+
+Completeness & 93.79\% & 84.34\% & 76.15\% \\
+
+Critical Completeness & 98.15\% & 99.78\% & 98.88\% \\
+
+Validity & 100.00\% & 99.99\% & 100.00\% \\
+
+Spatial Readiness & 100.00\% & 0.00\% & 100\% \\
+
+Timeliness & 67.23\% & 43.75\% & 95.83\% \\
+
+Reliability & 79.50\% & 53.10\% & 88.84\% \\
+
+Flags / 100 Records & 27.17 & 48.04 & 17 \\
+
+\bottomrule
+\end{tabular}
+
+\captionsetup{font=small}
+\caption{Cross-source quality assessment performed before data integration.}
+\label{tab:quality_summary}
+
+\end{table}
+
+
+\subsection{Google Places}
+
+The dataset achieved an overall quality score of 93.16\%, supported by excellent critical completeness (98.15\%), perfect validity (100\%) and complete coordinate coverage.
+
+The weakest attributes are website availability (53.23\%), price information (77.93\%), and phone numbers (83.52\%). However, these fields are not essential for entity matching and therefore have a limited impact on integration quality.
+
+A total of 2,937 quality flags were generated (27.17 per 100 records), mainly due to restaurants with a low number of reviews. Nevertheless, the complete availability of geographic coordinates makes Google Places the most suitable source for spatial integration and entity alignment.
+
+\subsection{Tripadvisor}
+
+Tripadvisor contributes a large amount of review-oriented information and contains 7,539 restaurant records. Despite excellent critical completeness (99.78\%) and almost perfect validity (99.99\%), the source achieved the lowest overall quality score (72.28\%).The main limitations are the complete absence of latitude and longitude coordinates in the raw dataset, resulting in a spatial readiness score of 0\% and the weakest source refreshability (Timeliness = 43.75\%). In addition, review reliability is significantly lower than for the other sources, with 36.12\% of restaurants containing fewer than twenty reviews.
+
+The weakest fields are email addresses (46.89\%), opening hours (67.60\%), and price ranges (67.66\%). Furthermore, Tripadvisor exhibits the highest density of quality flags, with 48.04 warnings per 100 records. These results indicate that additional enrichment and geocoding operations are required before reliable integration can be performed.
+
+\subsection{TheFork}
+
+Although TheFork is the smallest dataset (1,344 restaurants), it achieved the highest overall quality score (97.63\%). The source exhibits excellent critical completeness (98.88\%), perfect validity (100\%), complete coordinate coverage (100\%), and the highest timeliness score (95.83\%).
+
+The primary weaknesses concern contact-related information, as email addresses and phone numbers are not available in the raw dataset, while website coverage is limited to 1.86\%. Nevertheless, these attributes are not critical for the integration objectives of this project.
+
+Only 229 quality flags were generated (17 per 100 records), representing the lowest anomaly density among all sources. Consequently, TheFork can already be considered highly suitable for integration and geospatial matching, requiring only limited preprocessing before the subsequent stages of the pipeline. Detailed field-level coverage and anomaly tables are reported in the project quality-assessment artifacts and can be included as supplementary appendix material if needed.

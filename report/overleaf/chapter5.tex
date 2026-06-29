@@ -1,0 +1,196 @@
+\chapter{Schema Integration and Analytical Storage}
+
+After schema matching and entity resolution, the project materializes a unified
+restaurant dataset. This stage is the point at which the three platform-specific
+clean collections become a single integrated database suitable for quality
+assessment and analytical querying.
+
+\section{Construction of the Integrated Dataset}
+
+The integration process is implemented as a MongoDB-to-MongoDB transformation. It
+reads the three clean collections and the entity-resolution candidates:
+
+\begin{itemize}
+    \item \texttt{restaurants\_clean\_google};
+    \item \texttt{restaurants\_clean\_tripadvisor};
+    \item \texttt{restaurants\_clean\_thefork};
+    \item \texttt{entity\_resolution\_candidates}.
+\end{itemize}
+
+The output consists of two collections:
+
+\begin{itemize}
+    \item \texttt{entity\_resolution\_links}, containing the selected one-to-one
+    links between Google anchors and matched source records;
+    \item \texttt{restaurants\_integrated}, containing the final integrated
+    restaurant entities.
+\end{itemize}
+
+The effective candidate label is computed as:
+
+\[
+\texttt{effective\_label} =
+\begin{cases}
+\texttt{llm\_label}, & \text{if an LLM decision is available}\\
+\texttt{label}, & \text{otherwise}
+\end{cases}
+\]
+
+Only candidates whose effective label is \texttt{MATCH} are eligible for link
+selection. Tripadvisor and TheFork links are selected independently, so an
+integrated restaurant may contain only Google evidence, Google plus Tripadvisor,
+Google plus TheFork, or all three platforms.
+
+\section{Final Integrated Schema}
+
+The integrated collection is Google-seeded: each document represents one dining
+and operational Google restaurant. The document identifier is deterministic:
+
+\[
+\texttt{integrated\_restaurant\_id} = \texttt{"google:"} + \texttt{place\_id}
+\]
+
+Google is used as the canonical identity and geographic backbone because it has
+the highest spatial coverage and complete coordinates. Non-Google sources are
+attached as evidence blocks only when selected entity-resolution links exist.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabularx}{\textwidth}{p{0.28\textwidth}X}
+\toprule
+\textbf{Field group} & \textbf{Main attributes} \\
+\midrule
+Canonical identity and geography &
+\texttt{integrated\_restaurant\_id}, \texttt{canonical\_name},
+\texttt{canonical\_address}, \texttt{canonical\_city},
+\texttt{latitude}, \texttt{longitude}. \\
+Platform membership &
+\texttt{has\_google}, \texttt{has\_tripadvisor}, \texttt{has\_thefork},
+\texttt{platform\_count}. \\
+Comparable ratings &
+\texttt{google\_rating\_5}, \texttt{tripadvisor\_rating\_5},
+\texttt{thefork\_rating\_5}, \texttt{rating\_avg\_5},
+\texttt{rating\_range\_5}. \\
+Review counts &
+\texttt{google\_review\_count}, \texttt{tripadvisor\_review\_count}, \texttt{thefork\_review\_count}. \\
+Contacts and price &
+\texttt{website}, \texttt{phones}, \texttt{price\_level},
+\texttt{price\_evidence}. \\
+Audit and provenance &
+\texttt{integration\_flags}, \texttt{sources.google},
+\texttt{sources.tripadvisor}, \texttt{sources.thefork}. \\
+\bottomrule
+\end{tabularx}
+\caption{Structure of the final \texttt{restaurants\_integrated} collection.}
+\label{tab:integrated-schema-overview}
+\end{table}
+
+The schema deliberately preserves source-specific ratings rather than replacing
+them with a single resolved value. This is a central design decision: the research
+questions require measuring disagreement across platforms, therefore the
+differences between Google, Tripadvisor, and TheFork must remain visible.
+
+\section{Conflict Handling and Provenance}
+
+Conflicts are resolved according to the role of each attribute. Canonical identity
+and coordinates use a metadata-based strategy: Google is trusted as the anchor
+source. Comparative values, such as ratings and review counts, are not resolved
+away; they are kept side by side. Derived fields such as \texttt{rating\_avg\_5}
+and \texttt{rating\_range\_5} summarize the comparison without hiding the source
+values.
+
+Contacts and price are handled differently. Phone values are preserved as a
+deduplicated set because a restaurant may legitimately have multiple numbers.
+Website conflicts keep the raw evidence and prefer Google only when conflicting
+values cannot be reconciled. Price evidence from Google, Tripadvisor, and TheFork
+is mapped to a shared representation, while the original source-specific values
+remain available under the source blocks.
+
+This design maintains reproducibility: every integrated top-level value can be
+traced back to the original platform evidence stored under
+\texttt{sources.google}, \texttt{sources.tripadvisor}, and
+\texttt{sources.thefork}.
+
+\section{Post-Integration Quality Assessment}
+
+The quality of the integration was evaluated against hand-labelled gold data. The
+assessment measures not only the entity-resolution classifier, but also the
+survival of one-to-one selected links and the spatial enrichment of Tripadvisor
+records.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{p{0.55\textwidth}r}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Out-of-sample evaluation rows & 288 \\
+In-calibration labelled rows & 600 \\
+MATCH precision & 96.8\% \\
+Strict MATCH recall & 71.7\% \\
+MATCH-or-UNCERTAIN kept recall & 100.0\% \\
+Uncertain rate & 33.0\% \\
+Selected links from human-confirmed matches & 88 / 127 \\
+Link survival rate & 69.3\% \\
+Integration survival rate & 69.3\% \\
+Median Tripadvisor geocoding error & 10.1 m \\
+Tripadvisor coordinates within 50 m & 91.3\% \\
+Tripadvisor coordinate coverage & 84.0\% \\
+\bottomrule
+\end{tabular}
+\caption{Post-integration assessment of entity resolution, link selection, and Tripadvisor geocoding.}
+\label{tab:post-integration-quality}
+\end{table}
+
+The results show a conservative integration policy. Precision is high, meaning
+that automatic matches are rarely wrong. Strict recall is lower because many
+true matches are intentionally left as \texttt{UNCERTAIN} rather than forced into
+unsafe automatic links. This behaviour is desirable in a data integration
+setting: false positives would contaminate the final dataset more severely than
+unresolved candidates.
+
+The survival rate quantifies the effect of one-to-one selection. Some
+human-confirmed matches are not present in the final integrated source blocks
+because conservative link selection removes ambiguous alternatives. The geocoding
+assessment confirms that Tripadvisor spatial enrichment is reliable enough for
+blocking and spatial analysis: the median error is 10.1 m and all evaluated gold
+rows are within 100 m.
+
+\section{ClickHouse Analytical Layer}
+
+MongoDB is well suited for raw and integrated document storage, but the final
+research questions require repeated aggregations, pairwise rating comparisons,
+ranking, grouping by geographic area, and correlation-style summaries. For this
+reason, the project adds ClickHouse as a column-oriented analytical DBMS.
+
+The ClickHouse loader reads the cleaned and integrated MongoDB collections and
+creates four flat analytical tables:
+
+\begin{itemize}
+    \item \texttt{restaurants\_integrated};
+    \item \texttt{restaurants\_clean\_google};
+    \item \texttt{restaurants\_clean\_tripadvisor};
+    \item \texttt{restaurants\_clean\_thefork}.
+\end{itemize}
+
+The load process is reproducible and idempotent: each run creates the destination
+tables if needed, truncates them, and reloads the current MongoDB state. The
+integrated table keeps the analytical columns needed for the research questions,
+including platform ratings, review counts, platform membership flags, normalized
+price tier, cuisine labels, photo counts, and geographic coordinates. Heavy nested
+evidence remains in MongoDB, while ClickHouse stores a flat projection optimized
+for SQL analysis.
+
+The design therefore separates responsibilities:
+
+\begin{itemize}
+    \item MongoDB stores raw, clean, integrated, and auditable document data;
+    \item ClickHouse stores flat analytical tables for fast, reproducible queries;
+    \item the notebook reads from ClickHouse without modifying either database.
+\end{itemize}
+
+This two-layer architecture satisfies the project requirement of modelling and
+storing integrated data in DBMSs while also providing an efficient surface for the
+final research-question analysis.
