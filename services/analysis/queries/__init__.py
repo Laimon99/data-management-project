@@ -190,6 +190,11 @@ def q8_coverage() -> str:
     return load_sql("q8_coverage")
 
 
+def q8_price_rows() -> str:
+    """Row-level price tier + integrated rating, for the per-tier rating distribution."""
+    return load_sql("q8_price_rows")
+
+
 # --- Q9 — price (extended) -------------------------------------------------
 def q9_price_tier() -> str:
     return load_sql("q9_price_tier")
