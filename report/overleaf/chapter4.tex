@@ -1,0 +1,132 @@
+\chapter{Entity Resolution}
+
+Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process designed to identify matching restaurants while minimizing both false positives and false negatives.
+
+The entity resolution workflow operates on the clean collections generated during the transformation phase. Google Places was selected as the anchor source due to its superior geographic coverage, high data quality score, and complete coordinate availability. Candidate matches are therefore generated only between Google and Tripadvisor records and between Google and TheFork records. Direct Tripadvisor--TheFork matching is intentionally avoided because both platforms exhibit lower coverage and are expected to be linked indirectly through Google.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{images/entity_resolution_workflow.png}
+    \caption{Entity resolution workflow adopted for restaurant linkage across Google Places, Tripadvisor and TheFork. Google acts as the anchor dataset, candidate pairs are generated through blocking strategies, evaluated using similarity features, and classified into MATCH, NON\_MATCH, or UNCERTAIN categories. Uncertain pairs are forwarded to a subsequent LLM-based resolution stage.}
+    \label{fig:entity-resolution-workflow}
+\end{figure}
+
+\section{Blocking Strategy}
+
+A naïve comparison between all records would require evaluating millions of candidate pairs, making the process computationally inefficient. To reduce the search space, a blocking phase was introduced before similarity computation.
+
+The primary blocking strategy is based on geographic proximity. For records containing valid coordinates, candidate pairs are generated only when the distance between the Google restaurant and the corresponding Tripadvisor or TheFork restaurant is below 150 meters. Geographic distance is computed using the Haversine formula, which provides an accurate estimate of distance between two latitude--longitude pairs.
+
+A secondary blocking strategy is applied only to Tripadvisor records that lack geographic coordinates. In this case, candidate pairs are generated when restaurants share the same postal code and at least one common name token of four or more characters. This additional constraint prevents excessively large postal-code blocks from generating an impractical number of comparisons while preserving a high probability of capturing true matches.
+
+Records lacking both coordinates and postal-code information cannot be reliably compared using any available blocking key. These records are therefore explicitly marked as \texttt{UNBLOCKABLE} and preserved for auditing purposes.
+
+\section{Similarity Computation}
+
+For each candidate pair generated during the blocking phase, a set of similarity features is computed. The most important signal is restaurant-name similarity, obtained through token-based fuzzy matching after additional normalization steps such as abbreviation expansion, punctuation removal, and whitespace standardization.
+
+Additional comparison features include street-name similarity, postal-code agreement, geographic distance, phone-number equality, and website equality when such information is available. Phone numbers and websites are particularly valuable for Tripadvisor matching because they provide strong evidence of identity when identical values are observed across sources.
+
+Cuisine information is also evaluated through set-based similarity measures. However, due to the vocabulary heterogeneity discussed in the schema matching phase, cuisine similarity is used only as a diagnostic feature and does not directly contribute to the final matching score.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{p{0.28\textwidth}p{0.22\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Feature} & \textbf{Type} & \textbf{Purpose} \\
+\midrule
+Name similarity & Fuzzy matching & Primary identity signal \\
+Street similarity & Fuzzy matching & Address consistency check \\
+Geographic distance & Spatial similarity & Distinguishes nearby venues \\
+Phone match & Exact match & Strong matching evidence \\
+Website match & Exact match & Strong matching evidence \\
+Postal-code match & Exact match & Geographic consistency check \\
+Cuisine similarity & Diagnostic only & Analytical support feature \\
+\bottomrule
+\end{tabular}
+\caption{Similarity features used during entity resolution.}
+\label{tab:er-features}
+\end{table}
+
+\section{Candidate Classification}
+
+Similarity features are combined into a composite score representing the likelihood that two records correspond to the same restaurant. Different weighting schemes are adopted for Tripadvisor and TheFork because TheFork does not provide phone numbers or restaurant websites in the clean schema.
+
+The resulting score is compared against two calibrated thresholds. Candidate pairs with scores above the upper threshold are automatically classified as \texttt{MATCH}, while pairs below the lower threshold are classified as \texttt{NON\_MATCH}. Records falling between the two thresholds are assigned to an intermediate \texttt{UNCERTAIN} category.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{p{0.32\textwidth}cc}
+\toprule
+\textbf{Candidate type} & \textbf{Lower threshold} & \textbf{Upper threshold} \\
+\midrule
+Tripadvisor, non-chain venues & 0.58 & 0.63 \\
+TheFork, non-chain venues & 0.86 & 0.94 \\
+Tripadvisor, chain venues & 0.49 & 0.52 \\
+TheFork, chain venues & 0.76 & 0.79 \\
+\bottomrule
+\end{tabular}
+\caption{Calibrated entity-resolution thresholds used for automatic candidate classification.}
+\label{tab:er-thresholds}
+\end{table}
+
+Thresholds were calibrated from manually labelled candidate samples. Normal venues and chain venues were treated separately because repeated brands, such as fast-food or casual dining chains, require stricter branch-level evidence than independent restaurants. The calibration files are kept as reproducible gold-standard artifacts and are not used as hidden runtime inputs by the entity-resolution command.
+
+This three-way classification strategy was intentionally adopted to reduce the risk of incorrect automatic decisions. Rather than forcing all pairs into a binary outcome, ambiguous cases are isolated and delegated to a subsequent resolution stage.
+
+An additional fast-path mechanism is implemented for Tripadvisor records without coordinates. When phone numbers or websites are identical across sources, the candidate pair can be classified as a \texttt{MATCH} without requiring further similarity computation, subject to the conservative chain-handling rules. This optimization significantly improves both efficiency and precision because identical contact information provides strong evidence that two records refer to the same establishment.
+
+\section{Output and Auditability}
+
+The output of the entity resolution process is stored in the MongoDB collection \\
+\texttt{entity\_resolution\_candidates}. Each candidate pair preserves the identifiers of both source records, the blocking strategy used to generate the candidate, the individual similarity components, the composite score, and the final classification label.
+
+Maintaining both positive and negative decisions provides a complete audit trail of the matching process. Furthermore, uncertain candidates are retained together with all supporting evidence, enabling a subsequent large-language-model resolution step without requiring candidate generation to be repeated.
+
+The resulting collection therefore acts as the bridge between schema-level integration and the construction of the final integrated restaurant dataset, providing a transparent and reproducible record-linkage layer for the entire project.
+
+\section{Calibration and Evaluation}
+
+The entity-resolution process was evaluated against manually labelled gold data. The calibration phase used 600 labelled candidate rows, split between normal venues and chain venues, while the main out-of-sample evaluation used 288 rows after de-duplication and exclusion of candidates already present in calibration files.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\begin{tabular}{p{0.52\textwidth}r}
+\toprule
+\textbf{Metric} & \textbf{Value} \\
+\midrule
+Out-of-sample MATCH precision & 96.8\% \\
+Strict MATCH recall & 71.7\% \\
+MATCH-or-UNCERTAIN kept recall & 100.0\% \\
+Out-of-sample accuracy & 66.0\% \\
+Out-of-sample uncertain rate & 33.0\% \\
+Human-confirmed MATCH pairs & 127 \\
+Selected links after one-to-one resolution & 88 \\
+Link survival rate & 69.3\% \\
+Integration survival rate & 69.3\% \\
+\bottomrule
+\end{tabular}
+\caption{Post-integration evaluation of entity resolution and one-to-one link selection.}
+\label{tab:er-evaluation}
+\end{table}
+
+The relatively high precision shows that automatic \texttt{MATCH} decisions are conservative, while the lower strict recall reflects the deliberate use of the \texttt{UNCERTAIN} class to avoid unsafe automatic links. The \texttt{MATCH}-or-\texttt{UNCERTAIN} kept recall of 100.0\% indicates that true matches are not discarded by the candidate-generation and classification process, but many require later adjudication or are lost during conservative one-to-one link selection.
+
+The same assessment also validates Tripadvisor spatial enrichment. Among gold-standard matched Tripadvisor rows, the median geocoding error is 10.1 m, with 91.3\% of evaluated rows within 50 m and all evaluated rows within 100 m. This confirms that the geocoded Tripadvisor coordinates are accurate enough for proximity blocking and downstream spatial analysis.
+
+\section{LLM based labelling on Uncertain Pairs}
+
+While the deterministic entity resolution process is able to automatically classify the majority of candidate pairs as either \texttt{MATCH} or \texttt{NON\_MATCH}, a subset of cases remains inherently ambiguous. These candidate pairs fall within the intermediate decision region defined by the three-way classification policy and are labelled as \texttt{UNCERTAIN}. Rather than forcing a potentially unreliable automatic decision, the implemented pipeline provides an optional second adjudication layer based on a Large Language Model (LLM), applied exclusively to these unresolved cases.
+
+The LLM component does not replace the deterministic record linkage process and does not operate on the full space of possible source combinations. Instead, it acts as a controlled semantic reasoning layer on top of the candidate pairs already generated through blocking and similarity scoring. Consequently, the computational cost and decision scope remain limited to a relatively small set of ambiguous records. Only documents in the collection \texttt{entity\_resolution\_candidates} with \texttt{label = UNCERTAIN} and no previous LLM decision are considered for processing.
+
+Candidate pairs are grouped according to the source record identifier, so that the model evaluates a single Tripadvisor or TheFork restaurant together with its competing Google candidates rather than examining pairs independently. For each group, Google candidates are ranked according to their deterministic score, geographic proximity, name similarity, and street similarity. The prompt then presents the source restaurant together with the highest-ranked candidates and all relevant matching evidence, including names, addresses, coordinates, contact information, ratings, cuisine descriptors, and similarity components.
+
+The model is instructed to select one of three possible outcomes: \texttt{MATCH}, when exactly one candidate can be confidently identified as the same physical restaurant; \texttt{NON\_MATCH}, when none of the candidates appear plausible; or \texttt{UNCERTAIN}, when the available evidence is insufficient or multiple candidates remain equally plausible. To ensure reproducibility and machine-readable outputs, responses are constrained to a predefined JSON schema containing the final decision, the selected candidate identifier, a confidence value, a textual explanation, and a set of predefined risk flags describing potential sources of ambiguity.
+
+A key design principle of the implemented approach is that LLM decisions are never accepted blindly. Every response is subjected to a deterministic post-validation policy before being incorporated into the integration workflow. Candidate matches may be downgraded from \texttt{MATCH} to \texttt{UNCERTAIN} when the confidence value falls below a configurable threshold, when the selected candidate does not belong to the candidate set presented in the prompt, when severe risk flags are detected, or when geographic evidence is inconsistent with the absence of supporting contact information. This validation layer ensures that the generative component remains subordinate to conservative and transparent decision rules.
+
+The resulting decision is stored as an additional layer of metadata rather than replacing the original deterministic classification. Fields such as \texttt{llm\_label}, \texttt{llm\_confidence}, \texttt{llm\_reason}, \texttt{llm\_risk\_flags}, and \texttt{llm\_prompt\_version} are persisted together with the original similarity evidence, enabling full traceability of the adjudication process. The downstream unification command consumes \texttt{llm\_label} when it is available; otherwise, it falls back to the deterministic label. Consequently, deterministic matches remain valid, uncertain pairs promoted by the LLM can contribute to the final integrated dataset and unresolved ambiguities remain excluded from automatic integration.
