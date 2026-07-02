@@ -14,6 +14,9 @@ SELECT
     website, primary_cuisine,
     google_photo_count, tripadvisor_photo_count, thefork_photo_count,
     google_review_count, tripadvisor_review_count, thefork_review_count,
+    -- per-platform + consensus ratings (0–5) so Q7 can also ask whether geography
+    -- shifts the rating itself, not just metadata completeness.
+    google_rating_5, tripadvisor_rating_5, thefork_rating_5, rating_avg_5,
     rating_range_5
 FROM {INTEGRATED}
 WHERE canonical_city = 'Milano'

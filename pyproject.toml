@@ -56,6 +56,7 @@ dataman-er-llm = "transform.entity_resolution_llm.cli:app"
 dataman-llm-pipeline = "transform.llm_matching_pipeline.cli:app"
 quality-assessment = "quality_assessment.cli:app"
 integration-assessment = "integration_assessment.cli:app"
+dataman-analysis-export = "analysis.dump:app"
 
 [build-system]
 requires = ["hatchling"]
