@@ -1,22 +1,7 @@
-01_q1.png: q1
-02_q1.png: q1
-03_q1.png: q1
-04_q2.png: q2
-05_q3.png: q3
-06_q3.png: q3
-07_q4.png: q4
-08_q4.png: q4
-09_q5.png: q5
-10_q5.png: q5
-11_q6.png: q6
-12_q7.png: q7
-13_q7.png: q7
-14_q7.png: q7
-15_q7.png: q7
-16_q8.png: q8
-17_q9.png: q9
-18_q9.png: q9
-19_q10.png: q10
-20_q10.png: q10
-21_q11.png: q11
-22_q11.png: q11
+Report figures for chapter6.tex, exported from notebooks/ (assets/research_questions/).
+
+q05_1.png: Q5 — leave-one-out platform bias (fig:rq-platform-bias)
+q06_1.png: Q6 — disagreement vs review-volume group (fig:rq-popularity)
+q07_1.png: Q7 — completeness choropleth across Milan (fig:rq-coverage-density)
+q08_2.png: Q8 — rating level vs cross-platform disagreement by cuisine (fig:rq-cuisine)
+q10_1.png: Q10 — reviews & rating by number of platforms (fig:rq-platform-coverage)
