@@ -53,6 +53,8 @@ and operational Google restaurant. The document identifier is deterministic:
 Google is used as the canonical identity and geographic backbone because it has
 the highest spatial coverage and complete coordinates. Non-Google sources are
 attached as evidence blocks only when selected entity-resolution links exist.
+Table~\ref{tab:integrated-schema-overview} summarizes the main field groups of
+the integrated collection.
 
 \begin{table*}[t]
 \centering
@@ -171,7 +173,8 @@ automatic decisions with the human \texttt{MATCH}/\texttt{NON\_MATCH} labels. Th
 assessment measures not only the entity-resolution classifier, but also the
 survival of one-to-one selected links through the integration step and the spatial
 enrichment of Tripadvisor records, so that the final integrated dataset is judged
-end to end rather than only at the matching stage.
+end to end rather than only at the matching stage. Table~\ref{tab:post-integration-quality}
+reports the resulting post-integration metrics.
 
 \begin{table*}[t]
 \centering

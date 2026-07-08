@@ -4,7 +4,7 @@ Following the loading phase, a dedicated transformation layer was developed to c
 
 \section{Schema Transformation}
 
-The transformation phase follows an ELT paradigm and operates entirely within MongoDB. The raw collections remain immutable and are never modified or overwritten. Instead, each source is processed independently and written into a corresponding clean collection.
+The transformation phase follows an ELT paradigm and operates entirely within MongoDB. The raw collections remain immutable and are never modified or overwritten. Instead, each source is processed independently and written into a corresponding clean collection. Figure~\ref{fig:transformation_architecture} summarizes this MongoDB-to-MongoDB transformation flow.
 
 \begin{figure*}[t]
 \centering
@@ -24,7 +24,8 @@ records after removing 22 inert junk records. The goal of the cleaning step is
 to keep only the fields needed for restaurant matching, quality control, and
 cross-platform rating analysis. The subsequent integration stage further
 restricts the Google anchor set to records classified as dining venues and
-operational businesses.
+operational businesses. Table~\ref{tab:clean-google-schema} groups the fields
+kept in the cleaned Google schema.
 
 \begin{table*}[t]
 \centering
@@ -79,6 +80,8 @@ normalized, parsed, or derived attributes. In particular, raw fields such as
 \texttt{review}, \path|number_photo_uploaded|, and \path|phone_number| are not
 copied directly into the clean collection; they are converted into structured
 variables and remain available in the raw collection for audit purposes.
+Table~\ref{tab:clean-tripadvisor-schema} summarizes the resulting grouped
+schema.
 
 \begin{table*}[t]
 \centering
@@ -117,7 +120,8 @@ semi-structured attributes with normalized and analytically usable features. In
 particular, raw fields such as \path|price_range|, \texttt{discount},
 \path|cuisine_type|, \path|working_days_hours|, and the original nested review
 structure are transformed into standardized variables, while the raw collection
-remains available as an audit trail.
+remains available as an audit trail. Table~\ref{tab:clean-thefork-schema}
+summarizes the corresponding clean TheFork schema.
 
 \begin{table*}[t]
 \centering
@@ -169,7 +173,7 @@ Schema matching was performed according to two complementary perspectives. The f
 \item \textbf{Disjointness} ($\bot$), when two attributes appear similar but actually describe different facts and therefore must never be merged.
 \end{itemize}
 
-The matching process revealed that most restaurant descriptors are semantically equivalent across the three platforms. Restaurant names, addresses, postal codes, cities, ratings, review counts, coordinates, opening hours, and contact information all describe the same underlying concepts, although they are often represented using different structures, naming conventions, or measurement scales.
+The matching process revealed that most restaurant descriptors are semantically equivalent across the three platforms. Restaurant names, addresses, postal codes, cities, ratings, review counts, coordinates, opening hours, and contact information all describe the same underlying concepts, although they are often represented using different structures, naming conventions, or measurement scales. Table~\ref{tab:schema-matching-correspondences} gives representative correspondences.
 
 \begin{table*}[t]
 \centering
@@ -202,7 +206,7 @@ $\bot$ Disjointness &
 
 Several representation conflicts were also identified. The most important concerns restaurant ratings. Google Places and Tripadvisor use a 1--5 scale, whereas TheFork adopts a 0--10 scale. Although the three attributes describe the same concept, direct comparison would be misleading without normalization. This represents a scaling conflict rather than a semantic discrepancy. Similarly, price information is represented using heterogeneous formats, including categorical price levels, symbolic price bands, and explicit average prices expressed in euros. Cuisine descriptors are an additional semantic conflict, since the three platforms use different and even cross-language vocabularies; this overlap is resolved later through an explicit canonical cuisine taxonomy applied during dataset integration (Section~\ref{sec:cuisine-reconciliation}).
 
-Additional conflicts arise from structural differences. Address information may be represented either as a single normalized string or as a set of decomposed components. Review data exhibit even greater heterogeneity, since each platform provides different review structures, metadata, and levels of detail. Consequently, review objects are preserved together with their source provenance rather than being merged directly.
+Additional conflicts arise from structural differences. Address information may be represented either as a single normalized string or as a set of decomposed components. Review data exhibit even greater heterogeneity, since each platform provides different review structures, metadata, and levels of detail. Consequently, review objects are preserved together with their source provenance rather than being merged directly. Table~\ref{tab:schema-matching-conflicts} summarizes the main conflict types and their resolution strategies.
 
 \begin{table*}[t]
 \centering

@@ -6,7 +6,7 @@ The raw data acquisition phase was structured across three distinct data sources
 
 The objective of this acquisition phase was to build a comprehensive repository of restaurants located in Milan, which would subsequently serve as the reference dataset for cross-platform integration.
 
-Due to the limitations imposed by the Google Places API~\cite{google-places}, namely the restriction to circular search areas and the maximum number of results returned per request, a dedicated acquisition strategy was developed. The territory was divided into partially overlapping search regions (\textit{tiles}), each generating an independent Nearby Search request. Since dense urban areas can saturate API results and hide additional venues, the seed was collected through a progressive multi-pass strategy rather than through a single city-wide crawl.
+Due to the limitations imposed by the Google Places API~\cite{google-places}, namely the restriction to circular search areas and the maximum number of results returned per request, a dedicated acquisition strategy was developed. The territory was divided into partially overlapping search regions (\textit{tiles}), each generating an independent Nearby Search request. Since dense urban areas can saturate API results and hide additional venues, the seed was collected through the progressive multi-pass strategy summarized in Table~\ref{tab:google_acquisition_passes}, rather than through a single city-wide crawl.
 
 \begin{table*}[t]
 \centering

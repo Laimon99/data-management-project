@@ -14,7 +14,7 @@ This choice is coherent with the objectives of the project. Since the analysis a
 
 The loading layer follows an ELT approach. Its role is limited to transferring the already extracted raw files from the local data directory into MongoDB. No parsing, normalization, deduplication, enrichment, or schema coercion is performed during this phase. All transformation operations are deliberately postponed to later stages, where the data can be cleaned and integrated in a controlled and reproducible manner.
 
-A single generic loader was implemented for all three sources. Instead of developing one loader for each extractor, the loading logic is driven by a source registry. This registry specifies, for each platform, the raw file path, the file format, the natural key used as document identifier, and the destination MongoDB collection. This design reduces code duplication and ensures that all sources are loaded through the same operational logic.
+A single generic loader was implemented for all three sources. Instead of developing one loader for each extractor, the loading logic is driven by a source registry. This registry specifies, for each platform, the raw file path, the file format, the natural key used as document identifier, and the destination MongoDB collection. Table~\ref{tab:mongo_sources} reports the resulting loading configuration. This design reduces code duplication and ensures that all sources are loaded through the same operational logic.
 
 \begin{table*}[t]
 \centering

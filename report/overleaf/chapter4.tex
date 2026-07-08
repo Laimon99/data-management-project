@@ -2,7 +2,7 @@
 
 Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process~\cite{christen-2012} designed to identify matching restaurants while minimizing both false positives and false negatives.
 
-The entity resolution workflow operates on the clean collections generated during the transformation phase. Google Places was selected as the anchor source due to its superior geographic coverage, high data quality score, and complete coordinate availability. Candidate matches are therefore generated only between Google and Tripadvisor records and between Google and TheFork records. Direct Tripadvisor--TheFork matching is intentionally avoided because both platforms exhibit lower coverage and are expected to be linked indirectly through Google.
+The entity resolution workflow operates on the clean collections generated during the transformation phase. Google Places was selected as the anchor source due to its superior geographic coverage, high data quality score, and complete coordinate availability. Candidate matches are therefore generated only between Google and Tripadvisor records and between Google and TheFork records. Direct Tripadvisor--TheFork matching is intentionally avoided because both platforms exhibit lower coverage and are expected to be linked indirectly through Google. Figure~\ref{fig:entity-resolution-workflow} summarizes this Google-anchored workflow.
 
 \begin{figure*}[t]
     \centering
@@ -27,7 +27,7 @@ For each candidate pair generated during the blocking phase, a set of similarity
 
 Additional comparison features include street-name similarity, postal-code agreement, geographic distance, phone-number equality, and website equality when such information is available. Phone numbers and websites are particularly valuable for Tripadvisor matching because they provide strong evidence of identity when identical values are observed across sources.
 
-Cuisine information is also evaluated through set-based similarity measures. However, due to the vocabulary heterogeneity discussed in the schema matching phase, cuisine similarity is used only as a diagnostic feature and does not directly contribute to the final matching score.
+Cuisine information is also evaluated through set-based similarity measures. However, due to the vocabulary heterogeneity discussed in the schema matching phase, cuisine similarity is used only as a diagnostic feature and does not directly contribute to the final matching score. Table~\ref{tab:er-features} summarizes the similarity features retained for candidate evaluation.
 
 \begin{table*}[t]
 \centering

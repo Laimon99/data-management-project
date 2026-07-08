@@ -28,28 +28,28 @@ The pipeline loads the raw data into MongoDB before any transformation, in contr
 
 Table~\ref{tab:tech_stack} summarizes the technologies adopted and the role each one plays. The stack was chosen to favour reproducibility and team collaboration: a single Python version pinned through \texttt{uv}, containerized databases, and a shared repository with code review.
 
-\begin{table*}[t]
+\begin{table}[H]
 \centering
-\footnotesize
-\setlength{\tabcolsep}{6pt}
-\renewcommand{\arraystretch}{1.25}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}X@{}}
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.14}
+\begin{tabularx}{\columnwidth}{@{}>{\RaggedRight\arraybackslash}p{0.31\columnwidth}X@{}}
 \toprule
-\textbf{Concern} & \textbf{Technology} & \textbf{Role} \\
+\textbf{Concern} & \textbf{Technology and role} \\
 \midrule
-Language \& environment & Python 3.12, \texttt{uv} & Implementation and reproducible dependency management \\
-Data acquisition & Google Places API, Playwright, Chromium & API seed extraction and browser-based web scraping \\
-Validation & Pydantic & Configuration and data validation \\
-System of record & MongoDB~7 & Document storage of the raw, clean, and integrated collections \\
-Analytical store & ClickHouse & Columnar flat tables for the research-question queries \\
-Infrastructure & Docker & Containerized, reproducible database infrastructure \\
-Integration & RapidFuzz, GeoPy / Nominatim & Fuzzy name and address matching, and geocoding enrichment \\
-LLM adjudication & OpenAI & Optional labelling of uncertain entity-resolution pairs \\
-Analysis & pandas, SciPy, Plotly, Jupyter & Data analysis, statistics, and visualization \\
-Development \& collaboration & GitHub, OpenAI / Claude & Version control, code review, and AI coding assistance \\
+Language \& environment & Python 3.12 and \texttt{uv} for implementation and reproducible dependency management. \\
+Data acquisition & Google Places API, Playwright, and Chromium for API seed extraction and browser-based scraping. \\
+Validation & Pydantic for configuration and data validation. \\
+System of record & MongoDB~7 for raw, clean, and integrated document collections. \\
+Analytical store & ClickHouse for flat tables and research-question queries. \\
+Infrastructure & Docker for reproducible database services. \\
+Integration & RapidFuzz, GeoPy, and Nominatim for fuzzy matching and geocoding enrichment. \\
+LLM adjudication & OpenAI for optional labelling of uncertain entity-resolution pairs. \\
+Analysis & pandas, SciPy, Plotly, and Jupyter for analysis, statistics, and visual outputs. \\
+Collaboration & GitHub, OpenAI, and Claude for version control, code review, and AI-assisted development. \\
 \bottomrule
 \end{tabularx}
 \captionsetup{font=small}
 \caption{Technology stack and the role of each tool in the software architecture.}
 \label{tab:tech_stack}
-\end{table*}
+\end{table}
