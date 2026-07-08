@@ -1,0 +1,54 @@
+specification {
+  // Light card fill so colourful technology icons stay legible
+  color card #EDF1F7
+
+  element stage {
+    style {
+      shape rectangle
+      textSize xl
+    }
+  }
+  element service {
+    style {
+      shape rectangle
+      color card
+      textSize xl
+    }
+  }
+  element artifact {
+    style {
+      shape document
+      color amber
+      textSize xl
+    }
+  }
+  element store {
+    style {
+      shape cylinder
+      color muted
+      textSize xl
+    }
+  }
+  element source {
+    style {
+      shape rectangle
+      color card
+      textSize xl
+    }
+  }
+  element output {
+    style {
+      shape document
+      color green
+      textSize xl
+    }
+  }
+
+  relationship flow {
+    color slate
+  }
+  relationship reads {
+    line dashed
+    color muted
+  }
+}

@@ -25,6 +25,11 @@
       "skillPath": "academic-writing-skills/latex-paper-en/SKILL.md",
       "computedHash": "0f95f173d8424575b518ef763bc38a9b5488eb14fb51dea321520e6163ae10cf"
     },
+    "likec4-dsl": {
+      "source": "likec4.dev",
+      "sourceType": "well-known",
+      "computedHash": "84daceebd5b5cf0e5cb3d3e70d611b106bc88db9dea8d352c8607ccb412c4d6a"
+    },
     "plotly": {
       "source": "tondevrel/scientific-agent-skills",
       "sourceType": "github",

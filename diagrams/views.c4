@@ -1,0 +1,33 @@
+views {
+
+  view softwareArchitecture {
+    title "End-to-end pipeline architecture"
+
+    include
+      google, tripadvisor, thefork, rawFiles,
+      integrate, integrate.*,
+      quality, quality.*,
+      analytics, analytics.*,
+      report
+
+    group "ELT · Extract → Load → Transform" {
+      color muted
+      opacity 10%
+      include
+        extract, extract.*,
+        rawFiles,
+        load, load.*,
+        transform, transform.*
+    }
+
+    group "Docker Compose DB infrastructure" {
+      color muted
+      opacity 8%
+      include
+        mongo, mongo.*,
+        clickhouse, clickhouse.*
+    }
+
+    autoLayout TopBottom 70 55
+  }
+}

@@ -1,0 +1,128 @@
+model {
+
+  // ---- External data sources ----
+  source google "Google Places API" {
+    icon gcp:google-maps-platform
+  }
+  source tripadvisor "Tripadvisor" {
+    style { shape browser }
+  }
+  source thefork "TheFork" {
+    style { shape browser }
+  }
+
+  // ---- Stage 1: Extract ----
+  stage extract "Extract" {
+    service gExtract "google-places-api-extract" {
+      icon tech:google
+    }
+    service taExtract "tripadvisor-scraper-extract" {
+      icon tech:playwright
+    }
+    service tfExtract "thefork-scraper-extract" {
+      icon tech:playwright
+    }
+  }
+
+  artifact rawFiles "Raw files\\ndata/raw/*"
+
+  // ---- Stage 2: Load (system of record) ----
+  stage load "Load" {
+    service loadMongo "dataman-load"
+  }
+
+  // ---- MongoDB: document system of record ----
+  store mongo "MongoDB" {
+    icon tech:mongodb
+
+    store raw "restaurants_raw_*"
+    store clean "restaurants_clean_*"
+    store candidates "entity_resolution_candidates"
+    store links "entity_resolution_links"
+    store integrated "restaurants_integrated"
+  }
+
+  // ---- Stage 3: Transform (clean per platform) ----
+  stage transform "Transform" {
+    service gClean "google-clean"
+    service taClean "tripadvisor-clean"
+    service tfClean "thefork-clean"
+  }
+
+  // ---- Stage 4: Integration ----
+  stage integrate "Integration" {
+    service er "dataman-entity-resolve"
+    service llm "dataman-llm-pipeline" {
+      icon tech:openai
+    }
+    service unify "dataman-unify"
+  }
+
+  // ---- Stage 5: Quality assessment ----
+  stage quality "Quality Assessment" {
+    service preQa "quality-assessment"
+    service postQa "integration-assessment"
+  }
+
+  // ---- Stage 6: Analytics load + analysis ----
+  stage analytics "Analytics" {
+    service loadCh "dataman-load-clickhouse"
+    service queries "Analytic queries"
+    service notebooks ".ipynb notebooks" {
+      icon tech:jupyter
+    }
+  }
+
+  store clickhouse "ClickHouse" {
+    store chTables "Flat analytics tables"
+  }
+
+  output report "Report & Presentation"
+
+  // ================= Flow =================
+
+  // Sources -> extract
+  google -[flow]-> extract.gExtract
+  tripadvisor -[flow]-> extract.taExtract
+  thefork -[flow]-> extract.tfExtract
+
+  // Extract -> load -> raw
+  extract.gExtract -[flow]-> rawFiles
+  extract.taExtract -[flow]-> rawFiles
+  extract.tfExtract -[flow]-> rawFiles
+  rawFiles -[flow]-> load.loadMongo
+  load.loadMongo -[flow]-> mongo.raw
+
+  // Raw -> transform -> clean
+  mongo.raw -[reads]-> transform.gClean
+  mongo.raw -[reads]-> transform.taClean
+  mongo.raw -[reads]-> transform.tfClean
+  transform.gClean -[flow]-> mongo.clean
+  transform.taClean -[flow]-> mongo.clean
+  transform.tfClean -[flow]-> mongo.clean
+
+  // Clean -> integration -> integrated
+  mongo.clean -[reads]-> integrate.er
+  integrate.er -[flow]-> mongo.candidates
+  mongo.candidates -[reads]-> integrate.llm
+  integrate.llm -[flow]-> mongo.candidates
+  mongo.clean -[reads]-> integrate.unify
+  mongo.candidates -[reads]-> integrate.unify
+  integrate.unify -[flow]-> mongo.links
+  integrate.unify -[flow]-> mongo.integrated
+
+  // Quality assessment reads clean and integrated
+  mongo.raw -[reads]-> quality.preQa
+  mongo.clean -[reads]-> quality.preQa
+  mongo.candidates -[reads]-> quality.postQa
+  mongo.links -[reads]-> quality.postQa
+  mongo.integrated -[reads]-> quality.postQa
+
+  // Analytics: MongoDB clean+integrated -> ClickHouse -> queries -> notebooks -> report
+  mongo.clean -[reads]-> analytics.loadCh
+  mongo.integrated -[reads]-> analytics.loadCh
+  analytics.loadCh -[flow]-> clickhouse.chTables
+  clickhouse.chTables -[reads]-> analytics.queries
+  analytics.queries -[flow]-> analytics.notebooks
+  analytics.notebooks -[flow]-> report
+}
