@@ -19,6 +19,12 @@
       "skillPath": "skills/fun-brainstorming/SKILL.md",
       "computedHash": "b1873510f9c511f65db575ffb5721b6caa8bac4cf4f81515618b339186f6ca56"
     },
+    "latex-paper-en": {
+      "source": "bahayonghang/academic-writing-skills",
+      "sourceType": "github",
+      "skillPath": "academic-writing-skills/latex-paper-en/SKILL.md",
+      "computedHash": "0f95f173d8424575b518ef763bc38a9b5488eb14fb51dea321520e6163ae10cf"
+    },
     "plotly": {
       "source": "tondevrel/scientific-agent-skills",
       "sourceType": "github",
