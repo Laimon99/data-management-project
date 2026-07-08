@@ -6,14 +6,14 @@ Templates and conventions for writing feature specs before implementation begins
 
 | File | Purpose |
 |---|---|
-| `template.md` | Canonical spec template — copy this when creating a new spec |
-
-## Contents
-
-| File | Purpose |
-|---|---|
 | `template.md` | Canonical spec template — the `/spec` skill uses this automatically |
 | `*.md` (others) | Completed feature specs, one per feature/pipeline stage |
+
+Current specs include: `google-places-seed-acquisition`, `multi-centre-neighbourhood-tiling`,
+`multi-browser-chromium-detection`, `tripadvisor-elt-transform` (+ `tripadvisor-elt-transform.plan`),
+`thefork-elt-transform`, `google-places-elt-transform`, `clean-transforms-er-prep`,
+`tripadvisor-clean-parity`, `entity-resolution`, `data-storage-layer`, `storage-load-layer`,
+and `research-questions-analysis`.
 
 Each spec covers: summary, functional requirements, edge cases, acceptance criteria, open questions, and testing guidelines.
 

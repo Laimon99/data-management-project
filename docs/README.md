@@ -13,8 +13,11 @@ Project-level documentation: architecture, pipeline design, storage decisions, a
 | `schema-correspondences.md` | Engineering reference for the same correspondences, plus the integrated-schema starting point (next stage). Superseded by `schema-matching.md` on relation/conflict classification. |
 | `dev-guide.md` | Developer setup, tooling, and contribution conventions |
 | `antibot-comparison.md` | Why the TheFork scraper keeps its Chromium approach, and the anti-bot escalation ladder vs. the Tripadvisor persistent-profile design |
+| `data-quality-assessment.md` | Generated pre-integration data-quality assessment notes (produced by `uv run quality-assessment`) |
+| `post-integration-assessment.md` | Generated post-integration assessment report — ER classifier error, one-to-one link survival, Tripadvisor geocoding error (produced by `uv run integration-assessment`) |
 | `requirements/EXAM_REQUIREMENTS.md` | Exam deliverable checklist |
 | `requirements/PROF_PITCH.md` | Original project pitch to the professor |
+| `the_fork_migration/DATASET_CHANGES.md` | Notes on the TheFork dataset schema migration/changes |
 | `dump/` | Drafts and exploratory notes that informed but don't govern the current design |
 
 ## What goes here vs elsewhere

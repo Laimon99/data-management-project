@@ -10,6 +10,7 @@ services/
              entity_resolution/  entity_resolution_llm/
              llm_matching_pipeline/  unified_dataset/
   quality_assessment/  integration_assessment/
+  analysis/  (with analysis/queries/ SQL)
 ```
 
 ## Implemented services
@@ -226,6 +227,26 @@ uv run integration-assessment \
 
 Outputs: `data/quality/integration_assessment/`, `docs/post-integration-assessment.md`,
 `report/post_integration/tables/*.tex`. See `integration_assessment/README.md`.
+
+---
+
+### `analysis` — Stage 6: Analysis / research questions
+The analysis stage backing the eleven research questions. It ships the externalized SQL in
+`analysis/queries/` (`q0`–`q11`) and shared helpers — `notebook.py` (the `from
+analysis.notebook import *` setup imported by every notebook, with `run`/`publish`),
+`export.py` (CSV/LaTeX writers), `geo.py` (Duomo-distance / neighbourhood helpers), and
+`config.py` (read-only ClickHouse client). The `notebooks/q00…q11` import these to query
+ClickHouse and publish per-question CSV/LaTeX tables + chart PNGs into `report/` for the
+final report (`report/overleaf`, `report/presentation`).
+
+`dump.py` backs a separate convenience CLI that dumps whole ClickHouse tables to CSV/Parquet:
+
+```bash
+uv run dataman-analysis-export            # → data/analysis_export/restaurants_integrated.csv
+uv run dataman-analysis-export all --format parquet
+```
+
+See `analysis/README.md` and `analysis/queries/README.md`.
 
 ---
 

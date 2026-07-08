@@ -48,7 +48,12 @@ LLM/manual uncertain-pair resolution
         ▼
 Resolved links + integrated ratings collection
    • writes entity_resolution_links
-   • writes restaurants_integrated / restaurants_ratings_final  (uv run dataman-unify)
+   • writes restaurants_integrated                              (uv run dataman-unify)
+        │
+        ▼
+ClickHouse analytics tables + research-question exports
+   • uv run dataman-load-clickhouse all
+   • uv run dataman-analysis-export  → notebooks/q00…q11 + report
 ```
 
 > **Transform (T) layer — all three sources implemented.** Each source is cleaned
@@ -89,7 +94,7 @@ For each restaurant, the following attributes are extracted directly from the Go
 
 ### Output
 
-**`restaurants_seed`**
+**`restaurants_seed`** (raw file `data/raw/google_places/restaurants_seed.jsonl`; loaded into MongoDB as `restaurants_raw_google`)
 
 | restaurant_id | name | address | city | latitude | longitude |
 | ------------- | ---- | ------- | ---- | -------- | --------- |
@@ -121,11 +126,11 @@ For each restaurant in `restaurants_seed`, targeted scraping is performed on:
 
 Each platform generates its **own table**, without assuming perfect name or address matching.
 
-**Tables:**
+**Tables** (MongoDB collections written by the Load layer, `uv run dataman-load`):
 
-* `google_maps_reviews`
-* `tripadvisor_reviews`
-* `thefork_reviews`
+* `restaurants_raw_google`
+* `restaurants_raw_tripadvisor`
+* `restaurants_raw_thefork`
 
 | platform_id | scraped_name | scraped_address | rating | review_count |
 | ----------- | ------------ | --------------- | ------ | ------------ |
@@ -431,7 +436,7 @@ Read from:
 
 Write to:
 
-* `restaurants_integrated` (or final analytics alias `restaurants_ratings_final`)
+* `restaurants_integrated`
 
 The integrated collection is Google-seeded:
 
@@ -441,7 +446,7 @@ one integrated record = one Google restaurant anchor
 
 Tripadvisor and TheFork fields are attached only when a resolved link exists.
 
-**`restaurants_integrated` / `restaurants_ratings_final`**
+**`restaurants_integrated`**
 
 | restaurant_id | name | address | latitude | longitude | google_rating | tripadvisor_rating | thefork_rating |
 | ------------- | ---- | ------- | -------- | --------- | ------------- | ------------------ | -------------- |
@@ -479,6 +484,32 @@ This table enables:
 
 ---
 
+## Step 6 – ClickHouse Analytics Load
+
+The cleaned and integrated MongoDB collections are loaded into **ClickHouse** (opt-in
+`analytics` Docker profile) as four flat analytics tables by `services/load/clickhouse`
+(`uv run dataman-load-clickhouse`). These tables are the query surface for the analysis
+stage:
+
+```bash
+docker compose --profile analytics up -d clickhouse
+uv run dataman-load-clickhouse all
+```
+
+---
+
+## Step 7 – Analysis / Research Questions
+
+The **analysis** stage is implemented as `services/analysis`. It ships the externalized SQL
+in `services/analysis/queries` (`q0`–`q11`) plus the shared `analysis.notebook` helpers
+(`run`/`publish`) that the per-question notebooks `notebooks/q00…q11` import to query the
+ClickHouse tables and publish per-question CSV/LaTeX tables + chart PNGs into `report/`
+(`report/for_visualizations/tables/`, `report/overleaf/images/research_questions/`) for the
+final report (`report/overleaf`, `report/presentation`). The `uv run dataman-analysis-export`
+CLI separately dumps whole ClickHouse tables to CSV/Parquet under `data/analysis_export/`.
+
+---
+
 ## Exploratory Data Analysis (EDA)
 
 Exploratory Data Analysis is performed on both **single-source** and **integrated datasets**.
@@ -502,7 +533,12 @@ EDA allows identifying **systematic differences** and **platform-specific behavi
 
 ## Data Quality Assessment & Improvement
 
-Data quality is evaluated and improved after integration.
+Data quality is evaluated and improved around integration. Two services implement this:
+`services/quality_assessment` (`uv run quality-assessment`) for pre-integration
+completeness/consistency/uniqueness/timeliness (→ `report/pre_integration`), and
+`services/integration_assessment` (`uv run integration-assessment`) for post-integration ER
+classifier error, one-to-one link survival, and Tripadvisor geocoding error against
+hand-labeled gold CSVs (→ `docs/post-integration-assessment.md`).
 
 ### Selected Quality Dimensions
 

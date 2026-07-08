@@ -6,6 +6,7 @@ Unit and integration tests, mirroring the `services/` structure. Run with `uv ru
 
 ```
 tests/
+├── analysis/                      # Tests for the analysis stage (query builders / helpers)
 ├── extract/
 │   ├── google_places_api/         # Tests for Stage 1 seed acquisition
 │   │   ├── conftest.py                # shared fixtures (mock API responses, temp paths)
@@ -19,12 +20,18 @@ tests/
 │   └── tripadvisor_scraper/       # Tests for Stage 2 Tripadvisor scraper
 │       └── test_scraper.py            # scraper parsing, checkpoint, output shape
 ├── load/
-│   └── mongo/                     # Tests for the load layer (mongomock)
+│   ├── mongo/                     # Tests for the Mongo load layer (mongomock)
+│   └── clickhouse/                # Tests for the ClickHouse load layer
+├── quality_assessment/            # Tests for pre-integration quality assessment
+├── integration_assessment/        # Tests for post-integration assessment
 └── transform/
-    └── tripadvisor_clean/         # Tests for the clean+geocode transform (mongomock, patched Nominatim)
-        ├── test_clean_cleaners.py     # pure cleaning functions
-        ├── test_geocode_core.py       # geocoding core (retry/back-off, build_query)
-        └── test_clean_transform.py    # Mongo orchestration: idempotency, resumability, --skip-geocode
+    ├── google_clean/              # Tests for the Google clean/normalize transform
+    ├── thefork_clean/             # Tests for the TheFork parse/structure transform
+    ├── tripadvisor_clean/         # Tests for the clean+geocode transform (mongomock, patched Nominatim)
+    │   ├── test_clean_cleaners.py     # pure cleaning functions
+    │   ├── test_geocode_core.py       # geocoding core (retry/back-off, build_query)
+    │   └── test_clean_transform.py    # Mongo orchestration: idempotency, resumability, --skip-geocode
+    └── unified_dataset/           # Tests for the unified/integrated dataset builder
 ```
 
 ## Conventions

@@ -114,6 +114,21 @@ uv run dataman-entity-resolve --replace-destination \
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
+### 8b. (Optional) LLM adjudication of uncertain candidates
+
+`UNCERTAIN` candidate groups can be adjudicated by an LLM before the dataset is built. With
+`--apply` this writes `llm_label` back onto `entity_resolution_candidates`, which step 9
+then prefers over the automatic label:
+
+```bash
+uv run dataman-er-llm --mode mock --limit 10                       # offline smoke test
+DATAMAN_OPENAI_API_KEY=... uv run dataman-er-llm --mode openai --apply
+# or the end-to-end runner (adjudicate + rebuild links + integrated):
+DATAMAN_OPENAI_API_KEY=... uv run dataman-llm-pipeline --mode openai --apply
+```
+
+Skip this step to rely on the deterministic labels only.
+
 ### 9. Build the unified (integrated) dataset
 
 Collapse the candidate pairs into one-to-one links and materialize the final
@@ -218,6 +233,25 @@ docker exec -it dataman-clickhouse clickhouse-client --query \
 Expect four tables: `restaurants_clean_google`, `restaurants_clean_thefork`,
 `restaurants_clean_tripadvisor`, `restaurants_integrated` — each with row counts matching
 the corresponding MongoDB collection.
+
+### 14. Analysis / research questions
+
+With the ClickHouse analytics tables loaded (step 10), run the eleven research-question
+notebooks. They query ClickHouse through the `analysis` package and publish per-question
+tables (`report/for_visualizations/tables/`) and charts
+(`report/overleaf/images/research_questions/`):
+
+```bash
+# execute notebooks/q00_overview.ipynb … notebooks/q11_photos.ipynb
+# e.g. interactively:  uv run jupyter lab notebooks/
+# or headless:         uv run jupyter nbconvert --to notebook --execute notebooks/q0*.ipynb
+```
+
+A whole-table CSV/Parquet dump of the ClickHouse tables is also available:
+
+```bash
+uv run dataman-analysis-export all --out data/analysis_export
+```
 
 ---
 
@@ -341,6 +375,21 @@ uv run dataman-entity-resolve --replace-destination `
 See [Entity resolution candidate details](#entity-resolution-candidate-details) below
 for what this writes and how to inspect/calibrate it.
 
+### 8b. (Optional) LLM adjudication of uncertain candidates
+
+`UNCERTAIN` candidate groups can be adjudicated by an LLM before the dataset is built. With
+`-Apply` / `--apply` this writes `llm_label` back onto `entity_resolution_candidates`, which
+step 9 then prefers over the automatic label:
+
+```powershell
+uv run dataman-er-llm --mode mock --limit 10                       # offline smoke test
+$env:DATAMAN_OPENAI_API_KEY="..."; uv run dataman-er-llm --mode openai --apply
+# or the end-to-end runner (adjudicate + rebuild links + integrated):
+powershell -ExecutionPolicy Bypass -File .\scripts\run_llm_matching_pipeline.ps1 -Mode openai -Apply
+```
+
+Skip this step to rely on the deterministic labels only.
+
 ### 9. Build the unified (integrated) dataset
 
 Collapse the candidate pairs into one-to-one links and materialize the final
@@ -435,6 +484,25 @@ docker exec -it dataman-clickhouse clickhouse-client --query `
 Expect four tables: `restaurants_clean_google`, `restaurants_clean_thefork`,
 `restaurants_clean_tripadvisor`, `restaurants_integrated` — each with row counts matching
 the corresponding MongoDB collection.
+
+### 14. Analysis / research questions
+
+With the ClickHouse analytics tables loaded (step 10), run the eleven research-question
+notebooks. They query ClickHouse through the `analysis` package and publish per-question
+tables (`report/for_visualizations/tables/`) and charts
+(`report/overleaf/images/research_questions/`):
+
+```powershell
+# execute notebooks/q00_overview.ipynb … notebooks/q11_photos.ipynb
+# e.g. interactively:  uv run jupyter lab notebooks/
+# or headless:         uv run jupyter nbconvert --to notebook --execute notebooks/q0*.ipynb
+```
+
+A whole-table CSV/Parquet dump of the ClickHouse tables is also available:
+
+```powershell
+uv run dataman-analysis-export all --out data/analysis_export
+```
 
 ---
 

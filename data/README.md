@@ -16,10 +16,15 @@ data/
     │   ├── tripadvisor_checkpoint.json       # scraper resume state
     │   └── browser_profile/                  # Playwright persistent browser profile
     └── thefork/               # Stage 2: TheFork scraper output
-        ├── thefork_milan_restaurants_normalized.json          # normalized listing/detail records
-        ├── thefork_milan_restaurants_normalized_partial.json  # partial-progress snapshot
-        └── thefork_milan_validation_report.json               # field-coverage validation report
+        ├── thefork_milan_restaurants_enriched.json            # enriched listing+detail records (canonical load input)
+        ├── thefork_milan_restaurants_normalized*.json         # earlier normalized snapshots (full + partial progress)
+        └── thefork_milan_*_report.json                        # merge / field-coverage validation reports
 ```
+
+Later pipeline stages also write generated (non-raw) subdirectories under `data/` —
+`processed/`, `quality/` (assessment metrics + hand-labeled gold CSVs),
+`analysis_export/`, and `exports/` (e.g. `mongo_json/`). These are outputs of the
+transform / assessment / analysis stages, not hand-authored inputs.
 
 ## Rules
 
@@ -29,4 +34,4 @@ data/
 
 ## Downstream use
 
-These files are the inputs to Stage 3 (entity resolution) once storage is formalised. The JSONL and JSON formats are chosen so records can be imported into MongoDB or read directly by DuckDB without transformation. See `docs/storage-design.md` for the storage architecture decision.
+These raw files are the inputs to the Load layer (`services/load/mongo`, `uv run dataman-load`), which upserts them into MongoDB — the system of record for the transform, entity-resolution, unified-dataset, and analysis stages (with ClickHouse as the analytics layer). See `docs/storage-design.md` for the storage architecture decision.

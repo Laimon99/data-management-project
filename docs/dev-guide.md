@@ -199,6 +199,8 @@ The databases always live in Docker, but the code that *loads* data into them ru
 your **host** with `uv run`. The Mongo load layer is implemented as `services/load/mongo`
 (`uv run dataman-load …`) — see
 [`../services/load/mongo/README.md`](../services/load/mongo/README.md). The
-`mongo → clickhouse` ETL is the next step; its design notes live in
-[`etl-design.md`](etl-design.md).
+`mongo → clickhouse` load is implemented as `services/load/clickhouse`
+(`uv run dataman-load-clickhouse …`) — see
+[`../services/load/clickhouse/README.md`](../services/load/clickhouse/README.md); its
+design notes live in [`etl-design.md`](etl-design.md).
 

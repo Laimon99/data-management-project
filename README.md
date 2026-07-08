@@ -28,11 +28,11 @@
 - [x] - [Data profiling / data quality](services/quality_assessment/) on [pre-integration raw data](docs/data-quality-assessment.md) ([report](report/pre_integration/main.pdf))
 - [x] - [Integration quality assessment](docs/post-integration-assessment.md) ([report](report/post_integration/main.pdf))
 - [x] - Load cleaned and integrated collections to [Clickhouse](docker-compose.yml) ([clickhouse loader](services/load/clickhouse/))
-- [ ] - Make at least 2 queries on the final dataset to answer some questions
+- [x] - Answer the research questions on the final dataset ([analysis service](services/analysis/), [Q1–Q11 notebooks](notebooks/))
 - [ ] - Submit a project:
-  - [ ] - Write a [final report](report/final/)
-  - [ ] - Create a [presentation](report/final/)
-  - [ ] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
+  - [x] - Write a [final report](report/overleaf/)
+  - [x] - Create a [presentation](report/presentation/)
+  - [x] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
   - [ ] - Upload to Google Drive and send to the professor 
 
 ## 1️⃣ Domain & research questions
@@ -763,15 +763,122 @@ survival rates, coordinate coverage, and Haversine geocoding error.
 
 ## 7️⃣ Analysis & results
 
-### Analyses you can present
+The eleven research questions (Q1–Q11) are implemented as the **analysis stage**
+(`services/analysis`): externalized ClickHouse SQL in
+[`services/analysis/queries`](services/analysis/queries/) plus the shared
+`analysis.notebook` helpers, executed from the per-question notebooks
+[`notebooks/q00_overview … q11_photos`](notebooks/). Each notebook queries the ClickHouse
+analytics tables and publishes its result tables (`report/for_visualizations/tables/`) and
+charts (`report/overleaf/images/research_questions/`). The written analysis lives in the
+[final report](report/overleaf/) and [presentation](report/presentation/).
 
-* Distribution of rating differences
-* Platform bias comparison
-* Rating stability vs review volume
-* Spatial visualization of inconsistent restaurants
+Run them after the pipeline has been loaded into ClickHouse:
 
-### Example insights (expected)
+```bash
+docker compose --profile analytics up -d clickhouse
+uv run dataman-load-clickhouse all
+# then execute notebooks/q00_overview … q11_photos
+```
 
-* Restaurants with <20 reviews show higher variance
-* One platform may be systematically more conservative than another
-* Peripheral areas have lower data completeness
+The [research-question gallery](#-research-question-gallery) at the end of this README gives
+the headline finding and lead chart for each question.
+
+---
+
+## 🖼 Research-question gallery
+
+Every chart below is exported straight from the current [notebooks](notebooks/)
+(`assets/research_questions/`), with the headline answer per question. Full tables and
+methodology are in the notebooks and the [final report](report/overleaf/).
+
+### Q1 — How consistent are ratings across platforms?
+Most multi-platform venues agree closely, but agreement is **pair-dependent**: Google and
+TheFork agree tightly, while Tripadvisor most often pulls ratings apart.
+
+![Q1 chart 1](assets/research_questions/q01_1.png)
+![Q1 chart 2](assets/research_questions/q01_2.png)
+![Q1 chart 3](assets/research_questions/q01_3.png)
+
+### Q2 — Which restaurants disagree the most?
+Ranked by raw gap, the worst disagreers are sparse-review artefacts (1★ off a single
+review). Gated at ≥100 reviews on both sides, ~15 well-reviewed venues still differ by
+>1★ — and on every one **Google rates higher than Tripadvisor** (a systematic upward tilt).
+
+![Q2 chart 1](assets/research_questions/q02_1.png)
+![Q2 chart 2](assets/research_questions/q02_2.png)
+![Q2 chart 3](assets/research_questions/q02_3.png)
+![Q2 chart 4](assets/research_questions/q02_4.png)
+
+### Q3 — Is inconsistency linked to data-quality issues?
+Rating spread vs review volume correlates **negatively but weakly** — inconsistency is
+partly a data-quality artefact, but review volume is far from the whole story.
+
+![Q3 chart 1](assets/research_questions/q03_1.png)
+![Q3 chart 2](assets/research_questions/q03_2.png)
+
+### Q4 — Can sparse data inflate perceived quality?
+Sparse data does **not** inflate the average, but it **inflates volatility** — venues with
+<20 reviews are ~2–3× as dispersed and far more likely to be extreme (≈35% of low-review
+Google venues ≥4.8★ vs ≈3% of 500+-review ones).
+
+![Q4 chart 1](assets/research_questions/q04_1.png)
+![Q4 chart 2](assets/research_questions/q04_2.png)
+![Q4 chart 3](assets/research_questions/q04_3.png)
+
+### Q5 — Are some platforms systematically optimistic or pessimistic?
+**Tripadvisor is systematically harsher** than the others; Google and TheFork both sit on
+the generous side.
+
+![Q5 chart 1](assets/research_questions/q05_1.png)
+![Q5 chart 2](assets/research_questions/q05_2.png)
+
+### Q6 — Does inconsistency increase for less popular restaurants?
+Yes — mean rating spread **declines as popularity rises** (Google review count), so
+low-review venues disagree most and the most-popular bin least.
+
+![Q6 chart 1](assets/research_questions/q06_1.png)
+
+### Q7 — Does location affect data completeness (and rating)?
+Completeness falls smoothly with distance from the Duomo — central venues score higher on
+every facet (website, cuisine, Tripadvisor listing, review volume) — yet the tourist core
+rates **~0.2★ lower**, peaking in the 2–4 km belt.
+
+![Q7 chart 1](assets/research_questions/q07_1.png)
+![Q7 chart 2](assets/research_questions/q07_2.png)
+![Q7 chart 3](assets/research_questions/q07_3.png)
+![Q7 chart 4](assets/research_questions/q07_4.png)
+![Q7 chart 5](assets/research_questions/q07_5.png)
+![Q7 chart 6](assets/research_questions/q07_6.png)
+
+### Q8 — Does rating consistency or level vary by cuisine?
+After reconciling the cuisine field (coverage ~34%→93%), **broad-appeal categories** (pizza,
+fast food, American) rate lower and disagree most, while **seafood, Japanese and African**
+are both top-rated and most consistent.
+
+![Q8 chart 1](assets/research_questions/q08_1.png)
+![Q8 chart 2](assets/research_questions/q08_2.png)
+![Q8 chart 3](assets/research_questions/q08_3.png)
+![Q8 chart 4](assets/research_questions/q08_4.png)
+![Q8 chart 5](assets/research_questions/q08_5.png)
+
+### Q9 — Do pricier restaurants rate higher or more consistently?
+Higher price tiers tend to be **rated higher and disagree less** (with the caveat that the
+top tiers are small samples).
+
+![Q9 chart 1](assets/research_questions/q09_1.png)
+![Q9 chart 2](assets/research_questions/q09_2.png)
+
+### Q10 — Are multi-platform restaurants rated differently (selection effect)?
+Only marginally on rating (~4.3★ flat) but **strongly on popularity** — median Google review
+count rises ~3–7× from 1→3 platforms. Multi-platform presence is a **popularity confounder**,
+not evidence of better quality.
+
+![Q10 chart 1](assets/research_questions/q10_1.png)
+![Q10 chart 2](assets/research_questions/q10_2.png)
+
+### Q11 — Does visual content (photos) track popularity or rating?
+Photo richness **tracks popularity more than quality** — photo count correlates with review
+volume (strongly on Tripadvisor) but only weakly with rating.
+
+![Q11 chart 1](assets/research_questions/q11_1.png)
+![Q11 chart 2](assets/research_questions/q11_2.png)
