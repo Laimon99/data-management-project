@@ -6,7 +6,15 @@ The project is implemented as a modular, containerized data pipeline built aroun
 
 The codebase is organized by pipeline stage rather than by data source. Services live under \texttt{services/extract}, \texttt{services/load}, and \texttt{services/transform}, and are exposed as PEP~420 namespace packages so that each import path reflects its stage (for example \texttt{extract.google\_places\_api}, \texttt{load.mongo}, and \texttt{transform.entity\_resolution}). Every stage is invoked through a dedicated command-line entry point, which keeps the boundaries between acquisition, loading, cleaning, integration, quality assessment, and analysis explicit and reproducible. This separation is a deliberate design constraint: no functionality is added as a standalone script, and each component belongs to exactly one stage.
 
-The end-to-end flow follows six sequential stages: (i)~data acquisition, (ii)~loading into the system of record, (iii)~per-platform cleaning and transformation, (iv)~entity resolution and integration, (v)~quality assessment, and (vi)~analytical querying. The following chapters describe each stage in detail.
+The end-to-end flow follows six sequential stages: (i)~data acquisition, (ii)~loading into the system of record, (iii)~per-platform cleaning and transformation, (iv)~entity resolution and integration, (v)~quality assessment, and (vi)~analytical querying. Figure~\ref{fig:software_architecture} gives an overview of the resulting architecture, showing how the stage services communicate through raw files, MongoDB collections, ClickHouse tables, and report artifacts. The following chapters describe each stage in detail.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth,height=0.78\textheight,keepaspectratio]{images/software_architecture.png}
+\captionsetup{font=small}
+\caption{End-to-end ELT software architecture. Solid arrows represent data flow and materialized writes, while dashed arrows represent read-only assessment or query access. MongoDB acts as the system of record for raw, clean, entity-resolution, and integrated collections; ClickHouse provides the flat analytical tables used by the notebooks and final report.}
+\label{fig:software_architecture}
+\end{figure*}
 
 \section{Storage Architecture}
 
@@ -45,5 +53,3 @@ Development \& collaboration & GitHub, OpenAI / Claude & Version control, code r
 \caption{Technology stack and the role of each tool in the software architecture.}
 \label{tab:tech_stack}
 \end{table*}
-
-% TODO: end-to-end architecture diagram (extract -> load -> transform -> integrate -> analytics) to be added here.
