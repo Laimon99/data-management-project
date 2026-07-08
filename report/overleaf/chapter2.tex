@@ -4,19 +4,19 @@ This chapter describes the process through which the extracted files were loaded
 
 The loading phase was designed as part of an ELT pipeline, this architectural choice allows the original data to be preserved as faithfully as possible, avoiding early transformations that could alter the raw information collected from the different sources.
 
-The storage architecture is supported by a Docker-based infrastructure, which ensures that the database environment can be reproduced consistently across different machines. This is particularly important in a collaborative project, where multiple contributors may execute the same pipeline components on different operating systems and configurations.
+The storage architecture is supported by a Docker-based infrastructure~\cite{docker}, which ensures that the database environment can be reproduced consistently across different machines. This is particularly important in a collaborative project, where multiple contributors may execute the same pipeline components on different operating systems and configurations.
 
 \section{Raw Data Loading into MongoDB}
 
-MongoDB was adopted as the storage system for the raw datasets because the project integrates information collected from heterogeneous sources with different structures, formats, and levels of completeness. Google Places, Tripadvisor and TheFork do not expose the same attributes and do not organize restaurant information according to a shared schema. A document-oriented database is therefore appropriate because it allows each restaurant record to be stored as a flexible JSON-like document without requiring a rigid relational schema at the loading stage.
+MongoDB was adopted as the storage system for the raw datasets~\cite{mongodb} because the project integrates information collected from heterogeneous sources with different structures, formats, and levels of completeness. Google Places, Tripadvisor and TheFork do not expose the same attributes and do not organize restaurant information according to a shared schema. A document-oriented database is therefore appropriate because it allows each restaurant record to be stored as a flexible JSON-like document without requiring a rigid relational schema at the loading stage.
 
-This choice is coherent with the objectives of the project. Since the analysis aims to compare ratings, metadata quality, and platform-specific discrepancies, it is important to preserve the original structure of each source before applying cleaning, integration and normalization procedures. MongoDB acts as the document-oriented system of record, storing the extracted datasets in their original form and later hosting the clean and integrated collections. The analytical SQL layer is introduced downstream through ClickHouse, after the integrated dataset has been materialized.
+This choice is coherent with the objectives of the project. Since the analysis aims to compare ratings, metadata quality, and platform-specific discrepancies, it is important to preserve the original structure of each source before applying cleaning, integration and normalization procedures. MongoDB acts as the document-oriented system of record, storing the extracted datasets in their original form and later hosting the clean and integrated collections. The analytical SQL layer is introduced downstream through ClickHouse~\cite{clickhouse}, after the integrated dataset has been materialized.
 
 The loading layer follows an ELT approach. Its role is limited to transferring the already extracted raw files from the local data directory into MongoDB. No parsing, normalization, deduplication, enrichment, or schema coercion is performed during this phase. All transformation operations are deliberately postponed to later stages, where the data can be cleaned and integrated in a controlled and reproducible manner.
 
 A single generic loader was implemented for all three sources. Instead of developing one loader for each extractor, the loading logic is driven by a source registry. This registry specifies, for each platform, the raw file path, the file format, the natural key used as document identifier, and the destination MongoDB collection. This design reduces code duplication and ensures that all sources are loaded through the same operational logic.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
 \footnotesize
 \setlength{\tabcolsep}{4pt}
@@ -60,7 +60,7 @@ JSON Array &
 \caption{Configuration adopted by the generic MongoDB loading layer for each data source.}
 \label{tab:mongo_sources}
 
-\end{table}
+\end{table*}
 
 For each source, the natural key is used as the MongoDB document identifier. If the same source is loaded multiple times, existing documents are replaced rather than duplicated. 
 The loading strategy also accounts for differences in file size and format. The Google Places file is stored as JSON Lines and is streamed line by line, avoiding full materialization in memory. This is necessary because the file contains 10,808 records and has a size of approximately 249 MB. Conversely, the Tripadvisor and TheFork datasets are stored as JSON arrays and can be loaded in memory due to their smaller size.
@@ -74,7 +74,7 @@ Records are written to MongoDB in batches using bulk upsert operations. This app
 
 Before performing any integration, matching or enrichment operation, a preliminary data quality assessment was conducted on the raw datasets collected from Google Places, Tripadvisor, and TheFork. This is a pre-integration assessment: it evaluates the sources as acquired, before the cleaning, geocoding, entity-resolution, and integration stages. The objective was to evaluate the suitability of each source for the subsequent integration phase and to identify potential weaknesses requiring cleaning or enrichment.
 
-The assessment follows standard data-quality dimensions (Batini and Scannapieco, 2016), and the metrics were computed according to the following definitions:
+The assessment follows standard data-quality dimensions~\cite{batini-scannapieco-2016}, and the metrics were computed according to the following definitions:
 
 \begin{itemize}
 
@@ -88,7 +88,7 @@ Completeness =
 
 \item \textbf{Critical Completeness}
 \[
-CriticalCompleteness =
+C_{\mathrm{crit}} =
 100 \times
 \frac{\text{Present critical fields}}
 {\text{Expected critical fields}}
@@ -96,7 +96,7 @@ CriticalCompleteness =
 
 \item \textbf{Validity} (format-level check: a present value is valid if it matches its expected source-specific format)
 \[
-Validity =
+V =
 100 \times
 \frac{\text{Valid values}}
 {\text{Present values checked}}
@@ -120,7 +120,7 @@ r &= \frac{\text{Collection duration}}{\text{Refresh target}}
 
 \item \textbf{Reliability}
 \[
-Reliability =
+R =
 100 \times
 \frac{\text{Records with review count } \geq 20}
 {\text{Total records}}
@@ -128,7 +128,7 @@ Reliability =
 
 \item \textbf{Uniqueness}
 \[
-Uniqueness =
+U =
 100 -
 100 \times
 \frac{\text{Duplicate records}}
@@ -139,8 +139,8 @@ Uniqueness =
 \[
 \begin{aligned}
 Score =\;&
-0.25 \cdot CriticalCompleteness + 0.20 \cdot Validity + 0.15 \cdot SpatialReadiness +\\
-&+ 0.15 \cdot Uniqueness + 0.10 \cdot Timeliness + 0.15 \cdot Reliability
+0.25 C_{\mathrm{crit}} + 0.20 V + 0.15 S_{\mathrm{spatial}}\\
+&+ 0.15 U + 0.10 T_{\mathrm{time}} + 0.15 R
 \end{aligned}
 \]
 
@@ -151,7 +151,7 @@ The weights prioritize dimensions that are critical for the project goals. Criti
 
 Table \ref{tab:quality_summary} summarizes the results obtained for the three acquisition sources.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
 
 \begin{tabular}{p{4cm} c c c}
@@ -169,7 +169,7 @@ Critical Completeness & 98.15\% & 99.78\% & 98.88\% \\
 
 Validity & 100.00\% & 99.99\% & 100.00\% \\
 
-Spatial Readiness & 100.00\% & 0.00\% & 100\% \\
+Spatial Readiness & 100.00\% & 0.00\% & 100.00\% \\
 
 Timeliness & 67.23\% & 43.75\% & 95.83\% \\
 
@@ -184,7 +184,7 @@ Flags / 100 Records & 27.17 & 48.04 & 17.04 \\
 \caption{Cross-source quality assessment performed before data integration.}
 \label{tab:quality_summary}
 
-\end{table}
+\end{table*}
 
 
 \subsection{Google Places}

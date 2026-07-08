@@ -1,28 +1,31 @@
-\newcommand{\reportappendixchapter}[2]{%
-  \refstepcounter{chapter}%
-  \setcounter{section}{0}%
-  \chapter*{Appendix \thechapter\\#1}%
-  \addcontentsline{toc}{chapter}{Appendix \thechapter\quad #1}%
-  \markboth{Appendix \thechapter\ #1}{Appendix \thechapter\ #1}%
-  \label{#2}%
-}
+\chapter*{Appendices}
+\phantomsection
+\addcontentsline{toc}{section}{Appendices}
 
-\reportappendixchapter{Pre-Integration Data Quality Assessment}{app:pre-integration-quality}
+The report summarizes the main project pipeline, integration approach,
+and analytical findings. The full supporting assessment reports were produced
+as separate project artifacts and are available in the GitHub repository.
 
-This appendix reproduces the standalone pre-integration data quality assessment
-report. It supports the quality discussion in
-Section~\ref{sec:pre-integration-quality}.
+\chapter{Pre-Integration Data Quality Assessment}
+\label{app:pre-integration-quality}
 
-\providecommand{\preintegrationtable}[1]{}
-\renewcommand{\preintegrationtable}[1]{\input{../pre_integration/tables/#1}}
-\input{../pre_integration/body.tex}
+The pre-integration quality assessment was completed as a standalone report. It
+documents the source-level quality checks, metric definitions, field coverage
+tables, anomaly profiles, and improvement actions used to support the summary in
+the main text.
 
-\reportappendixchapter{Post-Integration Entity-Resolution and Enrichment Assessment}{app:post-integration-assessment}
+\noindent\href{https://github.com/Laimon99/data-management-project/blob/main/report/pre_integration/main.pdf}{Full detailed report 1: Pre-Integration Data Quality Assessment}.
 
-This appendix reproduces the standalone quality-of-integration assessment
-report. It supports the integration-quality discussion in
-Section~\ref{sec:post-integration-quality}.
+\chapter{Post-Integration Entity-Resolution and Enrichment Assessment}
+\label{app:post-integration-assessment}
 
-\providecommand{\postintegrationtable}[1]{}
-\renewcommand{\postintegrationtable}[1]{\input{../post_integration/tables/#1}}
-\input{../post_integration/body.tex}
+The post-integration assessment was completed as a standalone report. It
+documents the entity-resolution evaluation, one-to-one link survival checks,
+geocoding error analysis, and enrichment-quality evidence used to support the
+integration discussion in the main text.
+
+\noindent\href{https://github.com/Laimon99/data-management-project/blob/main/report/post_integration/main.pdf}{Full detailed report 2: Post-Integration Entity-Resolution and Enrichment Assessment}.
+
+The same repository also contains the source code, notebooks, Docker
+configuration, report sources, generated tables, and visualization artifacts
+used for reproducibility~\cite{project-repo}.

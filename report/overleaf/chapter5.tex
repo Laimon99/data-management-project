@@ -26,10 +26,10 @@ The output consists of two collections:
     restaurant entities.
 \end{itemize}
 
-The effective candidate label is computed as:
+The effective candidate label, stored as \texttt{effective\_label}, is computed as:
 
 \[
-\texttt{effective\_label} =
+L_{\mathrm{eff}} =
 \begin{cases}
 \texttt{llm\_label}, & \text{if an LLM decision is available}\\
 \texttt{label}, & \text{otherwise}
@@ -54,10 +54,10 @@ Google is used as the canonical identity and geographic backbone because it has
 the highest spatial coverage and complete coordinates. Non-Google sources are
 attached as evidence blocks only when selected entity-resolution links exist.
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
 \footnotesize
-\begin{tabularx}{\textwidth}{p{0.28\textwidth}X}
+\begin{tabularx}{\linewidth}{p{0.28\linewidth}X}
 \toprule
 \textbf{Field group} & \textbf{Main attributes} \\
 \midrule
@@ -86,7 +86,7 @@ Audit and provenance &
 \end{tabularx}
 \caption{Structure of the final \texttt{restaurants\_integrated} collection.}
 \label{tab:integrated-schema-overview}
-\end{table}
+\end{table*}
 
 The schema deliberately preserves source-specific ratings rather than replacing
 them with a single resolved value. This is a central design decision: the research
@@ -173,10 +173,10 @@ survival of one-to-one selected links through the integration step and the spati
 enrichment of Tripadvisor records, so that the final integrated dataset is judged
 end to end rather than only at the matching stage.
 
-\begin{table}[H]
+\begin{table*}[t]
 \centering
 \footnotesize
-\begin{tabular}{p{0.55\textwidth}r}
+\begin{tabular}{p{0.55\linewidth}r}
 \toprule
 \textbf{Metric} & \textbf{Value} \\
 \midrule
@@ -196,7 +196,7 @@ Tripadvisor coordinate coverage & 84.0\% \\
 \end{tabular}
 \caption{Post-integration assessment of entity resolution, link selection, and Tripadvisor geocoding.}
 \label{tab:post-integration-quality}
-\end{table}
+\end{table*}
 
 The results show a conservative integration policy. Precision is high, meaning
 that automatic matches are rarely wrong. Strict recall is lower because many
@@ -219,7 +219,7 @@ Appendix~\ref{app:post-integration-assessment}.
 MongoDB is well suited for raw and integrated document storage, but the final
 research questions require repeated aggregations, pairwise rating comparisons,
 ranking, grouping by geographic area, and correlation-style summaries. For this
-reason, the project adds ClickHouse as a column-oriented analytical DBMS.
+reason, the project adds ClickHouse as a column-oriented analytical DBMS~\cite{clickhouse}.
 
 The ClickHouse loader reads the cleaned and integrated MongoDB collections and
 creates four flat analytical tables:

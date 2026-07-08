@@ -1,15 +1,15 @@
 \chapter{Entity Resolution}
 
-Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process (Christen, 2012) designed to identify matching restaurants while minimizing both false positives and false negatives.
+Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process~\cite{christen-2012} designed to identify matching restaurants while minimizing both false positives and false negatives.
 
 The entity resolution workflow operates on the clean collections generated during the transformation phase. Google Places was selected as the anchor source due to its superior geographic coverage, high data quality score, and complete coordinate availability. Candidate matches are therefore generated only between Google and Tripadvisor records and between Google and TheFork records. Direct Tripadvisor--TheFork matching is intentionally avoided because both platforms exhibit lower coverage and are expected to be linked indirectly through Google.
 
-\begin{figure}[H]
+\begin{figure*}[t]
     \centering
-    \includegraphics[width=0.9\textwidth]{images/entity_resolution_workflow.png}
+    \includegraphics[width=\textwidth]{images/entity_resolution_workflow.png}
     \caption{Entity resolution workflow adopted for restaurant linkage across Google Places, Tripadvisor and TheFork. Google acts as the anchor dataset, candidate pairs are generated through blocking strategies, evaluated using similarity features, and classified into MATCH, NON\_MATCH, or UNCERTAIN categories. Uncertain pairs are forwarded to a subsequent LLM-based resolution stage.}
     \label{fig:entity-resolution-workflow}
-\end{figure}
+\end{figure*}
 
 \section{Blocking Strategy}
 
@@ -23,16 +23,16 @@ Records lacking both coordinates and postal-code information cannot be reliably 
 
 \section{Similarity Computation}
 
-For each candidate pair generated during the blocking phase, a set of similarity features is computed. The most important signal is restaurant-name similarity, obtained through token-based fuzzy matching after additional normalization steps such as abbreviation expansion, punctuation removal, and whitespace standardization.
+For each candidate pair generated during the blocking phase, a set of similarity features is computed. The most important signal is restaurant-name similarity, obtained through token-based fuzzy matching implemented with RapidFuzz after additional normalization steps such as abbreviation expansion, punctuation removal, and whitespace standardization~\cite{rapidfuzz-geopy}.
 
 Additional comparison features include street-name similarity, postal-code agreement, geographic distance, phone-number equality, and website equality when such information is available. Phone numbers and websites are particularly valuable for Tripadvisor matching because they provide strong evidence of identity when identical values are observed across sources.
 
 Cuisine information is also evaluated through set-based similarity measures. However, due to the vocabulary heterogeneity discussed in the schema matching phase, cuisine similarity is used only as a diagnostic feature and does not directly contribute to the final matching score.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
 \footnotesize
-\begin{tabular}{p{0.28\textwidth}p{0.22\textwidth}p{0.35\textwidth}}
+\begin{tabular}{p{0.28\linewidth}p{0.22\linewidth}p{0.35\linewidth}}
 \toprule
 \textbf{Feature} & \textbf{Type} & \textbf{Purpose} \\
 \midrule
@@ -47,7 +47,7 @@ Cuisine similarity & Diagnostic only & Analytical support feature \\
 \end{tabular}
 \caption{Similarity features used during entity resolution.}
 \label{tab:er-features}
-\end{table}
+\end{table*}
 
 \section{Candidate Classification}
 
@@ -55,10 +55,10 @@ Similarity features are combined into a weighted composite score representing th
 
 The resulting score is compared against two calibrated thresholds. Candidate pairs with scores above the upper threshold are automatically classified as \texttt{MATCH}, while pairs below the lower threshold are classified as \texttt{NON\_MATCH}. Records falling between the two thresholds are assigned to an intermediate \texttt{UNCERTAIN} category.
 
-\begin{table}[htbp]
+\begin{table*}[t]
 \centering
 \footnotesize
-\begin{tabular}{p{0.32\textwidth}cc}
+\begin{tabular}{p{0.32\linewidth}cc}
 \toprule
 \textbf{Candidate type} & \textbf{Lower threshold} & \textbf{Upper threshold} \\
 \midrule
@@ -70,7 +70,7 @@ TheFork, chain venues & 0.76 & 0.79 \\
 \end{tabular}
 \caption{Calibrated entity-resolution thresholds used for automatic candidate classification.}
 \label{tab:er-thresholds}
-\end{table}
+\end{table*}
 
 Thresholds were calibrated from manually labelled candidate samples. Normal venues and chain venues were treated separately because repeated brands, such as fast-food or casual dining chains, require stricter branch-level evidence than independent restaurants. The calibration files are kept as reproducible gold-standard artifacts and are not used as hidden runtime inputs by the entity-resolution command.
 

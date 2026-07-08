@@ -1,0 +1,49 @@
+\chapter{Software Architecture}
+
+The project is implemented as a modular, containerized data pipeline built around the ELT (Extract, Load, Transform) paradigm. Rather than a single monolithic program, the system is decomposed into a sequence of independent stage services that communicate exclusively through shared database collections. Each stage reads the output that the previous stage persisted, applies its own responsibility, and writes a new collection, so that the stages remain loosely coupled and individually re-runnable.
+
+\section{Pipeline Organization}
+
+The codebase is organized by pipeline stage rather than by data source. Services live under \texttt{services/extract}, \texttt{services/load}, and \texttt{services/transform}, and are exposed as PEP~420 namespace packages so that each import path reflects its stage (for example \texttt{extract.google\_places\_api}, \texttt{load.mongo}, and \texttt{transform.entity\_resolution}). Every stage is invoked through a dedicated command-line entry point, which keeps the boundaries between acquisition, loading, cleaning, integration, quality assessment, and analysis explicit and reproducible. This separation is a deliberate design constraint: no functionality is added as a standalone script, and each component belongs to exactly one stage.
+
+The end-to-end flow follows six sequential stages: (i)~data acquisition, (ii)~loading into the system of record, (iii)~per-platform cleaning and transformation, (iv)~entity resolution and integration, (v)~quality assessment, and (vi)~analytical querying. The following chapters describe each stage in detail.
+
+\section{Storage Architecture}
+
+Persistence follows a two-layer, polyglot design. MongoDB is the document-oriented system of record: it stores the raw source documents, the cleaned per-platform collections, and the final integrated dataset, preserving heterogeneous structures without imposing a rigid schema. ClickHouse is added downstream as a column-oriented analytical store, holding flat projections of the cleaned and integrated collections that are optimized for the aggregations, comparisons, and geographic grouping required by the research questions. This split lets each engine serve the workload it is best suited for, while keeping the analytical layer decoupled from the operational store. Both databases run as reproducible Docker services, so the whole infrastructure can be recreated identically across the team's machines. The storage and integration chapters detail the two layers.
+
+\section{Why ELT}
+
+The pipeline loads the raw data into MongoDB before any transformation, in contrast to a traditional ETL flow that would clean and reshape the data before storage. Loading first preserves each source in its original form, which is essential for a project whose goal is to compare and audit cross-platform discrepancies: the untouched documents remain available for provenance, reprocessing, and quality assessment. Transformations are then applied inside the storage layer in controlled, versioned stages, so that any cleaning or integration decision can be revisited without re-acquiring the data.
+
+\section{Technology Stack}
+
+Table~\ref{tab:tech_stack} summarizes the technologies adopted and the role each one plays. The stack was chosen to favour reproducibility and team collaboration: a single Python version pinned through \texttt{uv}, containerized databases, and a shared repository with code review.
+
+\begin{table*}[t]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.19\textwidth}>{\raggedright\arraybackslash}p{0.27\textwidth}X@{}}
+\toprule
+\textbf{Concern} & \textbf{Technology} & \textbf{Role} \\
+\midrule
+Language \& environment & Python 3.12, \texttt{uv} & Implementation and reproducible dependency management \\
+Data acquisition & Google Places API, Playwright, Chromium & API seed extraction and browser-based web scraping \\
+Validation & Pydantic & Configuration and data validation \\
+System of record & MongoDB~7 & Document storage of the raw, clean, and integrated collections \\
+Analytical store & ClickHouse & Columnar flat tables for the research-question queries \\
+Infrastructure & Docker & Containerized, reproducible database infrastructure \\
+Integration & RapidFuzz, GeoPy / Nominatim & Fuzzy name and address matching, and geocoding enrichment \\
+LLM adjudication & OpenAI & Optional labelling of uncertain entity-resolution pairs \\
+Analysis & pandas, SciPy, Plotly, Jupyter & Data analysis, statistics, and visualization \\
+Development \& collaboration & GitHub, OpenAI / Claude & Version control, code review, and AI coding assistance \\
+\bottomrule
+\end{tabularx}
+\captionsetup{font=small}
+\caption{Technology stack and the role of each tool in the software architecture.}
+\label{tab:tech_stack}
+\end{table*}
+
+% TODO: end-to-end architecture diagram (extract -> load -> transform -> integrate -> analytics) to be added here.

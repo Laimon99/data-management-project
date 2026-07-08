@@ -1,8 +1,9 @@
-\documentclass[12pt,a4paper]{report}
+\documentclass[10pt,a4paper,twocolumn]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage{lmodern}
+\usepackage[final]{microtype}
 \usepackage{graphicx}
 \usepackage{geometry}
 \usepackage{longtable}
@@ -14,6 +15,8 @@
 \usepackage{array}
 \usepackage{ragged2e}
 \usepackage{xcolor}
+\usepackage{url}
+\usepackage{multicol}
 
 \definecolor{qualityblue}{RGB}{31,119,180}
 \definecolor{qualitygreen}{RGB}{44,160,44}
@@ -21,13 +24,89 @@
 \definecolor{qualityred}{RGB}{214,39,40}
 \definecolor{qualitygray}{RGB}{127,127,127}
 
-\geometry{margin=2.5cm}
+\geometry{
+top=1.9cm,
+bottom=2.0cm,
+left=1.65cm,
+right=1.65cm,
+columnsep=0.6cm
+}
 
 \usepackage{setspace}
-\onehalfspacing
+\singlespacing
 
-% Avoid overfull lines caused by long unbreakable \texttt{} identifiers
-\setlength{\emergencystretch}{3em}
+\setlength{\parindent}{0.9em}
+\setlength{\parskip}{0pt}
+\setlength{\intextsep}{0.45em plus 0.15em minus 0.15em}
+\setlength{\textfloatsep}{0.6em plus 0.2em minus 0.2em}
+\setlength{\floatsep}{0.5em plus 0.2em minus 0.2em}
+\captionsetup{font=footnotesize,labelfont=bf}
+\microtypesetup{protrusion=true,expansion=true}
+\newcommand{\reportlogo}{\includegraphics[width=2.4cm]{images/bicocca_logo.png}}
+\newcommand{\collectionname}[1]{\mbox{\footnotesize\texttt{#1}}}
+
+% Justified two-column body text. Hyphenation is enabled so that the narrow
+% columns can justify without inflated inter-word gaps or overfull lines.
+\pretolerance=100
+\tolerance=1200
+\hyphenpenalty=50
+\exhyphenpenalty=50
+\doublehyphendemerits=10000
+\finalhyphendemerits=5000
+\clubpenalty=8000
+\widowpenalty=8000
+\displaywidowpenalty=8000
+\raggedbottom
+
+% Compact comparison copy: keep the original report untouched while removing
+% report-class chapter page breaks and mapping the hierarchy to article levels.
+\makeatletter
+\let\reportsection\section
+\let\reportsubsection\subsection
+\let\reportsubsubsection\subsubsection
+\newcommand*\l@chapter{\@dottedtocline{1}{0em}{2.3em}}
+\newcommand{\compactchapter}[1]{\reportsection{#1}}
+\newcommand{\compactchapterstar}[1]{\reportsection*{#1}}
+\newcommand{\chapter}{\@ifstar{\compactchapterstar}{\compactchapter}}
+\newcommand{\compactsection}[1]{\reportsubsection{#1}}
+\newcommand{\compactsectionstar}[1]{\reportsubsection*{#1}}
+\renewcommand{\section}{\@ifstar{\compactsectionstar}{\compactsection}}
+\newcommand{\compactsubsection}[1]{\reportsubsubsection{#1}}
+\newcommand{\compactsubsectionstar}[1]{\reportsubsubsection*{#1}}
+\renewcommand{\subsection}{\@ifstar{\compactsubsectionstar}{\compactsubsection}}
+\newcommand{\makereporttitle}{%
+\twocolumn[
+\begin{@twocolumnfalse}
+\begin{center}
+\reportlogo\par
+\vspace{0.35em}
+{\LARGE\bfseries Milan Restaurant Ratings Across Online Platforms\par}
+\vspace{0.25em}
+{\large Data Management Project\par}
+\vspace{0.55em}
+\begin{tabular}{@{}c@{\hspace{1.8em}}c@{\hspace{1.8em}}c@{}}
+\textbf{Edoardo Zero} & \textbf{Simone Ragusini} & \textbf{Vladyslav Yelisieiev} \\
+{\small Matricola: 947907} & {\small Matricola: 945119} & {\small Matricola: 947134} \\
+{\small\texttt{e.zero1@campus.unimib.it}} &
+{\small\texttt{s.ragusini@campus.unimib.it}} &
+{\small\texttt{v.yelisieiev@campus.unimib.it}}
+\end{tabular}
+\vspace{0.45em}
+
+{\small University of Milan-Bicocca \quad Academic Year 2025/2026\par}
+\end{center}
+\vspace{0.25em}
+\begin{abstract}
+\noindent\input{abstract}
+\end{abstract}
+\vspace{1.0em}
+\end{@twocolumnfalse}
+]
+}
+\makeatother
+
+% Keep narrow columns flexible without allowing visibly inflated word spacing.
+\setlength{\emergencystretch}{2em}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -38,19 +117,14 @@ urlcolor=blue
 
 \begin{document}
 
-% Copertina
-\input{cover}
-
-% Abstract
-\input{abstract}
-\newpage
-
-% Indice
-\tableofcontents
-\newpage
+\makereporttitle
+\setlength{\parindent}{0.9em}
 
 % Introduzione
 \input{introduction}
+
+% Software architecture overview (before the per-stage chapters)
+\input{architecture}
 
 % Capitoli
 \input{chapter1}
@@ -65,52 +139,121 @@ urlcolor=blue
 
 \input{chapter6}
 
-% Conclusioni
+% Conclusioni. Typeset through multicol so the short final page balances its two
+% columns evenly instead of leaving the left column ragged and short.
+\clearpage
+\onecolumn
+\begin{multicols}{2}
 \input{conclusions}
+\end{multicols}
+\clearpage
+\twocolumn
 
-% Riferimenti / Repository
-\chapter*{References}
-\addcontentsline{toc}{chapter}{References}
+% Back matter: references and appendices are separated from the main body.
+\begingroup
+\let\section\reportsection
+\phantomsection
+\addcontentsline{toc}{section}{References}
+\begin{thebibliography}{99}
+\small
+\setlength{\itemsep}{2pt}
 
-\noindent\textbf{Project repository.} Full source code and reproducible Docker
-infrastructure: \url{https://github.com/Laimon99/data-management-project}.
+\bibitem{project-repo}
+E.~Zero, S.~Ragusini, and V.~Yelisieiev.
+\newblock \textit{Data Management Project: Milan Restaurant Ratings Across Online Platforms}.
+\newblock Project repository, source code, report sources, Docker infrastructure, and generated artifacts.
+\newblock \url{https://github.com/Laimon99/data-management-project}.
 
-\vspace{0.6em}
-\noindent\textbf{Data sources and APIs.}
-\begin{itemize}\setlength{\itemsep}{2pt}
-    \item Google Maps Platform --- Places API. \url{https://developers.google.com/maps/documentation/places/web-service}
-    \item Tripadvisor. \url{https://www.tripadvisor.com/}
-    \item TheFork. \url{https://www.thefork.com/}
-    \item OpenStreetMap and the Nominatim geocoding service. \url{https://www.openstreetmap.org/} --- \url{https://nominatim.org/}
-\end{itemize}
+\bibitem{google-places}
+Google Maps Platform.
+\newblock \textit{Places API Documentation}.
+\newblock \url{https://developers.google.com/maps/documentation/places/web-service}.
 
-\noindent\textbf{Databases and infrastructure.}
-\begin{itemize}\setlength{\itemsep}{2pt}
-    \item MongoDB documentation. \url{https://www.mongodb.com/docs/}
-    \item ClickHouse documentation. \url{https://clickhouse.com/docs}
-    \item Docker documentation. \url{https://docs.docker.com/}
-    \item Python. \url{https://www.python.org/} --- uv package manager. \url{https://docs.astral.sh/uv/}
-\end{itemize}
+\bibitem{tripadvisor}
+Tripadvisor.
+\newblock Restaurant platform used as a data source.
+\newblock \url{https://www.tripadvisor.com/}.
 
-\noindent\textbf{Main libraries.}
-\begin{itemize}\setlength{\itemsep}{2pt}
-    \item Playwright for Python (web scraping). \url{https://playwright.dev/python/}
-    \item RapidFuzz (fuzzy string matching). \url{https://rapidfuzz.github.io/RapidFuzz/}
-    \item GeoPy (geocoding client). \url{https://geopy.readthedocs.io/}
-    \item PyMongo and ClickHouse Connect (database drivers). \url{https://pymongo.readthedocs.io/} --- \url{https://clickhouse.com/docs/integrations/python}
-    \item Pydantic (settings and validation). \url{https://docs.pydantic.dev/}
-    \item pandas, SciPy and Plotly (analysis and visualization). \url{https://pandas.pydata.org/} --- \url{https://scipy.org/} --- \url{https://plotly.com/python/}
-\end{itemize}
+\bibitem{thefork}
+TheFork.
+\newblock Restaurant reservation and review platform used as a data source.
+\newblock \url{https://www.thefork.com/}.
 
-\noindent\textbf{Methodological references.}
-\begin{itemize}\setlength{\itemsep}{2pt}
-    \item E.~Rahm and P.~A.~Bernstein. \textit{A survey of approaches to automatic schema matching.} The VLDB Journal, 10(4):334--350, 2001.
-    \item P.~Christen. \textit{Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection.} Springer, 2012.
-    \item C.~Batini and M.~Scannapieco. \textit{Data and Information Quality: Dimensions, Principles and Techniques.} Springer, 2016.
-\end{itemize}
+\bibitem{osm-nominatim}
+OpenStreetMap and Nominatim.
+\newblock Geographic data and geocoding service used for spatial enrichment.
+\newblock \url{https://www.openstreetmap.org/}; \url{https://nominatim.org/}.
+
+\bibitem{mongodb}
+MongoDB.
+\newblock \textit{MongoDB Documentation}.
+\newblock \url{https://www.mongodb.com/docs/}.
+
+\bibitem{clickhouse}
+ClickHouse.
+\newblock \textit{ClickHouse Documentation}.
+\newblock \url{https://clickhouse.com/docs}.
+
+\bibitem{docker}
+Docker.
+\newblock \textit{Docker Documentation}.
+\newblock \url{https://docs.docker.com/}.
+
+\bibitem{python-uv}
+Python Software Foundation and Astral.
+\newblock \textit{Python} and \textit{uv} package manager.
+\newblock \url{https://www.python.org/}; \url{https://docs.astral.sh/uv/}.
+
+\bibitem{playwright}
+Microsoft.
+\newblock \textit{Playwright for Python}.
+\newblock \url{https://playwright.dev/python/}.
+
+\bibitem{rapidfuzz-geopy}
+RapidFuzz and GeoPy.
+\newblock Libraries used for fuzzy matching and geocoding.
+\newblock \url{https://rapidfuzz.github.io/RapidFuzz/}; \url{https://geopy.readthedocs.io/}.
+
+\bibitem{database-drivers}
+PyMongo and ClickHouse Connect.
+\newblock Python database drivers used by the MongoDB and ClickHouse layers.
+\newblock \url{https://pymongo.readthedocs.io/}; \url{https://clickhouse.com/docs/integrations/python}.
+
+\bibitem{analysis-stack}
+pandas, SciPy, and Plotly.
+\newblock Libraries used for analysis and visualization.
+\newblock \url{https://pandas.pydata.org/}; \url{https://scipy.org/}; \url{https://plotly.com/python/}.
+
+\bibitem{pydantic}
+Pydantic.
+\newblock Data validation and settings management.
+\newblock \url{https://docs.pydantic.dev/}.
+
+\bibitem{rahm-bernstein-2001}
+E.~Rahm and P.~A.~Bernstein.
+\newblock A survey of approaches to automatic schema matching.
+\newblock \textit{The VLDB Journal}, 10(4):334--350, 2001.
+
+\bibitem{christen-2012}
+P.~Christen.
+\newblock \textit{Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection}.
+\newblock Springer, 2012.
+
+\bibitem{batini-scannapieco-2016}
+C.~Batini and M.~Scannapieco.
+\newblock \textit{Data and Information Quality: Dimensions, Principles and Techniques}.
+\newblock Springer, 2016.
+
+\end{thebibliography}
+\endgroup
 
 % Appendici
+\clearpage
+\onecolumn
 \appendix
+\renewcommand{\theHsection}{appendix.\Alph{section}}
+\renewcommand{\theHsubsection}{appendix.\Alph{section}.\arabic{subsection}}
+\renewcommand{\theHsubsubsection}{appendix.\Alph{section}.\arabic{subsection}.\arabic{subsubsection}}
 \input{appendix}
 
 \end{document}

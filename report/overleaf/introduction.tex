@@ -1,20 +1,30 @@
-\chapter*{Introduction}
-
-\addcontentsline{toc}{chapter}{Introduction}
+\chapter{Introduction}
 
 Online review platforms have become a key source of information for consumers when choosing restaurants. However, ratings and restaurant information may vary considerably across platforms due to differences in user behavior, data collection processes and data quality. Understanding these discrepancies is important for assessing the reliability of online restaurant evaluations.
 
-This project investigates restaurant data collected from three major platforms: Google Maps, Tripadvisor and TheFork. The analysis focuses on restaurants located in Milan, with the objective of building an integrated database suitable for comparative analysis.
+This project investigates restaurant data collected from three major platforms: Google Maps, Tripadvisor and TheFork~\cite{google-places,tripadvisor,thefork}. The analysis focuses on restaurants located in Milan, with the objective of building an integrated database suitable for comparative analysis.
 
-To support this goal, a complete ELT (Extract, Load, Transform) pipeline was developed. Data were extracted from the three sources, loaded into MongoDB, and subsequently cleaned, enriched, transformed, and integrated. MongoDB is used as the document-oriented system of record for raw, clean, and integrated collections, while the final analytical layer is materialized in ClickHouse to support the research-question queries. Docker was used to ensure reproducibility and portability of the entire infrastructure. The complete source code of the project is publicly available in the GitHub repository \url{https://github.com/Laimon99/data-management-project}.
+To support this goal, a complete ELT (Extract, Load, Transform) pipeline was developed. Data were extracted from the three sources, loaded into MongoDB, and subsequently cleaned, enriched, transformed, and integrated. MongoDB is used as the document-oriented system of record for raw, clean, and integrated collections, while the final analytical layer is materialized in ClickHouse to support the research-question queries~\cite{mongodb,clickhouse}. Docker was used to ensure reproducibility and portability of the entire infrastructure~\cite{docker}. The implementation uses Python managed with \texttt{uv}, Pydantic for configuration and validation, PyMongo and ClickHouse Connect for database access, and pandas, SciPy, and Plotly for analysis outputs~\cite{python-uv,pydantic,database-drivers,analysis-stack}. The complete source code of the project is publicly available in the GitHub repository~\cite{project-repo}.
 
-The study aims to answer the following research questions:
+\section{Project Components}
+
+The project is composed of six main components, each corresponding to one stage of the pipeline and to a distinct set of services in the repository:
 
 \begin{itemize}
-\item How consistent are restaurant ratings across different platforms?
-\item Which restaurants exhibit the highest disagreement in ratings?
-\item Is rating inconsistency associated with data quality issues?
-\item Can low-quality data influence the perceived quality of restaurants?
+\item \textbf{Data acquisition:} a Google Places API extractor that builds the Milan seed list, and two dedicated Playwright web scrapers for Tripadvisor and TheFork.
+\item \textbf{Storage and loading:} a generic loader that ingests the raw files into MongoDB, the document-oriented system of record.
+\item \textbf{Cleaning and transformation:} per-platform normalization, spatial enrichment through geocoding, and schema matching that align the three sources to a common representation.
+\item \textbf{Entity resolution and integration:} a Google-anchored record-linkage stage, with optional LLM adjudication of uncertain pairs, that produces the unified integrated dataset.
+\item \textbf{Quality assessment:} pre-integration profiling of each source and post-integration evaluation of the entity-resolution results against a manually labelled gold standard.
+\item \textbf{Analysis:} a ClickHouse analytical layer and a set of notebooks that answer the research questions and generate the report's tables and figures.
 \end{itemize}
 
-Additionally, the analysis explores whether some platforms systematically assign higher or lower ratings and whether restaurant popularity or geographic location affects data quality and rating consistency.
+The overall software architecture that ties these components together is described in the next chapter. The study focuses on the following three research questions:
+
+\begin{itemize}
+\item \textbf{RQ1.} Are some platforms systematically optimistic or pessimistic in the ratings they assign?
+\item \textbf{RQ2.} Does the rating level and the cross-platform consistency of ratings vary by cuisine?
+\item \textbf{RQ3.} Does the geographic location of a restaurant affect the completeness of its data?
+\end{itemize}
+
+The integrated dataset supports further analyses beyond these three questions --- for example, the effect of review volume on rating stability, the role of price level, the impact of multi-platform presence, and the relationship between photo activity and engagement. These additional questions are explored as part of the data-visualization module of the course and are left as future work.

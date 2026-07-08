@@ -32,13 +32,11 @@ against a manually labelled gold standard.
 The integrated dataset contains 10,054 restaurants. Ratings are generally consistent
 across platforms, but the agreement is not perfect and its structure is informative.
 Tripadvisor is systematically more severe than Google and TheFork, which are closely
-aligned with each other. Rating stability depends strongly on evidence: restaurants
-supported by few reviews disagree far more across platforms. Data completeness is
-spatially structured, with the richest metadata concentrated in the historic centre
-and the Navigli and Isola belt and decreasing towards the periphery. Cuisine, price,
-and platform presence all contribute to the residual differences, and wider platform
-presence turns out to be a marker of popularity rather than of higher intrinsic
-quality.
+aligned with each other (RQ1). Rating level and cross-platform agreement vary by
+cuisine, with mainstream categories such as pizza and fast food being lower-rated and
+more contested than specialist cuisines (RQ2). Data completeness is spatially
+structured, with the richest metadata concentrated in the historic centre and the
+Navigli and Isola belt and decreasing towards the periphery (RQ3).
 
 \section{Limitations}
 
@@ -53,7 +51,11 @@ do not capture how ratings evolve.
 
 \section{Future Work}
 
-The integrated dataset opens several extensions. The most natural is to exploit the
+The integrated dataset opens several extensions. A first group of additional research
+questions --- the effect of review volume on rating stability, the role of price level,
+the impact of multi-platform presence on visibility, and the relationship between photo
+activity and engagement --- is being carried forward as part of the data-visualization
+module of the course. Beyond these, the most natural extension is to exploit the
 review text that is already collected but not yet analysed, applying language models
 to extract sentiment and topics and to explain rating differences qualitatively.
 Periodic re-acquisition would add a temporal dimension and allow the study of rating
