@@ -4,9 +4,9 @@
 
 Online review platforms have become a key source of information for consumers when choosing restaurants. However, ratings and restaurant information may vary considerably across platforms due to differences in user behavior, data collection processes and data quality. Understanding these discrepancies is important for assessing the reliability of online restaurant evaluations.
 
-This project investigates restaurant data collected from three major platforms: Google Maps, Tripadvisor and TheFork. The analysis focuses on restaurants located in Milan and its metropolitan area, with the objective of building an integrated database suitable for comparative analysis.
+This project investigates restaurant data collected from three major platforms: Google Maps, Tripadvisor and TheFork. The analysis focuses on restaurants located in Milan, with the objective of building an integrated database suitable for comparative analysis.
 
-To support this goal, a complete ELT (Extract, Load, Transform) pipeline was developed. Data were extracted from the three sources, loaded into MongoDB, and subsequently cleaned, enriched, transformed, and integrated. MongoDB is used as the document-oriented system of record for raw, clean, and integrated collections, while the final analytical layer is materialized in ClickHouse to support the research-question queries. Docker was used to ensure reproducibility and portability of the entire infrastructure.
+To support this goal, a complete ELT (Extract, Load, Transform) pipeline was developed. Data were extracted from the three sources, loaded into MongoDB, and subsequently cleaned, enriched, transformed, and integrated. MongoDB is used as the document-oriented system of record for raw, clean, and integrated collections, while the final analytical layer is materialized in ClickHouse to support the research-question queries. Docker was used to ensure reproducibility and portability of the entire infrastructure. The complete source code of the project is publicly available in the GitHub repository \url{https://github.com/Laimon99/data-management-project}.
 
 The study aims to answer the following research questions:
 

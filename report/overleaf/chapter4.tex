@@ -1,6 +1,6 @@
 \chapter{Entity Resolution}
 
-Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process designed to identify matching restaurants while minimizing both false positives and false negatives.
+Following schema matching, the next challenge consists of identifying records that refer to the same real-world restaurant across different platforms. Since Google Places, Tripadvisor and TheFork use independent identifiers and maintain separate data repositories, no direct integration key exists. Consequently, entity resolution was implemented as a dedicated record-linkage process (Christen, 2012) designed to identify matching restaurants while minimizing both false positives and false negatives.
 
 The entity resolution workflow operates on the clean collections generated during the transformation phase. Google Places was selected as the anchor source due to its superior geographic coverage, high data quality score, and complete coordinate availability. Candidate matches are therefore generated only between Google and Tripadvisor records and between Google and TheFork records. Direct Tripadvisor--TheFork matching is intentionally avoided because both platforms exhibit lower coverage and are expected to be linked indirectly through Google.
 
@@ -51,7 +51,7 @@ Cuisine similarity & Diagnostic only & Analytical support feature \\
 
 \section{Candidate Classification}
 
-Similarity features are combined into a composite score representing the likelihood that two records correspond to the same restaurant. Different weighting schemes are adopted for Tripadvisor and TheFork because TheFork does not provide phone numbers or restaurant websites in the clean schema.
+Similarity features are combined into a weighted composite score representing the likelihood that two records correspond to the same restaurant. Different weighting schemes are adopted for Tripadvisor and TheFork because TheFork does not provide phone numbers or restaurant websites in the clean schema. For Tripadvisor the score weights name similarity at 0.40, geographic proximity at 0.25, phone match at 0.15, street similarity at 0.10, and website match at 0.10. For TheFork, where contact signals are unavailable, the weight is redistributed over the remaining features, namely name similarity at 0.50, geographic proximity at 0.35, and street similarity at 0.15. In both cases name similarity is the dominant identity signal, complemented by geographic proximity.
 
 The resulting score is compared against two calibrated thresholds. Candidate pairs with scores above the upper threshold are automatically classified as \texttt{MATCH}, while pairs below the lower threshold are classified as \texttt{NON\_MATCH}. Records falling between the two thresholds are assigned to an intermediate \texttt{UNCERTAIN} category.
 
@@ -76,7 +76,41 @@ Thresholds were calibrated from manually labelled candidate samples. Normal venu
 
 This three-way classification strategy was intentionally adopted to reduce the risk of incorrect automatic decisions. Rather than forcing all pairs into a binary outcome, ambiguous cases are isolated and delegated to a subsequent resolution stage.
 
-An additional fast-path mechanism is implemented for Tripadvisor records without coordinates. When phone numbers or websites are identical across sources, the candidate pair can be classified as a \texttt{MATCH} without requiring further similarity computation, subject to the conservative chain-handling rules. This optimization significantly improves both efficiency and precision because identical contact information provides strong evidence that two records refer to the same establishment.
+An additional fast-path mechanism is implemented for Tripadvisor records without coordinates. When phone numbers or websites are identical across sources, the candidate pair can be classified as a \texttt{MATCH} without requiring further similarity computation, subject to the conservative chain-handling rules described below. This optimization significantly improves both efficiency and precision because identical contact information provides strong evidence that two records refer to the same establishment.
+
+\subsection{Chain and Franchise Handling}
+
+Restaurant chains and franchises require a dedicated matching strategy because the
+usual identity signals become unreliable when the same brand operates several
+branches in Milan. Two different branches of the same franchise, such as two
+\textit{KFC}, \textit{Poke House}, or \textit{McDonald's} venues, share almost
+identical names and often the same corporate website, yet they are distinct
+real-world restaurants. The guiding principle is therefore that \emph{the same
+brand does not imply the same venue}: for chain candidates, name and website
+similarity are no longer sufficient evidence of a match, and branch-level evidence
+is required instead.
+
+Chain candidates are first identified through brand detection. A curated list of
+chain brands observed among the repeated Google anchor names in the Milan dataset
+(for example \textit{KFC}, \textit{Poke House}, \textit{McDonald's},
+\textit{Five Guys}, \textit{Spontini}, \textit{Starbucks}, and \textit{Roadhouse})
+is matched against the normalized restaurant name. Generic repeated names that do
+not identify a specific brand, such as \textit{bar} or \textit{pizzeria}, are
+deliberately excluded. A candidate pair is flagged as a chain when either the
+Google record or the source record carries a recognized brand.
+
+Chain candidates are then subject to two hardening rules on top of the stricter
+calibrated thresholds already reported in Table~\ref{tab:er-thresholds}. First, the
+website fast-path is suppressed for chains: because all branches of a franchise
+typically expose the same corporate website, website equality is not accepted as
+proof of identity, while the more branch-specific phone fast-path remains valid.
+Second, a chain pair that would otherwise be classified as \texttt{MATCH} is
+downgraded to \texttt{UNCERTAIN} when no geographic evidence is available, or when
+the two venues are farther apart than a small automatic-match radius (75~m by
+default). This ensures that automatic chain matches are only accepted when the two
+records are geographically compatible with being the same branch. Every hardening
+decision is recorded in a \texttt{chain\_hardening} field, so the more conservative
+treatment of franchises remains fully auditable.
 
 \section{Output and Auditability}
 
@@ -87,35 +121,11 @@ Maintaining both positive and negative decisions provides a complete audit trail
 
 The resulting collection therefore acts as the bridge between schema-level integration and the construction of the final integrated restaurant dataset, providing a transparent and reproducible record-linkage layer for the entire project.
 
-\section{Calibration and Evaluation}
+\section{Threshold Calibration}
 
-The entity-resolution process was evaluated against manually labelled gold data. The calibration phase used 600 labelled candidate rows, split between normal venues and chain venues, while the main out-of-sample evaluation used 288 rows after de-duplication and exclusion of candidates already present in calibration files.
+The decision thresholds were calibrated against a manually labelled gold standard. The gold standard was constructed by sampling candidate pairs generated during blocking and exporting each of them together with its full matching evidence, including the two restaurant names, addresses, coordinates, the individual similarity components, and the automatic label produced by the pipeline. Each sampled pair was then reviewed by hand and assigned a human label of \texttt{MATCH} or \texttt{NON\_MATCH}, giving a ground truth against which the automatic decisions can be compared.
 
-\begin{table}[htbp]
-\centering
-\footnotesize
-\begin{tabular}{p{0.52\textwidth}r}
-\toprule
-\textbf{Metric} & \textbf{Value} \\
-\midrule
-Out-of-sample MATCH precision & 96.8\% \\
-Strict MATCH recall & 71.7\% \\
-MATCH-or-UNCERTAIN kept recall & 100.0\% \\
-Out-of-sample accuracy & 66.0\% \\
-Out-of-sample uncertain rate & 33.0\% \\
-Human-confirmed MATCH pairs & 127 \\
-Selected links after one-to-one resolution & 88 \\
-Link survival rate & 69.3\% \\
-Integration survival rate & 69.3\% \\
-\bottomrule
-\end{tabular}
-\caption{Post-integration evaluation of entity resolution and one-to-one link selection.}
-\label{tab:er-evaluation}
-\end{table}
-
-The relatively high precision shows that automatic \texttt{MATCH} decisions are conservative, while the lower strict recall reflects the deliberate use of the \texttt{UNCERTAIN} class to avoid unsafe automatic links. The \texttt{MATCH}-or-\texttt{UNCERTAIN} kept recall of 100.0\% indicates that true matches are not discarded by the candidate-generation and classification process, but many require later adjudication or are lost during conservative one-to-one link selection.
-
-The same assessment also validates Tripadvisor spatial enrichment. Among gold-standard matched Tripadvisor rows, the median geocoding error is 10.1 m, with 91.3\% of evaluated rows within 50 m and all evaluated rows within 100 m. This confirms that the geocoded Tripadvisor coordinates are accurate enough for proximity blocking and downstream spatial analysis.
+Two disjoint gold subsets were used, following a calibrate-then-verify protocol. The calibration subset contains 600 labelled candidate rows, split between normal venues and chain venues, and is used exclusively to choose the lower and upper decision thresholds ($d_{\min}$ and $d_{\max}$) reported in Table~\ref{tab:er-thresholds}. Because the thresholds are fitted on this subset, its metrics alone would be an optimistic estimate of quality. For this reason a second, additional set of candidate pairs was hand-labelled purely for verification: a separate out-of-sample (holdout) subset of 288 rows, obtained after de-duplication and after excluding any candidate already present in the calibration files. This holdout is never used to choose $d_{\min}$ or $d_{\max}$; it only verifies the already-calibrated thresholds, providing an unbiased estimate of how the classifier behaves on unseen pairs. The classifier error on this holdout, together with one-to-one link survival and Tripadvisor geocoding accuracy, is reported as part of the post-integration quality assessment in Section~\ref{sec:post-integration-quality}.
 
 \section{LLM based labelling on Uncertain Pairs}
 

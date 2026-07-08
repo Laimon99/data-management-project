@@ -28,7 +28,7 @@ dataset, while Google and TheFork are more positive.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{images/research_questions/09_q5.png}
+\includegraphics[width=0.9\textwidth]{images/research_questions/09_q5.png}
 \caption{Platform bias measured with a leave-one-out comparison. Values above zero indicate ratings higher than the other platforms; values below zero indicate lower ratings.}
 \label{fig:rq-platform-bias}
 \end{figure}
@@ -39,9 +39,10 @@ rating. Restaurants with fewer reviews show less stable evaluations. For
 restaurants with fewer than 20 Google reviews, the average cross-platform rating
 difference is 0.792 stars. The value decreases to 0.653 stars for restaurants
 with 20--99 reviews, to 0.510 stars for restaurants with 100--499 reviews, and to
-0.454 stars for restaurants with 500--1,999 reviews. Figure
-\ref{fig:rq-popularity} shows this trend: as review volume increases, platform
-ratings become more consistent.
+0.454 stars for restaurants with 500--1,999 reviews, before rising slightly to
+0.518 stars for the most reviewed group. Figure \ref{fig:rq-popularity} shows
+that review volume helps stability up to a point, but the relationship is not
+strictly monotonic.
 
 \begin{figure}[H]
 \centering
@@ -59,75 +60,80 @@ produce a single universal effect on ratings. The main issue is that ratings
 based on a small number of reviews are less reliable and more likely to generate
 large differences across platforms.
 
-Geographic coverage is also uneven. Restaurants closer to the centre of Milan
-are better represented on multiple platforms. In the central area, the average
-number of platforms per restaurant is 1.67, compared with 1.53 in the periphery.
+Location also affects data completeness. Completeness is quantified with a composite
+score, defined as the mean presence rate over the platform-provided facets that
+genuinely vary across the city: whether the restaurant has a website, whether it
+carries a cuisine tag, and whether it is present on Tripadvisor and on TheFork. The
+candidate signals were audited beforehand, and facets that are already saturated
+everywhere, such as Google reviews, photos, and phone numbers, were excluded because
+they do not discriminate between central and peripheral venues. The resulting score
+is not distributed uniformly across Milan but depends strongly on where the
+restaurant is located. Restaurants closer to the centre of the city are described
+more completely. In the central area, the average number of platforms per restaurant
+is 1.67, compared with 1.53 in the periphery.
 Tripadvisor covers 53.1\% of central restaurants and 43.3\% of peripheral
 restaurants; TheFork covers 13.9\% of central restaurants and 9.3\% of
 peripheral restaurants. Central restaurants also have more Google reviews, with a
-median of 269 compared with 161 in peripheral areas.
+median of 269 compared with 161 in peripheral areas. Data completeness is
+therefore spatially structured: central districts exhibit substantially richer
+metadata than peripheral areas.
 
-Figure \ref{fig:rq-coverage-density} shows the density of restaurants that are
-present on all three platforms. The colour scale is normalized from 0 to 1 and
-represents local concentration. Blue and green areas indicate
-lower local density, while yellow, orange and red indicate progressively higher
-density. The red area therefore identifies the part of Milan where restaurants
-with complete three-platform coverage are most concentrated. The map shows that
-this richest coverage is mainly located in the central part of the city.
+Figure \ref{fig:rq-coverage-density} makes this spatial completeness gradient
+visible by mapping the composite completeness score across Milan. Each cell is
+coloured by the average completeness of the venues it contains, from about 25\%
+(dark blue) to about 65\% (light yellow). The historic core is data-rich, with
+completeness above roughly 47\%, and completeness peaks in the Navigli and Isola
+neighbourhoods before fading smoothly to around 30\% in the outer districts. The
+map therefore confirms that the richest metadata is concentrated in the central
+part of the city and decreases towards the periphery.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.82\textwidth]{images/research_questions/13_q7.png}
-\caption{Density of restaurants present on all three platforms. Warmer colours indicate higher local concentration of restaurants with complete platform coverage.}
+\includegraphics[width=0.95\textwidth]{images/research_questions/13_q7.png}
+\caption{Composite data-completeness score across Milan. Warmer colours indicate higher completeness; the score peaks in the historic centre and the Navigli/Isola belt and fades towards the periphery.}
 \label{fig:rq-coverage-density}
 \end{figure}
 
 Restaurant category also affects both rating level and rating consistency.
-Figure \ref{fig:rq-cuisine} compares cuisine types using two values: the average
-rating and the average difference between platforms. Pizza, American and
-fast-food restaurants have lower average ratings and larger cross-platform
-differences. Pizza restaurants have an average rating of 3.957 and an average
-difference of 0.774 stars; American restaurants have an average rating of 3.787
-and an average difference of 0.806 stars. Japanese and Indian restaurants are
-instead more stable: Japanese restaurants average 4.318 with a difference of
-0.412 stars, while Indian restaurants average 4.256 with a difference of 0.335
-stars.
-
-The plot reports both \textit{Italiana} and \textit{Italiano}. These are not two
-substantially different cuisine groups; they are two native labels preserved from
-the source vocabularies after integration. Since the analytical table keeps the
-platform-provided cuisine labels, some semantically equivalent categories remain
-separate. For interpretation, both labels should be read as Italian cuisine. This
-is a residual vocabulary-normalization limitation, and a further semantic
-standardization of cuisine labels would be a useful improvement.
+Figure \ref{fig:rq-cuisine} compares cuisine types using the canonical taxonomy
+produced after the cuisine reconciliation step. Pizza, fast-food and
+American-style venues appear among the categories with lower average ratings and
+larger cross-platform disagreement. By contrast, seafood, Japanese and African
+cuisines are associated with higher and more consistent ratings. The canonical
+buckets therefore make the pattern clearer than the older raw-label view and
+remove the need to interpret separate labels such as \textit{Italiana} and
+\textit{Italiano} as distinct cuisine groups.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{images/research_questions/16_q8.png}
+\includegraphics[width=0.95\textwidth]{images/research_questions/16_q8.png}
 \caption{Cuisine categories differ both in average rating and in rating disagreement across platforms.}
 \label{fig:rq-cuisine}
 \end{figure}
 
-Price level shows a more moderate pattern. Restaurants in the lowest price tier
-have an average rating of 4.123 and an average cross-platform difference of
-0.515 stars. Restaurants in price tier 3 have a higher average rating, 4.332, and
-a lower difference, 0.379 stars. This suggests that higher-price restaurants tend
-to receive slightly better and more consistent ratings, although the number of
-restaurants is not the same across price tiers.
+Price level shows a more moderate pattern. In the categorical price bands used in
+the current analysis, the lowest tier has an average rating of 4.123, while the
+higher tier reaches 4.335. The higher-price band is also slightly more consistent
+across platforms, which supports a step-like interpretation rather than a strict
+linear trend. This suggests that higher-price restaurants tend to receive slightly
+better and more stable ratings, although the number of restaurants is not the
+same across price tiers.
 
 Platform presence is another important result. Restaurants that appear on more
 platforms are generally more visible and more reviewed. Google-only restaurants
 have an average Google rating of 4.242 and a median of 83 Google reviews.
 Restaurants present on two platforms have an average Google rating of 4.283 and a
 median of 371 reviews. Restaurants present on all three platforms reach an
-average Google rating of 4.355 and a median of 548 reviews. Figure
-\ref{fig:rq-platform-coverage} shows that wider platform coverage is associated
-with higher visibility and slightly higher ratings.
+average Google rating of 4.355 and a median of 548 reviews. As Figure
+\ref{fig:rq-platform-coverage} shows, from one to three platforms the median review
+count multiplies more than sixfold, whereas the mean rating rises only about
+0.11 stars. Wider platform coverage is therefore primarily a marker of popularity
+and visibility rather than of higher intrinsic quality.
 
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.78\textwidth]{images/research_questions/19_q10.png}
-\caption{Google rating by number of platforms where the restaurant appears. Restaurants present on more platforms tend to be more visible and better rated.}
+\includegraphics[width=0.92\textwidth]{images/research_questions/19_q10.png}
+\caption{Google reviews (left) and Google rating (right) by number of platforms where the restaurant appears. Review volume rises steeply with coverage while the rating barely moves: multi-platform presence marks popular venues, not better-rated ones.}
 \label{fig:rq-platform-coverage}
 \end{figure}
 

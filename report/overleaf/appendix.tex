@@ -1,0 +1,28 @@
+\newcommand{\reportappendixchapter}[2]{%
+  \refstepcounter{chapter}%
+  \setcounter{section}{0}%
+  \chapter*{Appendix \thechapter\\#1}%
+  \addcontentsline{toc}{chapter}{Appendix \thechapter\quad #1}%
+  \markboth{Appendix \thechapter\ #1}{Appendix \thechapter\ #1}%
+  \label{#2}%
+}
+
+\reportappendixchapter{Pre-Integration Data Quality Assessment}{app:pre-integration-quality}
+
+This appendix reproduces the standalone pre-integration data quality assessment
+report. It supports the quality discussion in
+Section~\ref{sec:pre-integration-quality}.
+
+\providecommand{\preintegrationtable}[1]{}
+\renewcommand{\preintegrationtable}[1]{\input{../pre_integration/tables/#1}}
+\input{../pre_integration/body.tex}
+
+\reportappendixchapter{Post-Integration Entity-Resolution and Enrichment Assessment}{app:post-integration-assessment}
+
+This appendix reproduces the standalone quality-of-integration assessment
+report. It supports the integration-quality discussion in
+Section~\ref{sec:post-integration-quality}.
+
+\providecommand{\postintegrationtable}[1]{}
+\renewcommand{\postintegrationtable}[1]{\input{../post_integration/tables/#1}}
+\input{../post_integration/body.tex}

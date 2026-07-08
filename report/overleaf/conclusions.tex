@@ -1,0 +1,61 @@
+\chapter{Conclusions}
+
+This project built and evaluated a complete data-management pipeline for comparing
+restaurant ratings across Google Maps, Tripadvisor, and TheFork in the Milan area.
+Starting from three heterogeneous sources with independent identifiers, formats, and
+levels of quality, the work produced a single integrated database suitable for
+consistency analysis and analytical querying.
+
+\section{Summary of the Work}
+
+The pipeline follows an ELT design. Raw data are acquired through the Google Places
+API and two dedicated scrapers, loaded into MongoDB as an immutable system of record,
+and then cleaned into per-source collections. Schema matching aligns the three
+vocabularies and classifies their representation conflicts, after which a
+Google-anchored entity-resolution stage links records through blocking, similarity
+scoring, and calibrated thresholds, with dedicated hardening for chain and franchise
+venues and an optional large-language-model adjudication of uncertain pairs. The
+selected links are materialized into a Google-seeded integrated collection that keeps
+each platform's ratings side by side, reconciles cuisine into a canonical taxonomy,
+and resolves price by majority-vote consensus. Finally, the cleaned and integrated
+collections are projected into a flat ClickHouse layer that supports the
+research-question queries.
+
+Quality was measured at two distinct points. Before integration, a data-quality
+assessment profiled each raw source along standard data-quality dimensions. After
+integration, the assessment targeted the integration process itself, evaluating the
+entity-resolution classifier, one-to-one link survival, and Tripadvisor geocoding
+against a manually labelled gold standard.
+
+\section{Main Findings}
+
+The integrated dataset contains 10,054 restaurants. Ratings are generally consistent
+across platforms, but the agreement is not perfect and its structure is informative.
+Tripadvisor is systematically more severe than Google and TheFork, which are closely
+aligned with each other. Rating stability depends strongly on evidence: restaurants
+supported by few reviews disagree far more across platforms. Data completeness is
+spatially structured, with the richest metadata concentrated in the historic centre
+and the Navigli and Isola belt and decreasing towards the periphery. Cuisine, price,
+and platform presence all contribute to the residual differences, and wider platform
+presence turns out to be a marker of popularity rather than of higher intrinsic
+quality.
+
+\section{Limitations}
+
+Several limitations follow from the design. The dataset is Google-seeded, so a
+restaurant absent from Google cannot enter the integrated collection, and TheFork's
+small footprint limits three-platform coverage. Tripadvisor coordinates are obtained
+through geocoding rather than measured, which introduces a small spatial error.
+Entity resolution is deliberately conservative: many true matches are left as
+uncertain rather than forced, and one-to-one link selection reduces the survival of
+some human-confirmed matches. Finally, the data represent a single point in time and
+do not capture how ratings evolve.
+
+\section{Future Work}
+
+The integrated dataset opens several extensions. The most natural is to exploit the
+review text that is already collected but not yet analysed, applying language models
+to extract sentiment and topics and to explain rating differences qualitatively.
+Periodic re-acquisition would add a temporal dimension and allow the study of rating
+dynamics, while broadening the geographic scope beyond Milan would test whether the
+observed platform biases generalize to other markets.

@@ -18,36 +18,39 @@ A single generic loader was implemented for all three sources. Instead of develo
 
 \begin{table}[htbp]
 \centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
 
-\begin{tabular}{p{2.5cm} p{1.8cm} p{1.8cm} p{2.3cm} p{2.3cm} p{3.8cm}}
+\begin{tabular}{@{}lrrlll@{}}
 \toprule
 \textbf{Source} &
 \textbf{Records} &
 \textbf{Size} &
 \textbf{Format} &
-\textbf{Natural Key} &
-\textbf{Destination Collection} \\
+\begin{tabular}[t]{@{}l@{}}\textbf{Natural}\\\textbf{Key}\end{tabular} &
+\begin{tabular}[t]{@{}l@{}}\textbf{Destination}\\\textbf{Collection}\end{tabular} \\
 \midrule
 
 Google Places &
 10,808 &
 249 MB &
 JSON Lines &
-{\footnotesize\texttt{place\_id}} &
-{\scriptsize\texttt{restaurants\_raw\_google}} \\[0.3cm]
+{\scriptsize\texttt{place\_id}} &
+{\scriptsize\texttt{restaurants\_raw\_google}} \\
 
 Tripadvisor &
 7,539 &
 49 MB &
 JSON Array &
-{\footnotesize\texttt{source\_url}} &
-{\scriptsize\texttt{restaurants\_raw\_tripadvisor}} \\[0.3cm]
+{\scriptsize\texttt{source\_url}} &
+{\scriptsize\texttt{restaurants\_raw\_tripadvisor}} \\
 
 TheFork &
 1,344 &
 11.1 MB &
 JSON Array &
-{\footnotesize\texttt{source\_id}} &
+{\scriptsize\texttt{source\_id}} &
 {\scriptsize\texttt{restaurants\_raw\_thefork}} \\
 
 \bottomrule
@@ -67,10 +70,11 @@ During loading, each document is enriched only with minimal technical metadata. 
 Records are written to MongoDB in batches using bulk upsert operations. This approach limits memory consumption while reducing the number of database round-trips. At the end of each loading execution, a structured report is produced, summarizing the number of records read, successfully loaded, updated, and skipped because of missing or invalid natural keys.
 
 \section{Data Quality Assessment}
+\label{sec:pre-integration-quality}
 
 Before performing any integration, matching or enrichment operation, a preliminary data quality assessment was conducted on the raw datasets collected from Google Places, Tripadvisor, and TheFork. This is a pre-integration assessment: it evaluates the sources as acquired, before the cleaning, geocoding, entity-resolution, and integration stages. The objective was to evaluate the suitability of each source for the subsequent integration phase and to identify potential weaknesses requiring cleaning or enrichment.
 
-The metrics were computed according to the following definitions:
+The assessment follows standard data-quality dimensions (Batini and Scannapieco, 2016), and the metrics were computed according to the following definitions:
 
 \begin{itemize}
 
@@ -90,7 +94,7 @@ CriticalCompleteness =
 {\text{Expected critical fields}}
 \]
 
-\item \textbf{Validity}
+\item \textbf{Validity} (format-level check: a present value is valid if it matches its expected source-specific format)
 \[
 Validity =
 100 \times
@@ -100,25 +104,18 @@ Validity =
 
 \item \textbf{Spatial Readiness}
 \[
-SpatialReadiness =
+S_{\mathrm{spatial}} =
 100 \times
-\frac{\text{Records with valid coordinates}}
+\frac{\text{Valid-coordinate records}}
 {\text{Total records}}
 \]
 
 \item \textbf{Timeliness}
 \[
-Timeliness =
-\max
-\left(
-0,
-100 \times
-\left(
-1 -
-\frac{\text{Collection Duration}}
-{\text{Refresh Target}}
-\right)
-\right)
+\begin{aligned}
+T_{\mathrm{time}} &= \max(0,\;100 \times (1 - r))\\
+r &= \frac{\text{Collection duration}}{\text{Refresh target}}
+\end{aligned}
 \]
 
 \item \textbf{Reliability}
@@ -178,7 +175,7 @@ Timeliness & 67.23\% & 43.75\% & 95.83\% \\
 
 Reliability & 79.50\% & 53.10\% & 88.84\% \\
 
-Flags / 100 Records & 27.17 & 48.04 & 17 \\
+Flags / 100 Records & 27.17 & 48.04 & 17.04 \\
 
 \bottomrule
 \end{tabular}
@@ -210,4 +207,4 @@ Although TheFork is the smallest dataset (1,344 restaurants), it achieved the hi
 
 The primary weaknesses concern contact-related information, as email addresses and phone numbers are not available in the raw dataset, while website coverage is limited to 1.86\%. Nevertheless, these attributes are not critical for the integration objectives of this project.
 
-Only 229 quality flags were generated (17 per 100 records), representing the lowest anomaly density among all sources. Consequently, TheFork can already be considered highly suitable for integration and geospatial matching, requiring only limited preprocessing before the subsequent stages of the pipeline. Detailed field-level coverage and anomaly tables are reported in the project quality-assessment artifacts and can be included as supplementary appendix material if needed.
+Only 229 quality flags were generated (17 per 100 records), representing the lowest anomaly density among all sources. Consequently, TheFork can already be considered highly suitable for integration and geospatial matching, requiring only limited preprocessing before the subsequent stages of the pipeline. The complete field-level coverage tables and anomaly profile are included in Appendix~\ref{app:pre-integration-quality}.

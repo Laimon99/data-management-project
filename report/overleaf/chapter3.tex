@@ -48,7 +48,7 @@ The transformation pipeline standardizes fields that are originally inconsistent
 
 \subsection{Clean TheFork Dataset Schema}
 
-The cleaned TheFork dataset, \texttt{restaurants\_clean\_thefork}, is produced by \texttt{thefork\_clean} transformation pipeline. It contains 1,344 clean records and provides a standardized representation of restaurant information for entity matching, data quality assessment, and integration with other restaurant platforms. The cleaning process preserves the most relevant source information while replacing raw or semi-structured attributes with normalized and analytically usable features. In particular, raw fields such as \texttt{price\_range}, \texttt{discount}, \texttt{cuisine\_type}, \texttt{working\_days\_hours}, and the original nested review structure are transformed into standardized variables, while the raw collection remains available as an audit trail.
+The cleaned TheFork dataset, \texttt{restaurants\_clean\_thefork}, is produced by the \texttt{thefork\_clean} transformation pipeline. It contains 1,344 clean records and provides a standardized representation of restaurant information for entity matching, data quality assessment, and integration with other restaurant platforms. The cleaning process preserves the most relevant source information while replacing raw or semi-structured attributes with normalized and analytically usable features. In particular, raw fields such as \texttt{price\_range}, \texttt{discount}, \texttt{cuisine\_type}, \texttt{working\_days\_hours}, and the original nested review structure are transformed into standardized variables, while the raw collection remains available as an audit trail.
 
 \begin{table}[htbp]
 \centering
@@ -85,7 +85,7 @@ The objective of the schema matching phase is to identify the semantic correspon
 
 The analysis was conducted on the three clean collections produced during the transformation stage: \texttt{restaurants\_clean\_google}, \texttt{restaurants\_clean\_tripadvisor}, and \texttt{restaurants\_clean\_thefork}. Since each platform models restaurant information according to its own schema and business objectives, direct integration is not possible without first identifying which attributes describe the same real-world concept and which representation conflicts must be resolved.
 
-Schema matching was performed according to two complementary perspectives. The first concerns the semantic relationship between attributes, while the second concerns the representation conflicts that emerge when equivalent concepts are modeled differently. Following the classical schema integration literature, four types of semantic correspondences were considered:
+Schema matching was performed according to two complementary perspectives. The first concerns the semantic relationship between attributes, while the second concerns the representation conflicts that emerge when equivalent concepts are modeled differently. Following the classical schema integration literature (Rahm and Bernstein, 2001), four types of semantic correspondences were considered:
 
 
 \begin{itemize}
@@ -100,7 +100,12 @@ The matching process revealed that most restaurant descriptors are semantically 
 \begin{table}[htbp]
 \centering
 \footnotesize
-\begin{tabular}{p{0.28\textwidth}p{0.18\textwidth}p{0.48\textwidth}}
+\setlength{\tabcolsep}{4pt}
+\begin{tabularx}{\textwidth}{@{}
+>{\RaggedRight\arraybackslash}p{0.27\textwidth}
+>{\RaggedRight\arraybackslash}p{0.19\textwidth}
+>{\RaggedRight\arraybackslash}X
+@{}}
 \toprule
 \textbf{Integrated Concept} & \textbf{Relation} & \textbf{Source Attributes} \\
 \midrule
@@ -116,12 +121,12 @@ $\bot$ Disjointness &
 \texttt{place\_id}, \texttt{ta\_location\_id}, \texttt{tf\_id}
 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \caption{Examples of semantic correspondences identified during schema matching.}
 \label{tab:schema-matching-correspondences}
 \end{table}
 
-Several representation conflicts were also identified. The most important concerns restaurant ratings. Google Places and Tripadvisor use a 1--5 scale, whereas TheFork adopts a 0--10 scale. Although the three attributes describe the same concept, direct comparison would be misleading without normalization. This represents a scaling conflict rather than a semantic discrepancy. Similarly, price information is represented using heterogeneous formats, including categorical price levels, symbolic price bands, and explicit average prices expressed in euros.
+Several representation conflicts were also identified. The most important concerns restaurant ratings. Google Places and Tripadvisor use a 1--5 scale, whereas TheFork adopts a 0--10 scale. Although the three attributes describe the same concept, direct comparison would be misleading without normalization. This represents a scaling conflict rather than a semantic discrepancy. Similarly, price information is represented using heterogeneous formats, including categorical price levels, symbolic price bands, and explicit average prices expressed in euros. Cuisine descriptors are an additional semantic conflict, since the three platforms use different and even cross-language vocabularies; this overlap is resolved later through an explicit canonical cuisine taxonomy applied during dataset integration (Section~\ref{sec:cuisine-reconciliation}).
 
 Additional conflicts arise from structural differences. Address information may be represented either as a single normalized string or as a set of decomposed components. Review data exhibit even greater heterogeneity, since each platform provides different review structures, metadata, and levels of detail. Consequently, review objects are preserved together with their source provenance rather than being merged directly.
 
@@ -146,4 +151,3 @@ Coverage conflict & Missing coordinates in Tripadvisor & Geocoding and enrichmen
 A particularly important outcome of the analysis concerns source-specific identifiers. Google Places, Tripadvisor, and TheFork provide stable identifiers within their own platforms, namely \texttt{place\_id}, \texttt{ta\_location\_id}, and \texttt{tf\_id}. Although these identifiers uniquely identify restaurants within each source, they belong to independent namespaces and therefore cannot be used as integration keys. Entity resolution must consequently rely on descriptive attributes such as restaurant names, addresses, coordinates, and contact information.
 
 The correspondences are not only descriptive: they determine the actual integrated schema. Google identity and coordinates are used as the canonical restaurant backbone; TheFork's native 0--10 rating is normalized into a comparable \texttt{thefork\_rating\_5}; Google, Tripadvisor, and TheFork ratings are intentionally preserved as separate attributes because rating disagreement is the object of analysis; price signals from Google price levels, Tripadvisor price bands, and TheFork average prices are mapped to a common price representation; and review objects are not fused into a single text field because their structures, sampling rules, and provenance differ across platforms. The schema matching phase therefore establishes the semantic foundation required for integration. By explicitly defining attribute correspondences, identifying representation conflicts, and documenting source-specific characteristics, it becomes possible to generate consistent mapping rules and construct a unified restaurant schema without ambiguity or loss of information.
-

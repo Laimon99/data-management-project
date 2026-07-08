@@ -1,0 +1,26 @@
+\chapter*{Abstract}
+\thispagestyle{empty}
+
+Online review platforms are a primary source of information for consumers choosing
+where to eat, yet the same restaurant is often rated differently on each of them.
+This project builds an integrated database of restaurants in Milan from three
+platforms --- Google Maps, Tripadvisor, and TheFork --- and uses it to study how
+consistent restaurant ratings and metadata are across sources.
+
+A complete ELT pipeline was developed. Data are acquired through the Google Places
+API and two dedicated web scrapers, loaded as raw documents into MongoDB, cleaned
+and normalized per source, and then integrated. Integration relies on schema
+matching, a Google-anchored entity-resolution stage with calibrated thresholds,
+dedicated handling of chain and franchise venues, and an optional large-language-model
+adjudication of the uncertain cases. The resulting Google-seeded collection preserves
+each platform's ratings side by side and is projected into a flat ClickHouse layer for
+analytical querying. The quality of the source data is assessed before integration,
+while the entity-resolution process that drives the integration is evaluated
+afterwards against a manually labelled gold standard.
+
+The final dataset contains 10,054 restaurants. Ratings are generally consistent
+across platforms, but Tripadvisor is systematically more severe than Google and
+TheFork; ratings based on few reviews are markedly less stable; data completeness is
+strongly spatially structured, decreasing from the historic centre towards the
+periphery; and cuisine, price, and platform presence all help explain the residual
+differences.

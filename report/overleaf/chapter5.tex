@@ -77,6 +77,8 @@ Review counts &
 Contacts and price &
 \texttt{website}, \texttt{phones}, \texttt{price\_level},
 \texttt{price\_evidence}. \\
+Cuisine and taxonomy &
+\texttt{cuisine\_primary}, \texttt{cuisine\_tags}. \\
 Audit and provenance &
 \texttt{integration\_flags}, \texttt{sources.google},
 \texttt{sources.tripadvisor}, \texttt{sources.thefork}. \\
@@ -103,21 +105,73 @@ values.
 Contacts and price are handled differently. Phone values are preserved as a
 deduplicated set because a restaurant may legitimately have multiple numbers.
 Website conflicts keep the raw evidence and prefer Google only when conflicting
-values cannot be reconciled. Price evidence from Google, Tripadvisor, and TheFork
-is mapped to a shared representation, while the original source-specific values
-remain available under the source blocks.
+values cannot be reconciled. Price is a genuine value conflict, because the three
+platforms may disagree on how expensive a restaurant is. Each source price is first
+mapped to a shared ordinal tier expressed with human-readable labels
+(\texttt{INEXPENSIVE}, \texttt{MODERATE}, \texttt{EXPENSIVE},
+\texttt{VERY\_EXPENSIVE}). The top-level price level is then resolved by
+majority-vote consensus across the available sources rather than by a fixed source
+priority: the tier supported by the largest number of platforms wins. When two
+tiers are equally supported, the conflict is not forced; the resulting value is a
+sorted list of the tied labels, which deliberately preserves the signal that the
+restaurant straddles price tiers across platforms. The original source-specific
+price values remain available under the source blocks.
 
 This design maintains reproducibility: every integrated top-level value can be
 traced back to the original platform evidence stored under
 \texttt{sources.google}, \texttt{sources.tripadvisor}, and
 \texttt{sources.thefork}.
 
-\section{Post-Integration Quality Assessment}
+\section{Cuisine Reconciliation}
+\label{sec:cuisine-reconciliation}
 
-The quality of the integration was evaluated against hand-labelled gold data. The
+Cuisine was the most heterogeneous descriptor to integrate, and it is resolved
+explicitly during the construction of the integrated dataset. The three sources
+express cuisine in three unreconciled vocabularies: Tripadvisor uses Italian
+feminine adjectives (\textit{Italiana}, \textit{Asiatica}), TheFork uses masculine
+adjectives (\textit{Italiano}, \textit{Asiatico}) together with many regional
+Italian labels (\textit{Lombardo}, \textit{Toscano}, \textit{Napoletano}), while
+Google exposes an English controlled vocabulary
+(\texttt{italian\_restaurant}, \texttt{pizza\_restaurant}) that covers almost every
+venue but is dominated by non-food types. A first version of the integration kept
+only the first cuisine label of each venue, which split a single cuisine across
+several rows and ignored Google's near-complete coverage. The reconciliation step
+was introduced to remove this bias.
+
+The reconciliation is implemented as an explicit, hand-built canonical taxonomy
+rather than automatic stemming. Stemming cannot translate Google's English labels
+and would incorrectly merge unrelated terms such as \textit{Pesce} (fish) and
+\textit{Pizza}, whereas an explicit map also documents each judgement call and keeps
+the step auditable. The map is derived from the complete exploded inventory of all
+observed labels across the three platforms (51 Tripadvisor labels, 57 TheFork
+labels, and roughly 130 Google food types) and assigns every raw label to a small
+set of canonical buckets. Regional Italian labels collapse into \textit{Italian},
+and cross-language variants such as \textit{Italiana}, \textit{Italiano}, and
+\texttt{italian\_restaurant} converge onto the same bucket.
+
+Because most venues carry several cuisines, the reconciliation is multi-label. The
+union of canonical buckets observed across the three platforms is kept as
+\texttt{cuisine\_tags}, while a single \texttt{cuisine\_primary} is derived for
+analyses that require one point per venue. The primary bucket is chosen through a
+specificity-ranked consensus: the most specific bucket wins, so \textit{Pizza}
+takes precedence over the umbrella \textit{Italian} and \textit{Chinese} over the
+umbrella \textit{Asian}. Ties are broken by source precedence, preferring
+Tripadvisor over TheFork and TheFork over Google. An agreement indicator records
+whether the platforms concur on the venue's cuisine. This reconciliation is the
+data-management step that later allows the research-question analysis to group
+restaurants on a single trustworthy cuisine bucket instead of raw, gendered, or
+language-specific labels.
+
+\section{Post-Integration Quality Assessment}
+\label{sec:post-integration-quality}
+
+The quality of the integration was evaluated against the same manually labelled
+gold standard described in the entity-resolution chapter, comparing the pipeline's
+automatic decisions with the human \texttt{MATCH}/\texttt{NON\_MATCH} labels. The
 assessment measures not only the entity-resolution classifier, but also the
-survival of one-to-one selected links and the spatial enrichment of Tripadvisor
-records.
+survival of one-to-one selected links through the integration step and the spatial
+enrichment of Tripadvisor records, so that the final integrated dataset is judged
+end to end rather than only at the matching stage.
 
 \begin{table}[H]
 \centering
@@ -156,7 +210,9 @@ human-confirmed matches are not present in the final integrated source blocks
 because conservative link selection removes ambiguous alternatives. The geocoding
 assessment confirms that Tripadvisor spatial enrichment is reliable enough for
 blocking and spatial analysis: the median error is 10.1 m and all evaluated gold
-rows are within 100 m.
+rows are within 100 m. The supporting gold-sample counts, metric definitions,
+survival tables, and geocoding-error diagnostics are included in
+Appendix~\ref{app:post-integration-assessment}.
 
 \section{ClickHouse Analytical Layer}
 
@@ -179,7 +235,9 @@ The load process is reproducible and idempotent: each run creates the destinatio
 tables if needed, truncates them, and reloads the current MongoDB state. The
 integrated table keeps the analytical columns needed for the research questions,
 including platform ratings, review counts, platform membership flags, normalized
-price tier, cuisine labels, photo counts, and geographic coordinates. Heavy nested
+price tier, the canonical cuisine fields (\texttt{cuisine\_primary} and
+\texttt{cuisine\_tags}) produced by the reconciliation step, photo counts, and
+geographic coordinates. Heavy nested
 evidence remains in MongoDB, while ClickHouse stores a flat projection optimized
 for SQL analysis.
 

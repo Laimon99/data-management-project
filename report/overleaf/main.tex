@@ -13,11 +13,21 @@
 \usepackage{tabularx} 
 \usepackage{array}
 \usepackage{ragged2e}
+\usepackage{xcolor}
+
+\definecolor{qualityblue}{RGB}{31,119,180}
+\definecolor{qualitygreen}{RGB}{44,160,44}
+\definecolor{qualityorange}{RGB}{255,127,14}
+\definecolor{qualityred}{RGB}{214,39,40}
+\definecolor{qualitygray}{RGB}{127,127,127}
 
 \geometry{margin=2.5cm}
 
 \usepackage{setspace}
 \onehalfspacing
+
+% Avoid overfull lines caused by long unbreakable \texttt{} identifiers
+\setlength{\emergencystretch}{3em}
 
 \usepackage{hyperref}
 \hypersetup{
@@ -30,6 +40,10 @@ urlcolor=blue
 
 % Copertina
 \input{cover}
+
+% Abstract
+\input{abstract}
+\newpage
 
 % Indice
 \tableofcontents
@@ -50,5 +64,53 @@ urlcolor=blue
 \input{chapter5}
 
 \input{chapter6}
+
+% Conclusioni
+\input{conclusions}
+
+% Riferimenti / Repository
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+
+\noindent\textbf{Project repository.} Full source code and reproducible Docker
+infrastructure: \url{https://github.com/Laimon99/data-management-project}.
+
+\vspace{0.6em}
+\noindent\textbf{Data sources and APIs.}
+\begin{itemize}\setlength{\itemsep}{2pt}
+    \item Google Maps Platform --- Places API. \url{https://developers.google.com/maps/documentation/places/web-service}
+    \item Tripadvisor. \url{https://www.tripadvisor.com/}
+    \item TheFork. \url{https://www.thefork.com/}
+    \item OpenStreetMap and the Nominatim geocoding service. \url{https://www.openstreetmap.org/} --- \url{https://nominatim.org/}
+\end{itemize}
+
+\noindent\textbf{Databases and infrastructure.}
+\begin{itemize}\setlength{\itemsep}{2pt}
+    \item MongoDB documentation. \url{https://www.mongodb.com/docs/}
+    \item ClickHouse documentation. \url{https://clickhouse.com/docs}
+    \item Docker documentation. \url{https://docs.docker.com/}
+    \item Python. \url{https://www.python.org/} --- uv package manager. \url{https://docs.astral.sh/uv/}
+\end{itemize}
+
+\noindent\textbf{Main libraries.}
+\begin{itemize}\setlength{\itemsep}{2pt}
+    \item Playwright for Python (web scraping). \url{https://playwright.dev/python/}
+    \item RapidFuzz (fuzzy string matching). \url{https://rapidfuzz.github.io/RapidFuzz/}
+    \item GeoPy (geocoding client). \url{https://geopy.readthedocs.io/}
+    \item PyMongo and ClickHouse Connect (database drivers). \url{https://pymongo.readthedocs.io/} --- \url{https://clickhouse.com/docs/integrations/python}
+    \item Pydantic (settings and validation). \url{https://docs.pydantic.dev/}
+    \item pandas, SciPy and Plotly (analysis and visualization). \url{https://pandas.pydata.org/} --- \url{https://scipy.org/} --- \url{https://plotly.com/python/}
+\end{itemize}
+
+\noindent\textbf{Methodological references.}
+\begin{itemize}\setlength{\itemsep}{2pt}
+    \item E.~Rahm and P.~A.~Bernstein. \textit{A survey of approaches to automatic schema matching.} The VLDB Journal, 10(4):334--350, 2001.
+    \item P.~Christen. \textit{Data Matching: Concepts and Techniques for Record Linkage, Entity Resolution, and Duplicate Detection.} Springer, 2012.
+    \item C.~Batini and M.~Scannapieco. \textit{Data and Information Quality: Dimensions, Principles and Techniques.} Springer, 2016.
+\end{itemize}
+
+% Appendici
+\appendix
+\input{appendix}
 
 \end{document}
