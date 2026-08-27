@@ -28,45 +28,19 @@ ENV/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Keep project raw data tracked
-!data/
-!data/**
-
-# Generated Mongo export JSONs (large, regenerable)
+# Runtime datasets and database exports are large and regenerable. The public
+# showcase keeps only curated samples and aggregate quality evidence.
+data/raw/
+data/processed/
+data/analysis_export/
 data/exports/
+!data/samples/
+!data/samples/**
+!data/quality/
+!data/quality/**
 
 # Generated LLM audit outputs from local/resumed runs
 data/quality/llm_er_results*.jsonl
-
-# GitHub blocks normal Git files larger than 100 MiB
-data/raw/google_places/restaurants_seed.jsonl
-
-# Persistent browser automation profiles (cookies/cache — never commit)
-data/raw/tripadvisor/browser_automation_profile/
-data/raw/tripadvisor/brave_automation_profile/
-
-# Geocoding enrichment output (large, regenerable via tripadvisor-geocode-enrich)
-data/raw/tripadvisor/tripadvisor_scraper_results_geocoded.json
-
-# TheFork scraper runtime artifacts — keep only the final normalized JSON.
-data/raw/thefork/*_partial.json
-data/raw/thefork/thefork_milan_validation_report.json
-data/raw/thefork/browser_profile/
-data/raw/thefork/browser_profiles/
-data/raw/thefork/brave_automation_profile/
-data/raw/thefork/cdp_proxy_profiles/
-data/raw/thefork/detail_sample/
-data/raw/thefork/graphql_cdp_test*/
-data/raw/thefork/runs/
-data/raw/thefork/calibration/
-data/raw/thefork/proxy_runtime/
-data/raw/thefork/merge_reports/
-data/raw/thefork/_archive/
-data/raw/thefork/thefork_proxy_state.json
-data/raw/thefork/thefork_proxy_progress_report.json
-data/raw/thefork/thefork_detail_deferrals.json
-data/raw/thefork/*merge_report*.json
-data/raw/thefork/*_before_*merge*.json
 
 # Keep test fixtures tracked
 !tests/**/*.json
@@ -81,6 +55,7 @@ report/**/*.aux
 report/**/*.log
 report/**/*.out
 report/**/*.toc
+report/**/*.synctex.gz
 
 # Browser drivers
 chromedriver
