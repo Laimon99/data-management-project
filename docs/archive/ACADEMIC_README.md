@@ -38,7 +38,7 @@
   - [x] - Write a [final report](report/overleaf/)
   - [x] - Create a [presentation](report/presentation/)
   - [x] - Create [operational guide](REPRODUCTION_OF_PROJECT.md) for reproduction of the project
-  - [ ] - Upload to Google Drive and send to the professor 
+  - [ ] - Upload to Google Drive and send to the professor
 
 ## 1️⃣ Domain & research questions
 

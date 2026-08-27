@@ -15,8 +15,7 @@ from .schema import response_text_format
 class LlmClient(Protocol):
     model: str
 
-    def decide(self, group: MatchGroup) -> LlmDecision:
-        ...
+    def decide(self, group: MatchGroup) -> LlmDecision: ...
 
 
 class MockLlmClient:

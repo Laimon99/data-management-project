@@ -139,11 +139,7 @@ def adjudicate(
         if mode == ModeOption.dry_run:
             records = dry_run_records(groups, settings)
         else:
-            client = (
-                MockLlmClient()
-                if mode == ModeOption.mock
-                else OpenAIResponsesClient(settings)
-            )
+            client = MockLlmClient() if mode == ModeOption.mock else OpenAIResponsesClient(settings)
             results = run_groups(
                 groups,
                 client,

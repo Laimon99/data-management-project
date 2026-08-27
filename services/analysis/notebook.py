@@ -44,21 +44,42 @@ PLATFORM_COLORS = {"google": "#4C6EF5", "tripadvisor": "#E8590C", "thefork": "#2
 
 # Platform logos (assets/logos/, embedded as data URIs). Resolve from CWD up so it works
 # from notebooks/ or the repo root; shared by every chart that shows platforms.
-LOGO_DIR = next((b / "assets" / "logos" for b in [pathlib.Path.cwd(), *pathlib.Path.cwd().parents]
-                 if (b / "assets" / "logos" / "google.png").exists()), None)
+LOGO_DIR = next(
+    (
+        b / "assets" / "logos"
+        for b in [pathlib.Path.cwd(), *pathlib.Path.cwd().parents]
+        if (b / "assets" / "logos" / "google.png").exists()
+    ),
+    None,
+)
 
 
 def logo_uri(name):
-    return "data:image/png;base64," + base64.b64encode((LOGO_DIR / f"{name}.png").read_bytes()).decode()
+    return (
+        "data:image/png;base64,"
+        + base64.b64encode((LOGO_DIR / f"{name}.png").read_bytes()).decode()
+    )
 
 
 def add_xaxis_logos(fig, platforms, y=-0.05, size=0.16):
     """Replace a categorical platform x-axis's tick labels with brand logos (in order)."""
     fig.update_xaxes(showticklabels=False)
     for i, name in enumerate(platforms):
-        fig.add_layout_image(dict(source=logo_uri(name), xref="x", yref="paper",
-            x=i, y=y, sizex=size, sizey=0.11, xanchor="center", yanchor="top",
-            sizing="contain", layer="above"))
+        fig.add_layout_image(
+            dict(
+                source=logo_uri(name),
+                xref="x",
+                yref="paper",
+                x=i,
+                y=y,
+                sizex=size,
+                sizey=0.11,
+                xanchor="center",
+                yanchor="top",
+                sizing="contain",
+                layer="above",
+            )
+        )
     fig.update_layout(margin=dict(b=95))
 
 
@@ -78,17 +99,36 @@ def publish(df: pd.DataFrame, name: str, caption: str) -> pd.DataFrame:
     return df
 
 
-print(f"Connected to ClickHouse db='{settings.clickhouse_db}' at "
-      f"{settings.clickhouse_host}:{settings.clickhouse_port}")
+print(
+    f"Connected to ClickHouse db='{settings.clickhouse_db}' at "
+    f"{settings.clickhouse_host}:{settings.clickhouse_port}"
+)
 
 __all__ = [
     # third-party
-    "np", "pd", "px", "go", "pio", "stats",
+    "np",
+    "pd",
+    "px",
+    "go",
+    "pio",
+    "stats",
     # analysis package helpers
-    "queries", "to_csv", "to_latex",
-    "CENTER_RADIUS_KM", "REVIEW_VOLUME_TIERS", "SPARSE_REVIEW_THRESHOLD",
-    "assign_neighbourhood", "classify_center_periphery", "distance_to_duomo_km",
+    "queries",
+    "to_csv",
+    "to_latex",
+    "CENTER_RADIUS_KM",
+    "REVIEW_VOLUME_TIERS",
+    "SPARSE_REVIEW_THRESHOLD",
+    "assign_neighbourhood",
+    "classify_center_periphery",
+    "distance_to_duomo_km",
     # notebook infrastructure
-    "settings", "client", "run", "publish",
-    "PLATFORM_COLORS", "LOGO_DIR", "logo_uri", "add_xaxis_logos",
+    "settings",
+    "client",
+    "run",
+    "publish",
+    "PLATFORM_COLORS",
+    "LOGO_DIR",
+    "logo_uri",
+    "add_xaxis_logos",
 ]
