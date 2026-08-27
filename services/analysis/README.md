@@ -22,8 +22,8 @@ Import path: `analysis` (PEP 420 namespace package under `services/`).
 ## Running the research questions
 
 The questions are executed from the notebooks, which query ClickHouse and publish their
-per-question CSV/LaTeX tables (via `publish`) plus chart PNGs into `report/`
-(`report/for_visualizations/tables/`, `report/overleaf/images/research_questions/`). Start
+per-question CSV/LaTeX tables (via `publish`) under `artifacts/analysis/tables/` plus
+chart PNGs under `report/overleaf/images/research_questions/`. Start
 ClickHouse first:
 
 ```bash

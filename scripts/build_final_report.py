@@ -3,7 +3,7 @@
 The research analysis lives in twelve self-contained notebooks
 (``notebooks/q00``–``notebooks/q11``). This script merges their *already
 executed* cells, in order, into a single in-memory notebook and exports it to
-``report/final/research_questions_analysis.html`` with code input hidden — a
+``artifacts/analysis/research_questions_analysis.html`` with code input hidden — a
 clean narrative-plus-charts report, matching how the original monolith export
 was produced.
 
@@ -21,7 +21,7 @@ from nbconvert import HTMLExporter
 
 REPO = Path(__file__).resolve().parent.parent
 NOTEBOOK_DIR = REPO / "notebooks"
-OUTPUT = REPO / "report" / "final" / "research_questions_analysis.html"
+OUTPUT = REPO / "artifacts" / "analysis" / "research_questions_analysis.html"
 TITLE = "research_questions_analysis"
 
 # Explicit order: overview first, then Q1–Q11.

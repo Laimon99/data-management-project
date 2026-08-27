@@ -78,5 +78,5 @@ def _collapse_anchors() -> list[Neighbourhood]:
 # porta_romana, sempione, loreto) reused for Q7's neighbourhood cut.
 POPULAR_NEIGHBOURHOODS: list[Neighbourhood] = _collapse_anchors()
 
-# Destination for CSV + LaTeX exports consumed by the final report.
-REPORT_TABLES_DIRNAME = "report/final/tables"
+# Destination for generated CSV + LaTeX exports consumed by the final report.
+REPORT_TABLES_DIRNAME = "artifacts/analysis/tables"

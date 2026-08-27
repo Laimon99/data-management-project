@@ -503,9 +503,10 @@ uv run dataman-load-clickhouse all
 The **analysis** stage is implemented as `services/analysis`. It ships the externalized SQL
 in `services/analysis/queries` (`q0`–`q11`) plus the shared `analysis.notebook` helpers
 (`run`/`publish`) that the per-question notebooks `notebooks/q00…q11` import to query the
-ClickHouse tables and publish per-question CSV/LaTeX tables + chart PNGs into `report/`
-(`report/for_visualizations/tables/`, `report/overleaf/images/research_questions/`) for the
-final report (`report/overleaf`, `report/presentation`). The `uv run dataman-analysis-export`
+ClickHouse tables and publish per-question CSV/LaTeX tables to
+`artifacts/analysis/tables/` and chart PNGs to
+`report/overleaf/images/research_questions/` for the final report source. Review-ready
+PDFs and presentations live under `deliverables/`. The `uv run dataman-analysis-export`
 CLI separately dumps whole ClickHouse tables to CSV/Parquet under `data/analysis_export/`.
 
 ---

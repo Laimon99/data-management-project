@@ -34,6 +34,12 @@ try {
         if ($LASTEXITCODE -ne 0) {
             throw "pdflatex failed on second pass with exit code $LASTEXITCODE"
         }
+
+        $deliverableDir = Join-Path $repoRoot "deliverables/assessments"
+        New-Item -ItemType Directory -Force $deliverableDir | Out-Null
+        Copy-Item -Force `
+            (Join-Path $reportDir "main.pdf") `
+            (Join-Path $deliverableDir "pre-integration-quality-report.pdf")
     }
     finally {
         Pop-Location

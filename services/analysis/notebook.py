@@ -72,7 +72,7 @@ def run(sql: str) -> pd.DataFrame:
 
 
 def publish(df: pd.DataFrame, name: str, caption: str) -> pd.DataFrame:
-    """Export a result table to CSV + LaTeX under report/final/tables/ and return it."""
+    """Export a result table under artifacts/analysis/tables/ and return it."""
     to_csv(df, name)
     to_latex(df, name, caption=caption, label=f"tab:{name}")
     return df

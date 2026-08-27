@@ -43,7 +43,7 @@ To run the profiler and regenerate the report, the environment needs:
 | Project dependencies from `pyproject.toml` | CLI execution through the project environment. |
 | Development dependencies `pytest` and `ruff` | Tests and lint checks. |
 | `uv` | Recommended project/environment runner; fallback commands are listed below. |
-| `pdflatex` | Compiling `report/pre_integration/main.pdf` through `report/pre_integration/build_report.ps1`. |
+| `pdflatex` | Compiling the pre-integration report through `report/pre_integration/build_report.ps1`. |
 
 ## Metric definitions
 
@@ -149,10 +149,10 @@ PDF:
 powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
-This compiles:
+This compiles the working PDF and copies the review-ready deliverable to:
 
 ```text
-report/pre_integration/main.pdf
+deliverables/assessments/pre-integration-quality-report.pdf
 ```
 
 The LaTeX entry point is `report/pre_integration/main.tex`; it includes the generated
