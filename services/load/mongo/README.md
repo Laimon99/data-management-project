@@ -5,8 +5,8 @@ single job is to move the already-extracted raw files from `data/raw/` into **Mo
 as a **pure raw passthrough** — no parsing, normalization, deduplication, or enrichment.
 All transformation is deferred to later stages that operate on MongoDB.
 
-See [`specs/storage-load-layer.md`](../../specs/storage-load-layer.md) for the full
-design rationale and [`docs/etl-design.md`](../../docs/etl-design.md) for where this layer
+See [`specs/storage-load-layer.md`](../../../specs/storage-load-layer.md) for the full
+design rationale and [`docs/etl-design.md`](../../../docs/etl-design.md) for where this layer
 sits in the wider pipeline.
 
 ## How it works

@@ -37,14 +37,9 @@ class LlmERSettings(BaseSettings):
     max_match_distance_m: float = Field(default=300.0, gt=0)
     contact_override_distance_m: float = Field(default=1000.0, gt=0)
     severe_risk_flags_csv: str = (
-        "chain_branch_ambiguity,address_mismatch,large_distance,"
-        "multiple_plausible_candidates"
+        "chain_branch_ambiguity,address_mismatch,large_distance,multiple_plausible_candidates"
     )
 
     @property
     def severe_risk_flags(self) -> set[str]:
-        return {
-            flag.strip()
-            for flag in self.severe_risk_flags_csv.split(",")
-            if flag.strip()
-        }
+        return {flag.strip() for flag in self.severe_risk_flags_csv.split(",") if flag.strip()}

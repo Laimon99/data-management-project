@@ -11,7 +11,7 @@ querying the flat analytics tables already loaded into **ClickHouse** by
 The deliverable is a **Jupyter notebook** that connects to ClickHouse, runs one
 analysis block per research question, renders the result tables and supporting
 charts inline, and writes a short narrative answer for each question so the
-output can be lifted directly into the final report (`report/final/`). All seven
+output can be lifted directly into the final report (`artifacts/analysis/`). All seven
 questions are answerable from the current ClickHouse schema; the only caveat is
 the *timeliness/"outdated information"* sub-part of Question 3, which has no
 per-record collection timestamp in ClickHouse and must be answered with the
@@ -133,7 +133,7 @@ Provide **both** cuts:
 - Exact center radius value for Q7 (default proposed: 2 km) — confirm before
   finalizing report numbers. - lets use multiple taling points - 2km around duomo vs others; known popular neigbourhoods (check readme of project for list and coords) vs others
 - Whether any chosen result tables should also be exported as CSV into
-  `report/final/` for the LaTeX report, or kept inline only. - yes, also latex tables are needed
+  `artifacts/analysis/` for the LaTeX report, or kept inline only. - yes, also latex tables are needed
 
 ## Out of Scope
 

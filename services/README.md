@@ -236,8 +236,9 @@ The analysis stage backing the eleven research questions. It ships the externali
 analysis.notebook import *` setup imported by every notebook, with `run`/`publish`),
 `export.py` (CSV/LaTeX writers), `geo.py` (Duomo-distance / neighbourhood helpers), and
 `config.py` (read-only ClickHouse client). The `notebooks/q00…q11` import these to query
-ClickHouse and publish per-question CSV/LaTeX tables + chart PNGs into `report/` for the
-final report (`report/overleaf`, `report/presentation`).
+ClickHouse and publish per-question CSV/LaTeX tables to `artifacts/analysis/tables/`
+plus chart PNGs used by the final report source under `report/overleaf/`. Review-ready
+PDFs and presentations live under `deliverables/`.
 
 `dump.py` backs a separate convenience CLI that dumps whole ClickHouse tables to CSV/Parquet:
 

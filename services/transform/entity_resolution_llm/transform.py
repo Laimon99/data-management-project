@@ -220,8 +220,7 @@ def load_groups(
     groups: list[MatchGroup] = []
     for (group_source, source_id), candidate_docs in raw_groups.items():
         if not force and any(
-            doc.get("llm_label") is not None or "llm_updated_at" in doc
-            for doc in candidate_docs
+            doc.get("llm_label") is not None or "llm_updated_at" in doc for doc in candidate_docs
         ):
             continue
 

@@ -99,16 +99,13 @@ def resolve(
         None,
         "--dmin-chain-thefork",
         help=(
-            "TheFork chain-brand override for the NON_MATCH threshold; "
-            "defaults to --dmin-thefork."
+            "TheFork chain-brand override for the NON_MATCH threshold; defaults to --dmin-thefork."
         ),
     ),
     dmax_chain_thefork: float | None = typer.Option(
         None,
         "--dmax-chain-thefork",
-        help=(
-            "TheFork chain-brand override for the MATCH threshold; " "defaults to --dmax-thefork."
-        ),
+        help=("TheFork chain-brand override for the MATCH threshold; defaults to --dmax-thefork."),
     ),
 ) -> None:
     """Generate Google-anchored ER candidates into entity_resolution_candidates."""

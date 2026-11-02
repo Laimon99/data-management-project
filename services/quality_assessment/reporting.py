@@ -1198,8 +1198,7 @@ def comparable_rating_avg(source: dict[str, Any]) -> float | None:
 def sparse_review_text(source: dict[str, Any]) -> str:
     summary = source["summary"]
     return (
-        f"{summary['low_review_records']} "
-        f"({fmt_pct(summary['low_review_pct_of_valid_reviews'])})"
+        f"{summary['low_review_records']} ({fmt_pct(summary['low_review_pct_of_valid_reviews'])})"
     )
 
 

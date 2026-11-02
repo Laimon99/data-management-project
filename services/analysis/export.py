@@ -32,7 +32,7 @@ def tables_dir(root: Path | None = None) -> Path:
 
 
 def to_csv(df: "pd.DataFrame", name: str, *, root: Path | None = None) -> Path:
-    """Write a DataFrame to ``report/final/tables/<name>.csv`` and return the path."""
+    """Write a DataFrame to ``artifacts/analysis/tables/<name>.csv`` and return the path."""
     path = tables_dir(root) / f"{name}.csv"
     df.to_csv(path, index=False)
     return path
@@ -64,7 +64,7 @@ def to_latex(
     label: str,
     root: Path | None = None,
 ) -> Path:
-    """Write a booktabs LaTeX table to ``report/final/tables/<name>.tex``.
+    """Write a booktabs LaTeX table to ``artifacts/analysis/tables/<name>.tex``.
 
     Matches the ``report/pre_integration/tables/*.tex`` style (booktabs rules,
     ``\\tiny``), wrapped in a captioned ``table`` float for the final report.

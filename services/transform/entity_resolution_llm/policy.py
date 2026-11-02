@@ -52,10 +52,7 @@ def apply_policy(
             notes.append("downgraded: matched_candidate_id is missing or not in prompt candidates")
         elif decision.confidence < settings.match_confidence_threshold:
             final_decision = Decision.UNCERTAIN
-            notes.append(
-                "downgraded: confidence below "
-                f"{settings.match_confidence_threshold:.2f}"
-            )
+            notes.append(f"downgraded: confidence below {settings.match_confidence_threshold:.2f}")
         elif {str(flag) for flag in decision.risk_flags} & settings.severe_risk_flags:
             final_decision = Decision.UNCERTAIN
             notes.append("downgraded: severe risk flag present")
@@ -77,9 +74,7 @@ def apply_policy(
                 final_decision = Decision.UNCERTAIN
                 notes.append("downgraded: distance exceeds max threshold without contact evidence")
             elif (
-                distance is not None
-                and distance > settings.large_distance_m
-                and not contact_match
+                distance is not None and distance > settings.large_distance_m and not contact_match
             ):
                 final_decision = Decision.UNCERTAIN
                 notes.append("downgraded: large distance without contact evidence")

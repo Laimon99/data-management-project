@@ -1,59 +1,33 @@
-# Report
+# Report sources
 
-LaTeX/PDF deliverables for the project. The folder is organized by reporting stage so
-each report has a clear home as the project progresses.
+This directory contains the editable LaTeX sources for the project's three reports.
+Compiled, review-ready PDFs live in [`deliverables/`](../deliverables/); generated
+analysis exports live in [`artifacts/`](../artifacts/).
 
 ## Layout
 
-```
-report/
-├── pre_integration/    # Pre-integration quality report (done)
-│   ├── main.tex        #   LaTeX source
-│   ├── main.pdf        #   compiled PDF
-│   ├── build_report.ps1#   Windows build: regenerate tables + compile main.pdf
-│   └── tables/         #   auto-generated LaTeX tables (DO NOT edit by hand)
-├── post_integration/   # Post-integration quality report (in progress)
-└── final/              # Final consolidated project report (planned)
-```
+| Path | Purpose |
+|---|---|
+| `overleaf/` | Source of the consolidated final report |
+| `pre_integration/` | Source and generated tables for the pre-integration quality report |
+| `post_integration/` | Source and generated tables for the post-integration assessment |
 
-## Stages
+The `tables/` directories are generated inputs consumed by the corresponding LaTeX
+sources. Do not edit them by hand; rerun the relevant assessment service.
 
-### Pre-integration report — `pre_integration/` *(done)*
+## Build the reports
 
-The raw, pre-cleaning quality baseline. Its tables in `pre_integration/tables/` are
-**generated**, not hand-written: `services/quality_assessment` (`uv run quality-assessment`)
-writes them to `report/pre_integration/tables/` and the Markdown summary to
-`docs/data-quality-assessment.md`. `pre_integration/main.tex` pulls each table in via
-`\input{tables/...}`.
-
-> The `pre_integration/tables/` directory and the `report/pre_integration/main.tex` /
-> `report/pre_integration/main.pdf` paths are referenced directly by
-> `services/quality_assessment` (see `cli.py`, `__main__.py`, `reporting.py`) and by
-> `pre_integration/build_report.ps1`. **Do not move or rename these** — regenerate them
-> instead.
-
-Rebuild from the current raw datasets:
-
-```bash
-uv run quality-assessment && cd report/pre_integration && \
-  pdflatex -interaction=nonstopmode -halt-on-error main.tex && \
-  pdflatex -interaction=nonstopmode -halt-on-error main.tex
-```
-
-Windows:
+From the repository root, rebuild the pre-integration report on Windows with:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
 ```
 
-### Post-integration report — `post_integration/` *(in progress)*
+The script regenerates its tables, compiles LaTeX twice, and copies the final PDF to
+`deliverables/assessments/pre-integration-quality-report.pdf`.
 
-Quality re-assessed **after** cleaning, entity resolution, and unification: completeness,
-consistency, uniqueness, and timeliness on `restaurants_integrated`, with before/after
-deltas against the pre-integration baseline above. New `.tex` sources and any
-stage-specific tables live here.
+The final report source is self-contained under `report/overleaf/`. Compile
+`main.tex` twice from that directory, then copy the resulting PDF to
+`deliverables/reports/data-management-project-report.pdf` before publishing an update.
 
-### Final report — `final/` *(planned)*
-
-The consolidated deliverable that ties together domain/research questions, acquisition,
-storage, integration, both quality stages, and the analysis results.
+Generated LaTeX auxiliaries and SyncTeX files are ignored by Git.

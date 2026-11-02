@@ -167,8 +167,9 @@ Expect: `restaurants_clean_google`, `restaurants_clean_thefork`,
 ### 11. Generate the quality report PDF
 
 The profiling command regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-and `report/pre_integration/tables/`; the LaTeX commands then rebuild
-`report/pre_integration/main.pdf`.
+and `report/pre_integration/tables/`; the LaTeX commands rebuild the working PDF under
+`report/pre_integration/`. Publish the reviewed copy as
+`deliverables/assessments/pre-integration-quality-report.pdf`.
 
 On macOS, PDF compilation requires `pdflatex`. Install it once with:
 
@@ -213,7 +214,8 @@ Compile the post-integration PDF:
 (cd report/post_integration && pdflatex -interaction=nonstopmode -halt-on-error main.tex && pdflatex -interaction=nonstopmode -halt-on-error main.tex)
 ```
 
-The final PDF is `report/post_integration/main.pdf`.
+Publish the reviewed PDF as
+`deliverables/assessments/post-integration-quality-report.pdf`.
 
 ### 13. Verify
 
@@ -238,7 +240,7 @@ the corresponding MongoDB collection.
 
 With the ClickHouse analytics tables loaded (step 10), run the eleven research-question
 notebooks. They query ClickHouse through the `analysis` package and publish per-question
-tables (`report/for_visualizations/tables/`) and charts
+tables (`artifacts/analysis/tables/`) and charts
 (`report/overleaf/images/research_questions/`):
 
 ```bash
@@ -428,7 +430,8 @@ Expect: `restaurants_clean_google`, `restaurants_clean_thefork`,
 ### 11. Generate the quality report PDF
 
 The report build script regenerates `data/quality/`, `docs/data-quality-assessment.md`,
-`report/pre_integration/tables/`, and `report/pre_integration/main.pdf`:
+and `report/pre_integration/tables/`, compiles the working PDF, and copies the reviewed
+output to `deliverables/assessments/pre-integration-quality-report.pdf`:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\report\pre_integration\build_report.ps1
@@ -489,7 +492,7 @@ the corresponding MongoDB collection.
 
 With the ClickHouse analytics tables loaded (step 10), run the eleven research-question
 notebooks. They query ClickHouse through the `analysis` package and publish per-question
-tables (`report/for_visualizations/tables/`) and charts
+tables (`artifacts/analysis/tables/`) and charts
 (`report/overleaf/images/research_questions/`):
 
 ```powershell

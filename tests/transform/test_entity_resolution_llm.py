@@ -354,9 +354,7 @@ def test_no_apply_does_not_modify_mongo():
     db = _db()
     db.google.insert_one(_google(phone="+39021234567"))
     db.ta.insert_one(_ta(phone="+39021234567"))
-    db.candidates.insert_one(
-        _candidate(components={"phone_match": 1.0, "geo_dist_m": 30.0})
-    )
+    db.candidates.insert_one(_candidate(components={"phone_match": 1.0, "geo_dist_m": 30.0}))
     groups = load_groups(db.google, db.ta, db.tf, db.candidates, _settings())
 
     run_groups(groups, MockLlmClient(), _settings(), apply=False, force=False)

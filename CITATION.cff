@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it using the metadata below."
+title: "Milan Restaurant Ratings Across Online Platforms"
+type: software
+version: 0.1.0
+date-released: 2026-08-27
+authors:
+  - family-names: Zero
+    given-names: Edoardo
+  - family-names: Ragusini
+    given-names: Simone
+  - family-names: Yelisieiev
+    given-names: Vladyslav
+repository-code: "https://github.com/Laimon99/data-management-project"
+url: "https://github.com/Laimon99/data-management-project"
+license: MIT
+abstract: >-
+  An end-to-end data-management pipeline for acquiring, integrating, assessing,
+  and analysing restaurant ratings from Google Places, Tripadvisor, and TheFork
+  in the Milan area.
+keywords:
+  - data management
+  - entity resolution
+  - data quality
+  - MongoDB
+  - ClickHouse
+  - restaurant ratings
